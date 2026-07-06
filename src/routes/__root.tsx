@@ -77,11 +77,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "منصة المِقْيَاس الذكية | أ. أسامة فتح الدين — القدرات الكمي" },
+      { name: "description", content: "منصة تعليمية متكاملة لاختبار القدرات العامة (كمي) مع كبير الخبراء الأستاذ أسامة فتح الدين — 150 قسماً، محاكي نمر التفاعلي، ودفتر أخطاء ذكي." },
+      { name: "author", content: "Al-Miqyas Academy" },
+      { property: "og:title", content: "منصة المِقْيَاس الذكية — قُد قدراتك نحو الـ 100٪" },
+      { property: "og:description", content: "تدريب احترافي على القسم الكمي من اختبار القدرات مع الأستاذ أسامة فتح الدين محمد." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
@@ -102,7 +102,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="ar" dir="rtl">
       <head>
         <HeadContent />
       </head>
