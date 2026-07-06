@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion";
 import { useEffect, useRef } from "react";
-import professorHero from "@/assets/professor-hero.jpg";
+import professorAsset from "@/assets/professor-osama.jpg.asset.json";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -146,13 +146,16 @@ function Index() {
           <div aria-hidden className="absolute -inset-8 rounded-[2rem] bg-gradient-to-tr from-gold/30 via-transparent to-teal-glow/30 blur-2xl" />
           <div className="relative overflow-hidden rounded-[1.75rem] border border-gold/30 gold-ring">
             <img
-              src={professorHero}
+              src={professorAsset.url}
               alt="الأستاذ أسامة فتح الدين محمد — كبير خبراء القسم الكمي"
-              width={1024}
-              height={1280}
-              className="h-full w-full object-cover"
+              className="h-[560px] w-full object-cover object-top"
+              style={{ filter: "contrast(1.06) saturate(1.08)" }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-teal-deep via-teal-deep/20 to-transparent" />
+            {/* cinematic color grade */}
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-teal-deep via-teal-deep/40 to-transparent mix-blend-multiply" />
+            <div aria-hidden className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-gold/15" />
+            {/* subtle vignette */}
+            <div aria-hidden className="pointer-events-none absolute inset-0" style={{ boxShadow: "inset 0 0 120px 20px oklch(0.14 0.04 175 / 0.7)" }} />
             <div className="absolute bottom-5 right-5 left-5 glass-card px-5 py-4">
               <div className="font-display text-lg font-bold">أ. أسامة فتح الدين</div>
               <div className="text-xs text-muted-foreground">كبير خبراء القسم الكمي · +١٥ عاماً تدريب</div>
