@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion";
 import { useEffect, useRef } from "react";
-import professorAsset from "@/assets/professor-osama.jpg.asset.json";
+import professorHero from "@/assets/professor-hero.jpg";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -146,10 +146,11 @@ function Index() {
           <div aria-hidden className="absolute -inset-8 rounded-[2rem] bg-gradient-to-tr from-gold/30 via-transparent to-teal-glow/30 blur-2xl" />
           <div className="relative overflow-hidden rounded-[1.75rem] border border-gold/30 gold-ring">
             <img
-              src={professorAsset.url}
+              src={professorHero}
               alt="الأستاذ أسامة فتح الدين محمد — كبير خبراء القسم الكمي"
-              className="h-[560px] w-full object-cover object-top"
-              style={{ filter: "contrast(1.06) saturate(1.08)" }}
+              width={1024}
+              height={1280}
+              className="h-full w-full object-cover"
             />
             {/* cinematic color grade */}
             <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-teal-deep via-teal-deep/40 to-transparent mix-blend-multiply" />
