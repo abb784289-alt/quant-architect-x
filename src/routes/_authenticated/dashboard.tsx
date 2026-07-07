@@ -1,17 +1,38 @@
 'use client';
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { readSession } from "@/lib/session";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "لوحة الـ 150 قسم — منصة المِقْيَاس" },
       { name: "description", content: "داشبورد عامة منظمة لكل أقسام القدرات الكمي مع أزرار المشاهدة والاختبار والتدريب." },
     ],
   }),
-  component: PublicDashboardPage,
+  component: DashboardGate,
 });
+
+function DashboardGate() {
+  const [ok, setOk] = useState<boolean | null>(null);
+  useEffect(() => {
+    const s = readSession();
+    if (!s) {
+      setOk(false);
+      window.location.replace("/auth");
+      return;
+    }
+    setOk(true);
+  }, []);
+  if (ok) return <PublicDashboardPage />;
+  return (
+    <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">
+      جارٍ فتح لوحة الأقسام...
+    </div>
+  );
+}
 
 type QuantSection = {
   id: string;
