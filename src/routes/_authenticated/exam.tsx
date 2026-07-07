@@ -220,7 +220,7 @@ function NemrExamEngine({ session }: { session: Session }) {
                           : isFlag
                             ? "bg-teal-soft text-teal-deep border-teal/40"
                             : "bg-surface-2 text-foreground border-border hover:bg-white")}
-                  >{q.id}</button>
+                  >{i + 1}</button>
                 );
               })}
             </div>
