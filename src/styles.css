@@ -164,3 +164,42 @@
   50% { box-shadow: 0 0 0 12px oklch(0.79 0.14 75 / 0); }
 }
 @utility animate-pulse-gold { animation: pulse-gold 2.4s ease-in-out infinite; }
+
+.q-table {
+  width: 100%;
+  max-width: 32rem;
+  margin: 0 auto;
+  border-collapse: collapse;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: oklch(0.25 0.02 240);
+  background: #fff;
+  border: 1px solid oklch(0.90 0.01 240);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+.q-table caption {
+  caption-side: top;
+  padding: 0.5rem 0.75rem;
+  font-weight: 700;
+  color: oklch(0.42 0.09 190);
+  background: oklch(0.97 0.02 190);
+  border-bottom: 1px solid oklch(0.90 0.01 240);
+}
+.q-table th, .q-table td {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid oklch(0.90 0.01 240);
+  text-align: center;
+}
+.q-table thead th {
+  background: oklch(0.95 0.03 190);
+  color: oklch(0.32 0.08 190);
+  font-weight: 700;
+}
+.q-table tbody th {
+  background: oklch(0.98 0.01 240);
+  font-weight: 600;
+}
+.q-table tbody tr:nth-child(even) td {
+  background: oklch(0.985 0.005 240);
+}
