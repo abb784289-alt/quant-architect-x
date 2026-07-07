@@ -203,7 +203,11 @@ function NemrExamEngine({ session }: { session: Session }) {
 
             <div style={{ fontSize: `${fontScale}rem` }}>
               <p className="text-foreground mb-4 leading-8"><MathText text={active.prompt} /></p>
-              {active.svg && (
+              {active.tableHtml && (
+                <div className="rounded-xl bg-white border border-border p-4 mb-4 overflow-x-auto"
+                  dangerouslySetInnerHTML={{ __html: active.tableHtml }} />
+              )}
+              {!active.tableHtml && active.svg && (
                 <div className="rounded-xl bg-white border border-border p-4 mb-4 flex justify-center [&_svg]:max-h-64 [&_svg]:w-auto"
                   dangerouslySetInnerHTML={{ __html: active.svg }} />
               )}
@@ -448,7 +452,9 @@ function ResultsView({
                 return (
                   <div key={q.id} className="rounded-xl border border-red-200 bg-red-50/40 p-4">
                     <div className="text-sm text-foreground mb-3 leading-7"><MathText text={q.prompt} /></div>
-                    {q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: q.svg }} />}
+                    {q.tableHtml
+                      ? <div className="rounded-lg bg-white border border-border p-3 mb-3 overflow-x-auto" dangerouslySetInnerHTML={{ __html: q.tableHtml }} />
+                      : q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: q.svg }} />}
                     <div className="grid gap-1.5 text-xs">
                       <div className="text-red-700"><span className="font-bold">إجابتك:</span> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : "لم تُجَب"}</div>
                       <div className="text-teal-deep"><span className="font-bold">الإجابة الصحيحة:</span> {letters[q.correctIndex]} — <MathText text={q.choices[q.correctIndex]} /></div>
