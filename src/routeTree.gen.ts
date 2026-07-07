@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedFoundationRouteImport } from './routes/_authenticated/foundation'
+import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedReportSessionIdRouteImport } from './routes/_authenticated/report.$sessionId'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedFoundationRoute = AuthenticatedFoundationRouteImport.update({
   id: '/foundation',
   path: '/foundation',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedExamRoute = AuthenticatedExamRouteImport.update({
+  id: '/exam',
+  path: '/exam',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/exam': typeof AuthenticatedExamRoute
   '/foundation': typeof AuthenticatedFoundationRouteWithChildren
   '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/exam': typeof AuthenticatedExamRoute
   '/foundation': typeof AuthenticatedFoundationRouteWithChildren
   '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/exam': typeof AuthenticatedExamRoute
   '/_authenticated/foundation': typeof AuthenticatedFoundationRouteWithChildren
   '/_authenticated/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/_authenticated/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
@@ -96,6 +105,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/dashboard'
+    | '/exam'
     | '/foundation'
     | '/foundation/$categoryId'
     | '/report/$sessionId'
@@ -105,6 +115,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/dashboard'
+    | '/exam'
     | '/foundation'
     | '/foundation/$categoryId'
     | '/report/$sessionId'
@@ -115,6 +126,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
+    | '/_authenticated/exam'
     | '/_authenticated/foundation'
     | '/_authenticated/foundation/$categoryId'
     | '/_authenticated/report/$sessionId'
@@ -154,6 +166,13 @@ declare module '@tanstack/react-router' {
       path: '/foundation'
       fullPath: '/foundation'
       preLoaderRoute: typeof AuthenticatedFoundationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/exam': {
+      id: '/_authenticated/exam'
+      path: '/exam'
+      fullPath: '/exam'
+      preLoaderRoute: typeof AuthenticatedExamRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -205,6 +224,7 @@ const AuthenticatedFoundationRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedExamRoute: typeof AuthenticatedExamRoute
   AuthenticatedFoundationRoute: typeof AuthenticatedFoundationRouteWithChildren
   AuthenticatedReportSessionIdRoute: typeof AuthenticatedReportSessionIdRoute
 }
@@ -212,6 +232,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedExamRoute: AuthenticatedExamRoute,
   AuthenticatedFoundationRoute: AuthenticatedFoundationRouteWithChildren,
   AuthenticatedReportSessionIdRoute: AuthenticatedReportSessionIdRoute,
 }

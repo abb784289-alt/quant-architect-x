@@ -295,6 +295,7 @@ function Scratchpad({ questionId }: { questionId: number }) {
   const cacheRef = useRef<Map<number, Stroke[]>>(new Map());
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [redo, setRedo] = useState<Stroke[]>([]);
+  const [, forceTick] = useState(0);
   const drawing = useRef(false);
   const current = useRef<Stroke | null>(null);
 
@@ -339,21 +340,20 @@ function Scratchpad({ questionId }: { questionId: number }) {
 
   function down(e: React.PointerEvent<HTMLCanvasElement>) {
     drawing.current = true;
-    current.current = { color, size: tool === "eraser" ? size * 4 : size, points: [pos(e)], erase: tool === "eraser" };
+    const s: Stroke = { color, size: tool === "eraser" ? size * 4 : size, points: [pos(e)], erase: tool === "eraser" };
+    current.current = s;
+    setStrokes((prev) => [...prev, s]);
   }
   function move(e: React.PointerEvent<HTMLCanvasElement>) {
     if (!drawing.current || !current.current) return;
     current.current.points.push(pos(e));
-    setStrokes((prev) => [...prev.slice(0, -1), ...(prev[prev.length - 1] === current.current ? [current.current] : [...prev.filter((s) => s !== current.current), current.current])]);
+    forceTick((n) => n + 1);
   }
   function up() {
-    if (!drawing.current || !current.current) return;
-    setStrokes((prev) => {
-      const filtered = prev.filter((s) => s !== current.current);
-      return current.current ? [...filtered, current.current] : filtered;
-    });
+    if (!drawing.current) return;
     setRedo([]);
-    drawing.current = false; current.current = null;
+    drawing.current = false;
+    current.current = null;
   }
 
   function undo() {
