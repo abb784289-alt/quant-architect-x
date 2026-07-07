@@ -43,6 +43,8 @@ function NemrExamEngine({ session }: { session: Session }) {
   const [fontScale, setFontScale] = useState(1);
   const [modal, setModal] = useState<null | "section-inst" | "exam-inst" | "rules">(null);
   const [remaining, setRemaining] = useState<number>(0);
+  const [warned4, setWarned4] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     const n = sectionNumber ?? 1;
@@ -55,6 +57,7 @@ function NemrExamEngine({ session }: { session: Session }) {
     setBookmarks({});
     setFlagged({});
     setRemaining(computeTimerSeconds(c, qs.length));
+    setWarned4(false);
   }, [sectionNumber]);
 
   useEffect(() => {
@@ -62,6 +65,16 @@ function NemrExamEngine({ session }: { session: Session }) {
     const t = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
     return () => clearInterval(t);
   }, [config]);
+
+  // إشعار عند تبقّي ٤ دقائق
+  useEffect(() => {
+    if (!config) return;
+    if (!warned4 && remaining > 0 && remaining <= 240) {
+      setWarned4(true);
+      setToast("⏰ تنبيه: تبقّى أقل من ٤ دقائق على انتهاء الاختبار — راجع إجاباتك.");
+      setTimeout(() => setToast(null), 8000);
+    }
+  }, [remaining, warned4, config]);
 
   if (questions.length === 0) {
     return (
@@ -83,6 +96,11 @@ function NemrExamEngine({ session }: { session: Session }) {
   const active = questions[current];
 
   function finish() {
+    if (unsolved > 0) {
+      setToast(`⚠️ لا يمكن إنهاء الاختبار قبل حلّ جميع الأسئلة. متبقّي ${toArabic(unsolved)} سؤال.`);
+      setTimeout(() => setToast(null), 5000);
+      return;
+    }
     if (confirm("هل أنت متأكد من إنهاء هذا القسم؟")) {
       navigate({ to: "/dashboard" });
     }
@@ -251,9 +269,16 @@ function NemrExamEngine({ session }: { session: Session }) {
             <UtilBtn onClick={() => setModal("rules")}>القوانين</UtilBtn>
             <button
               onClick={finish}
-              className="w-full rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold py-3 text-sm shadow-md transition-colors"
+              disabled={unsolved > 0}
+              title={unsolved > 0 ? `يجب حلّ جميع الأسئلة أولاً (متبقّي ${toArabic(unsolved)})` : "إنهاء الاختبار"}
+              className={
+                "w-full rounded-xl font-bold py-3 text-sm shadow-md transition-colors " +
+                (unsolved > 0
+                  ? "bg-surface-2 text-muted-foreground cursor-not-allowed border border-border"
+                  : "bg-red-600 hover:bg-red-700 text-white")
+              }
             >
-              إنهاء القسم
+              {unsolved > 0 ? `إنهاء القسم (متبقّي ${toArabic(unsolved)})` : "إنهاء القسم"}
             </button>
           </div>
         </aside>
@@ -274,6 +299,12 @@ function NemrExamEngine({ session }: { session: Session }) {
               فهمت
             </button>
           </div>
+        </div>
+      )}
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl bg-foreground text-white px-5 py-3 text-sm font-semibold shadow-2xl border border-gold/40 max-w-md text-center animate-in fade-in slide-in-from-bottom-4">
+          {toast}
         </div>
       )}
     </div>
