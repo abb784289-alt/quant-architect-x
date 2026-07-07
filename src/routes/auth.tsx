@@ -11,10 +11,6 @@ export const Route = createFileRoute("/auth")({
 });
 
 function LuxuryAuthPage() {
-  const handleBypass = (route: string) => {
-    window.location.href = route;
-  };
-
   return (
     <div
       className="min-h-screen bg-gradient-to-br from-[#022C22] to-[#065F46] flex flex-col items-center justify-center p-6 text-white"
@@ -27,18 +23,18 @@ function LuxuryAuthPage() {
         </p>
 
         <div className="space-y-4">
-          <button
-            onClick={() => handleBypass("/admin")}
-            className="w-full bg-[#D4AF37] hover:bg-[#F59E0B] text-black font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg transform hover:scale-[1.02]"
+          <a
+            href="/admin"
+            className="block w-full bg-[#D4AF37] hover:bg-[#F59E0B] text-black font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg transform hover:scale-[1.02]"
           >
             الدخول المباشر كـ "أدمن / لوحة التحكم" 🔑
-          </button>
-          <button
-            onClick={() => handleBypass("/dashboard")}
-            className="w-full bg-white/20 hover:bg-white/30 border border-white/30 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
+          </a>
+          <a
+            href="/dashboard"
+            className="block w-full bg-white/20 hover:bg-white/30 border border-white/30 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-[1.02]"
           >
             الدخول المباشر كـ "طالب / الـ 150 قسم" 🎓
-          </button>
+          </a>
         </div>
 
         <p className="text-xs text-gray-400 mt-6 text-center">
