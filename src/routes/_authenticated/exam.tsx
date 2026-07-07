@@ -287,12 +287,12 @@ function UtilBtn({ children, onClick }: { children: React.ReactNode; onClick: ()
 // ────────────── Scratchpad ──────────────
 type Stroke = { color: string; size: number; points: { x: number; y: number }[]; erase: boolean };
 
-function Scratchpad({ questionId }: { questionId: number }) {
+function Scratchpad({ questionId }: { questionId: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
   const [color, setColor] = useState("#0F766E");
   const [size, setSize] = useState(3);
-  const cacheRef = useRef<Map<number, Stroke[]>>(new Map());
+  const cacheRef = useRef<Map<string, Stroke[]>>(new Map());
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [redo, setRedo] = useState<Stroke[]>([]);
   const [, forceTick] = useState(0);
