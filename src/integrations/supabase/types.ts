@@ -14,16 +14,176 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      exam_sessions: {
+        Row: {
+          ai_report: Json | null
+          answers: Json
+          auto_submitted: boolean
+          created_at: string
+          id: string
+          score: number | null
+          section_id: string
+          started_at: string
+          submitted_at: string | null
+          time_taken_seconds: number | null
+          total_questions: number | null
+          user_id: string
+        }
+        Insert: {
+          ai_report?: Json | null
+          answers?: Json
+          auto_submitted?: boolean
+          created_at?: string
+          id?: string
+          score?: number | null
+          section_id: string
+          started_at?: string
+          submitted_at?: string | null
+          time_taken_seconds?: number | null
+          total_questions?: number | null
+          user_id: string
+        }
+        Update: {
+          ai_report?: Json | null
+          answers?: Json
+          auto_submitted?: boolean
+          created_at?: string
+          id?: string
+          score?: number | null
+          section_id?: string
+          started_at?: string
+          submitted_at?: string | null
+          time_taken_seconds?: number | null
+          total_questions?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_sessions_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      questions: {
+        Row: {
+          choices: Json
+          correct_index: number
+          created_at: string
+          explanation: string | null
+          id: string
+          order_index: number
+          prompt: string
+          section_id: string
+        }
+        Insert: {
+          choices: Json
+          correct_index: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          order_index?: number
+          prompt: string
+          section_id: string
+        }
+        Update: {
+          choices?: Json
+          correct_index?: number
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          order_index?: number
+          prompt?: string
+          section_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "questions_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sections: {
+        Row: {
+          category: Database["public"]["Enums"]["section_category"]
+          created_at: string
+          description: string | null
+          id: string
+          order_index: number
+          published: boolean
+          timer_seconds: number
+          title: string
+          updated_at: string
+          video_path: string | null
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["section_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_index?: number
+          published?: boolean
+          timer_seconds?: number
+          title: string
+          updated_at?: string
+          video_path?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["section_category"]
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_index?: number
+          published?: boolean
+          timer_seconds?: number
+          title?: string
+          updated_at?: string
+          video_path?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
+      section_category: "algebra" | "geometry" | "arithmetic" | "statistics"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +310,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+      section_category: ["algebra", "geometry", "arithmetic", "statistics"],
+    },
   },
 } as const
