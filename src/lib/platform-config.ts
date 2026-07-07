@@ -107,6 +107,7 @@ export type Question = {
   latex?: string;
   imageUrl?: string;
   svg?: string; // raw SVG markup for geometric shapes
+  tableHtml?: string; // raw HTML markup for real tables (preferred over svg when present)
   choices: string[]; // exactly 4
   correctIndex: 0 | 1 | 2 | 3;
 };
@@ -188,7 +189,13 @@ const GEOMETRY_SVG_FIXES: Record<string, string> = {
 function applyQuestionSvgFixes(questions: Question[]): Question[] {
   return questions.map((q) => {
     const svg = GEOMETRY_SVG_FIXES[q.id];
-    return svg ? { ...q, svg } : q;
+    const withSvg = svg ? { ...q, svg } : q;
+    const tableHtml = TABLE_HTML_FIXES[q.id];
+    if (tableHtml) {
+      // Prefer real HTML tables — drop the SVG fallback so it isn't rendered.
+      return { ...withSvg, tableHtml, svg: undefined };
+    }
+    return withSvg;
   });
 }
 
