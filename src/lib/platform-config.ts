@@ -35,7 +35,7 @@ export const DEFAULT_TIMER_SECONDS = 0; // 0 = auto (1 minute per question)
 export const SECONDS_PER_QUESTION = 60;
 
 export function defaultSection(n: number): SectionConfig {
-  return { number: n, title: `القسم ${n}`, timerSeconds: DEFAULT_TIMER_SECONDS, videoUrl: "" };
+  return { number: n, title: `القسم ${toArabic(n)}`, timerSeconds: DEFAULT_TIMER_SECONDS, videoUrl: "" };
 }
 
 export function loadSections(): SectionConfig[] {
