@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { readSession } from "@/lib/session";
-import { loadSections, formatTimer, type SectionConfig } from "@/lib/platform-config";
+import { loadSections, loadAllQuestions, computeTimerSeconds, formatTimer, type SectionConfig } from "@/lib/platform-config";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -28,10 +28,21 @@ function DashboardGate() {
 function SectionsDashboard() {
   const navigate = useNavigate();
   const [sections, setSections] = useState<SectionConfig[]>([]);
+  const [qCounts, setQCounts] = useState<Record<number, number>>({});
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { setSections(loadSections()); }, []);
+  useEffect(() => {
+    setSections(loadSections());
+    const all = loadAllQuestions();
+    // Include seed sections too
+    import("@/lib/platform-config").then(({ SEED_QUESTIONS }) => {
+      const c: Record<number, number> = {};
+      Object.entries(SEED_QUESTIONS).forEach(([k, v]) => { c[Number(k)] = v.length; });
+      Object.entries(all).forEach(([k, v]) => { c[Number(k)] = v.length; });
+      setQCounts(c);
+    });
+  }, []);
   useEffect(() => { inputRef.current?.focus(); }, []);
 
   const filtered = useMemo(() => {
@@ -82,30 +93,38 @@ function SectionsDashboard() {
       </section>
 
       <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-        {filtered.map((s) => (
-          <button
-            key={s.number}
-            type="button"
-            onClick={() => navigate({ to: "/exam", search: { section: s.number } })}
-            className="group luxury-card p-4 text-right hover:border-teal/50 hover:-translate-y-0.5 hover:shadow-lg transition-all"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-teal-soft to-white border border-border grid place-items-center text-teal-deep font-bold text-sm">
-                {s.number}
+        {filtered.map((s) => {
+          const count = qCounts[s.number] ?? 0;
+          const ready = count > 0;
+          const timer = ready ? computeTimerSeconds(s, count) : 0;
+          return (
+            <button
+              key={s.number}
+              type="button"
+              onClick={() => navigate({ to: "/exam", search: { section: s.number } })}
+              className={"group luxury-card p-4 text-right transition-all " +
+                (ready ? "hover:border-teal/50 hover:-translate-y-0.5 hover:shadow-lg" : "opacity-70 hover:opacity-95")}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className={"h-9 w-9 rounded-xl border grid place-items-center font-bold text-sm " +
+                  (ready ? "bg-gradient-to-br from-teal-soft to-white border-border text-teal-deep" : "bg-surface-2 border-border text-muted-foreground")}>
+                  {s.number}
+                </div>
+                {ready ? (
+                  <span className="text-[10px] rounded-full bg-teal-soft text-teal-deep px-2 py-0.5 font-bold border border-teal/30">{count} سؤال</span>
+                ) : (
+                  <span className="text-[10px] rounded-full bg-gold-soft text-foreground px-2 py-0.5 font-semibold border border-gold/40">جارٍ العمل</span>
+                )}
               </div>
-              {s.videoUrl ? (
-                <span className="text-[10px] rounded-full bg-gold-soft text-foreground px-2 py-0.5 font-semibold border border-gold/40">فيديو</span>
-              ) : (
-                <span className="text-[10px] rounded-full bg-surface-2 text-muted-foreground px-2 py-0.5">—</span>
-              )}
-            </div>
-            <div className="font-display font-bold text-foreground mb-1 text-sm">{s.title}</div>
-            <div className="text-[11px] text-muted-foreground">مؤقّت {formatTimer(s.timerSeconds)}</div>
-            <div className="mt-3 text-[11px] text-teal-deep font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-              ابدأ اختبار نمر ←
-            </div>
-          </button>
-        ))}
+              <div className="font-display font-bold text-foreground mb-1 text-sm">{s.title}</div>
+              <div className="text-[11px] text-muted-foreground">{ready ? `مؤقّت ${formatTimer(timer)}` : "قسم قيد التجهيز"}</div>
+              <div className={"mt-3 text-[11px] font-semibold transition-opacity " +
+                (ready ? "text-teal-deep opacity-0 group-hover:opacity-100" : "text-gold")}>
+                {ready ? "ابدأ اختبار نمر ←" : "قريباً"}
+              </div>
+            </button>
+          );
+        })}
         {filtered.length === 0 && (
           <div className="col-span-full text-center py-16 text-muted-foreground text-sm">
             لا يوجد قسم يطابق البحث.
