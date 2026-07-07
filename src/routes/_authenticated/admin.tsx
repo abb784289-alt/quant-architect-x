@@ -80,14 +80,14 @@ function AdminPage() {
       {err && <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">{err}</div>}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <BulkUploader onDone={async (n) => { setMsg(`تم رفع ${n} قسمًا بنجاح.`); refresh(); }}
-          onError={(e) => setErr(e)} bulk={bulk} seed={seed} />
+        <BulkUploader onDone={async (n: number | string) => { setMsg(typeof n === "number" ? `تم رفع ${n} قسمًا بنجاح.` : n); refresh(); }}
+          onError={(e: string) => setErr(e)} bulk={bulk} seed={seed} />
         <VideoUploader sections={sections} attach={attach}
-          onDone={(t) => { setMsg(t); refresh(); }} onError={(e) => setErr(e)} />
+          onDone={(t: string) => { setMsg(t); refresh(); }} onError={(e: string) => setErr(e)} />
       </div>
 
       <SectionsTable sections={sections} setTimer={setTimer} remove={remove}
-        onDone={(t) => { setMsg(t); refresh(); }} onError={(e) => setErr(e)} />
+        onDone={(t: string) => { setMsg(t); refresh(); }} onError={(e: string) => setErr(e)} />
     </main>
   );
 }
