@@ -6,14 +6,19 @@ import {
   FOUNDATION_CATEGORIES,
   TOTAL_SECTIONS,
   DEFAULT_TIMER_SECONDS,
+  SECONDS_PER_QUESTION,
   loadSections,
   saveSections,
   loadFoundationAssets,
   saveFoundationAssets,
   formatTimer,
+  getQuestions,
+  saveQuestions,
+  loadAllQuestions,
   type SectionConfig,
   type FoundationAsset,
   type FoundationCategoryId,
+  type Question,
 } from "@/lib/platform-config";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -38,10 +43,10 @@ function AdminGate() {
   return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ التحقق...</div>;
 }
 
-type Tab = "uploader" | "organizer" | "timers";
+type Tab = "questions" | "uploader" | "organizer" | "timers";
 
 function AdminControlCenter() {
-  const [tab, setTab] = useState<Tab>("uploader");
+  const [tab, setTab] = useState<Tab>("questions");
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-8" dir="rtl">
@@ -50,15 +55,17 @@ function AdminControlCenter() {
           مركز التحكم التنفيذي
         </div>
         <h1 className="text-3xl font-bold text-foreground">لوحة الأستاذ أسامة</h1>
-        <p className="text-sm text-muted-foreground mt-1">أدر الفيديوهات، الأقسام الـ 150، والمؤقتات من جهازك مباشرة.</p>
+        <p className="text-sm text-muted-foreground mt-1">أدر الأسئلة، الفيديوهات، الأقسام الـ 150، والمؤقتات من جهازك مباشرة. المؤقت الافتراضي = دقيقة لكل سؤال.</p>
       </header>
 
-      <div className="flex flex-wrap gap-1 rounded-2xl bg-surface-2 border border-border p-1 mb-6 max-w-2xl">
+      <div className="flex flex-wrap gap-1 rounded-2xl bg-surface-2 border border-border p-1 mb-6 max-w-3xl">
+        <TabBtn active={tab === "questions"} onClick={() => setTab("questions")}>بنك الأسئلة</TabBtn>
         <TabBtn active={tab === "uploader"} onClick={() => setTab("uploader")}>رفع الفيديوهات</TabBtn>
         <TabBtn active={tab === "organizer"} onClick={() => setTab("organizer")}>منظّم الأقسام (CSV)</TabBtn>
         <TabBtn active={tab === "timers"} onClick={() => setTab("timers")}>ضابط المؤقتات</TabBtn>
       </div>
 
+      {tab === "questions" && <QuestionsBank />}
       {tab === "uploader" && <VideoUploader />}
       {tab === "organizer" && <SectionOrganizer />}
       {tab === "timers" && <TimerController />}
@@ -357,6 +364,166 @@ function TimerController() {
             );
           })}
         </div>
+      </div>
+    </section>
+  );
+}
+
+// ────────────── Questions Bank ──────────────
+function makeEmpty(): Question {
+  return {
+    id: `q_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    prompt: "",
+    choices: ["", "", "", ""],
+    correctIndex: 0,
+  };
+}
+
+function QuestionsBank() {
+  const [sectionNumber, setSectionNumber] = useState(1);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [message, setMessage] = useState<string | null>(null);
+  const [counts, setCounts] = useState<Record<number, number>>({});
+
+  useEffect(() => {
+    setQuestions(getQuestions(sectionNumber));
+  }, [sectionNumber]);
+
+  useEffect(() => {
+    const all = loadAllQuestions();
+    const c: Record<number, number> = {};
+    Object.entries(all).forEach(([k, v]) => { c[Number(k)] = v.length; });
+    setCounts(c);
+  }, [questions]);
+
+  function commit(next: Question[]) {
+    setQuestions(next);
+    saveQuestions(sectionNumber, next);
+    setMessage(`تم حفظ ${next.length} سؤالاً في القسم ${sectionNumber}. المؤقت التلقائي: ${next.length} دقيقة.`);
+    setTimeout(() => setMessage(null), 2500);
+  }
+
+  function addQuestion() { commit([...questions, makeEmpty()]); }
+  function removeAt(i: number) { commit(questions.filter((_, idx) => idx !== i)); }
+  function moveUp(i: number) {
+    if (i === 0) return;
+    const next = [...questions];
+    [next[i - 1], next[i]] = [next[i], next[i - 1]];
+    commit(next);
+  }
+  function moveDown(i: number) {
+    if (i === questions.length - 1) return;
+    const next = [...questions];
+    [next[i + 1], next[i]] = [next[i], next[i + 1]];
+    commit(next);
+  }
+  function updateAt(i: number, patch: Partial<Question>) {
+    commit(questions.map((q, idx) => (idx === i ? { ...q, ...patch } : q)));
+  }
+  function updateChoice(i: number, ci: number, val: string) {
+    const next = questions.map((q, idx) => {
+      if (idx !== i) return q;
+      const choices = [...q.choices];
+      choices[ci] = val;
+      return { ...q, choices };
+    });
+    commit(next);
+  }
+
+  const autoMinutes = questions.length;
+
+  return (
+    <section className="grid lg:grid-cols-4 gap-5">
+      {/* Section picker */}
+      <aside className="luxury-card p-4 lg:col-span-1 h-fit sticky top-6">
+        <h3 className="font-display font-bold text-foreground mb-2 text-sm">اختر القسم</h3>
+        <input type="number" min={1} max={TOTAL_SECTIONS} value={sectionNumber}
+          onChange={(e) => setSectionNumber(Math.max(1, Math.min(TOTAL_SECTIONS, Number(e.target.value) || 1)))}
+          className="w-full rounded-xl border border-border bg-white px-3 py-2 text-center font-bold text-lg focus:border-teal outline-none" />
+        <div className="mt-4 rounded-xl bg-teal-soft border border-teal/30 p-3 text-center">
+          <div className="text-[10px] text-muted-foreground">عدد الأسئلة</div>
+          <div className="text-2xl font-bold text-teal-deep">{questions.length}</div>
+          <div className="text-[11px] text-teal-deep mt-1">المؤقت: {autoMinutes} دقيقة تلقائياً</div>
+        </div>
+        <button onClick={addQuestion} className="mt-4 w-full rounded-xl bg-teal text-white py-2.5 text-sm font-bold hover:bg-teal-deep transition-colors">
+          + إضافة سؤال جديد
+        </button>
+        {message && <div className="mt-3 text-[11px] rounded-lg bg-gold-soft border border-gold/30 text-foreground p-2">{message}</div>}
+
+        <div className="mt-5 border-t border-border pt-3">
+          <div className="text-[10px] font-semibold text-muted-foreground mb-2">أقسام تحتوي أسئلة</div>
+          <div className="flex flex-wrap gap-1 max-h-40 overflow-auto">
+            {Object.entries(counts).sort((a, b) => Number(a[0]) - Number(b[0])).map(([n, c]) => (
+              <button key={n} onClick={() => setSectionNumber(Number(n))}
+                className={"h-7 min-w-7 px-1.5 rounded-md text-[11px] font-bold border " +
+                  (Number(n) === sectionNumber ? "bg-teal text-white border-teal" : "bg-surface-1 border-border hover:border-teal")}>
+                {n} <span className="opacity-70">({c})</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </aside>
+
+      {/* Editor */}
+      <div className="lg:col-span-3 space-y-4">
+        {questions.length === 0 && (
+          <div className="luxury-card p-8 text-center text-muted-foreground">
+            <div className="text-3xl mb-2">📭</div>
+            <p className="text-sm">لا توجد أسئلة في القسم {sectionNumber} بعد. اضغط "إضافة سؤال جديد" للبدء.</p>
+          </div>
+        )}
+
+        {questions.map((q, i) => {
+          const letters = ["أ", "ب", "ج", "د"];
+          return (
+            <div key={q.id} className="luxury-card p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-lg bg-teal text-white grid place-items-center font-bold text-sm">{i + 1}</div>
+                  <span className="text-xs font-semibold text-muted-foreground">سؤال رقم {i + 1}</span>
+                </div>
+                <div className="flex gap-1">
+                  <button onClick={() => moveUp(i)} disabled={i === 0} className="h-8 w-8 rounded-lg border border-border bg-white text-xs font-bold hover:border-teal disabled:opacity-40">↑</button>
+                  <button onClick={() => moveDown(i)} disabled={i === questions.length - 1} className="h-8 w-8 rounded-lg border border-border bg-white text-xs font-bold hover:border-teal disabled:opacity-40">↓</button>
+                  <button onClick={() => { if (confirm("حذف هذا السؤال؟")) removeAt(i); }} className="h-8 w-8 rounded-lg border border-border bg-white text-xs font-bold text-red-600 hover:border-red-400">×</button>
+                </div>
+              </div>
+
+              <label className="block mb-3">
+                <span className="text-[11px] font-semibold text-foreground">نص السؤال</span>
+                <textarea value={q.prompt} onChange={(e) => updateAt(i, { prompt: e.target.value })}
+                  rows={2}
+                  className="mt-1 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:border-teal focus:ring-2 focus:ring-teal/30 outline-none resize-y" />
+              </label>
+
+              <label className="block mb-3">
+                <span className="text-[11px] font-semibold text-foreground">صيغة LaTeX (اختياري — للمعادلات)</span>
+                <input value={q.latex ?? ""} onChange={(e) => updateAt(i, { latex: e.target.value })}
+                  placeholder="مثال: 3 \\times 4 = ?" dir="ltr"
+                  className="mt-1 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm font-mono focus:border-teal outline-none" />
+              </label>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {q.choices.map((c, ci) => (
+                  <label key={ci} className={"flex items-center gap-2 rounded-xl border p-2 transition-colors " +
+                    (q.correctIndex === ci ? "border-teal bg-teal-soft" : "border-border bg-white")}>
+                    <button type="button" onClick={() => updateAt(i, { correctIndex: ci as 0 | 1 | 2 | 3 })}
+                      className={"h-8 w-8 rounded-lg font-bold text-sm shrink-0 " +
+                        (q.correctIndex === ci ? "bg-teal text-white" : "bg-surface-2 text-foreground hover:bg-teal/20")}>
+                      {letters[ci]}
+                    </button>
+                    <input value={c} onChange={(e) => updateChoice(i, ci, e.target.value)}
+                      placeholder={`الخيار ${letters[ci]}`}
+                      className="flex-1 min-w-0 bg-transparent px-1 py-1 text-sm focus:outline-none" />
+                  </label>
+                ))}
+              </div>
+              <div className="mt-2 text-[11px] text-muted-foreground">
+                اضغط على حرف الخيار لتحديد الإجابة الصحيحة. الإجابة الحالية: <span className="font-bold text-teal-deep">{letters[q.correctIndex]}</span>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

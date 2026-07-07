@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { BlockMath, InlineMath } from "react-katex";
 import { readSession, type Session } from "@/lib/session";
-import { getSection, formatTimer, type SectionConfig } from "@/lib/platform-config";
+import { getSection, formatTimer, getQuestions, computeTimerSeconds, type SectionConfig, type Question } from "@/lib/platform-config";
 
 export const Route = createFileRoute("/_authenticated/exam")({
   ssr: false,
@@ -28,44 +28,33 @@ function ExamGate() {
   if (!ready || !session) {
     return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ تحميل محرك الاختبار...</div>;
   }
-  return <NimarExamEngine session={session} />;
+  return <NemrExamEngine session={session} />;
 }
 
-// ── Demo question bank (placeholder until backend/AI generation is wired) ──
-type Question = { id: number; prompt: string; latex?: string; choices: string[]; correctIndex: number };
-
-function buildDemoQuestions(count = 25): Question[] {
-  return Array.from({ length: count }, (_, i) => {
-    const a = 3 + (i % 7);
-    const b = 4 + ((i * 2) % 5);
-    const correct = a * b;
-    return {
-      id: i + 1,
-      prompt: `احسب ناتج الضرب التالي:`,
-      latex: `${a} \\times ${b} = \\;?`,
-      choices: [String(correct), String(correct + 3), String(correct - 2), String(correct + 7)],
-      correctIndex: 0,
-    };
-  });
-}
-
-function NimarExamEngine({ session }: { session: Session }) {
+function NemrExamEngine({ session }: { session: Session }) {
   const navigate = useNavigate();
   const { section: sectionNumber } = Route.useSearch();
   const [config, setConfig] = useState<SectionConfig | null>(null);
-  const [questions] = useState<Question[]>(() => buildDemoQuestions(25));
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [current, setCurrent] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
-  const [bookmarks, setBookmarks] = useState<Record<number, boolean>>({});
-  const [flagged, setFlagged] = useState<Record<number, boolean>>({});
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [bookmarks, setBookmarks] = useState<Record<string, boolean>>({});
+  const [flagged, setFlagged] = useState<Record<string, boolean>>({});
   const [fontScale, setFontScale] = useState(1);
   const [modal, setModal] = useState<null | "section-inst" | "exam-inst" | "rules">(null);
   const [remaining, setRemaining] = useState<number>(0);
 
   useEffect(() => {
-    const c = getSection(sectionNumber ?? 1);
+    const n = sectionNumber ?? 1;
+    const c = getSection(n);
+    const qs = getQuestions(n);
     setConfig(c);
-    setRemaining(c.timerSeconds);
+    setQuestions(qs);
+    setCurrent(0);
+    setAnswers({});
+    setBookmarks({});
+    setFlagged({});
+    setRemaining(computeTimerSeconds(c, qs.length));
   }, [sectionNumber]);
 
   useEffect(() => {
@@ -73,6 +62,21 @@ function NimarExamEngine({ session }: { session: Session }) {
     const t = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
     return () => clearInterval(t);
   }, [config]);
+
+  if (questions.length === 0) {
+    return (
+      <div dir="rtl" className="min-h-[60vh] grid place-items-center px-6">
+        <div className="luxury-card p-8 max-w-md text-center">
+          <div className="text-3xl mb-3">📝</div>
+          <h2 className="font-display font-bold text-lg text-foreground mb-2">لا توجد أسئلة في هذا القسم بعد</h2>
+          <p className="text-sm text-muted-foreground mb-5">يمكن للمدرّب إضافة أسئلة القسم رقم {sectionNumber ?? 1} من مركز التحكم.</p>
+          <button onClick={() => navigate({ to: "/dashboard" })} className="rounded-xl bg-teal text-white px-5 py-2.5 text-sm font-bold hover:bg-teal-deep transition-colors">
+            العودة للأقسام
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const solved = Object.keys(answers).length;
   const unsolved = questions.length - solved;
@@ -92,7 +96,7 @@ function NimarExamEngine({ session }: { session: Session }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 rounded-xl bg-white border border-teal/30 px-3 py-1.5 shadow-sm">
               <span className="text-[10px] font-semibold text-muted-foreground">كود الاختبار</span>
-              <span className="font-mono font-bold text-teal-deep">نِمار — قسم {config?.number ?? "…"}</span>
+              <span className="font-mono font-bold text-teal-deep">نمر — قسم {config?.number ?? "…"}</span>
             </div>
             <div className="text-xs text-muted-foreground">مجموع الأسئلة <span className="font-bold text-foreground">{questions.length}</span></div>
             <div className="text-xs text-muted-foreground">تم الحلّ <span className="font-bold text-teal-deep">{solved}</span></div>
@@ -116,7 +120,7 @@ function NimarExamEngine({ session }: { session: Session }) {
         <section className="col-span-12 lg:col-span-5">
           <div className="luxury-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-xs font-semibold text-teal-deep">سؤال {active.id} / {questions.length}</div>
+              <div className="text-xs font-semibold text-teal-deep">سؤال {current + 1} / {questions.length}</div>
               <div className="flex items-center gap-1">
                 <button onClick={() => setFontScale((s) => Math.max(0.8, s - 0.1))} className="h-8 w-8 rounded-lg border border-border bg-white hover:border-teal transition-colors text-sm font-bold">A-</button>
                 <button onClick={() => setFontScale(1)} className="h-8 w-8 rounded-lg border border-border bg-white hover:border-teal transition-colors text-sm font-bold">A</button>
@@ -220,7 +224,7 @@ function NimarExamEngine({ session }: { session: Session }) {
                           : isFlag
                             ? "bg-teal-soft text-teal-deep border-teal/40"
                             : "bg-surface-2 text-foreground border-border hover:bg-white")}
-                  >{q.id}</button>
+                  >{i + 1}</button>
                 );
               })}
             </div>
@@ -287,12 +291,12 @@ function UtilBtn({ children, onClick }: { children: React.ReactNode; onClick: ()
 // ────────────── Scratchpad ──────────────
 type Stroke = { color: string; size: number; points: { x: number; y: number }[]; erase: boolean };
 
-function Scratchpad({ questionId }: { questionId: number }) {
+function Scratchpad({ questionId }: { questionId: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
   const [color, setColor] = useState("#0F766E");
   const [size, setSize] = useState(3);
-  const cacheRef = useRef<Map<number, Stroke[]>>(new Map());
+  const cacheRef = useRef<Map<string, Stroke[]>>(new Map());
   const [strokes, setStrokes] = useState<Stroke[]>([]);
   const [redo, setRedo] = useState<Stroke[]>([]);
   const [, forceTick] = useState(0);
