@@ -5,6 +5,24 @@ import { BlockMath, InlineMath } from "react-katex";
 import { readSession, type Session } from "@/lib/session";
 import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, type SectionConfig, type Question } from "@/lib/platform-config";
 
+// Render text that may contain $...$ (inline) or $$...$$ (block) KaTeX segments
+function MathText({ text }: { text: string }) {
+  const parts = text.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith("$$") && part.endsWith("$$")) {
+          return <BlockMath key={i} math={part.slice(2, -2)} />;
+        }
+        if (part.startsWith("$") && part.endsWith("$") && part.length > 1) {
+          return <InlineMath key={i} math={part.slice(1, -1)} />;
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
+
 export const Route = createFileRoute("/_authenticated/exam")({
   ssr: false,
   validateSearch: (s) => z.object({ section: z.coerce.number().int().min(1).max(150).optional() }).parse(s),
