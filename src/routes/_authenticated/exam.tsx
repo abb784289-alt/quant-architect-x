@@ -50,6 +50,10 @@ function NemrExamEngine({ session }: { session: Session }) {
     const qs = getQuestions(n);
     setConfig(c);
     setQuestions(qs);
+    setCurrent(0);
+    setAnswers({});
+    setBookmarks({});
+    setFlagged({});
     setRemaining(computeTimerSeconds(c, qs.length));
   }, [sectionNumber]);
 
