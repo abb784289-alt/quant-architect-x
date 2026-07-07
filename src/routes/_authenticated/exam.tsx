@@ -269,9 +269,16 @@ function NemrExamEngine({ session }: { session: Session }) {
             <UtilBtn onClick={() => setModal("rules")}>القوانين</UtilBtn>
             <button
               onClick={finish}
-              className="w-full rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold py-3 text-sm shadow-md transition-colors"
+              disabled={unsolved > 0}
+              title={unsolved > 0 ? `يجب حلّ جميع الأسئلة أولاً (متبقّي ${toArabic(unsolved)})` : "إنهاء الاختبار"}
+              className={
+                "w-full rounded-xl font-bold py-3 text-sm shadow-md transition-colors " +
+                (unsolved > 0
+                  ? "bg-surface-2 text-muted-foreground cursor-not-allowed border border-border"
+                  : "bg-red-600 hover:bg-red-700 text-white")
+              }
             >
-              إنهاء القسم
+              {unsolved > 0 ? `إنهاء القسم (متبقّي ${toArabic(unsolved)})` : "إنهاء القسم"}
             </button>
           </div>
         </aside>
