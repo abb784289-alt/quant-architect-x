@@ -1,17 +1,38 @@
 'use client';
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { readSession } from "@/lib/session";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  ssr: false,
   head: () => ({
     meta: [
       { title: "لوحة التحكم العامة — منصة المِقْيَاس" },
       { name: "description", content: "لوحة تحكم عامة لإدارة فيديوهات وأقسام ومؤقتات منصة المِقْيَاس الذكية بدون أي بوابة تحقق." },
     ],
   }),
-  component: AdminDashboardPage,
+  component: AdminGate,
 });
+
+function AdminGate() {
+  const [state, setState] = useState<"checking" | "allowed" | "denied">("checking");
+  useEffect(() => {
+    const s = readSession();
+    if (s?.role === "admin") {
+      setState("allowed");
+    } else {
+      setState("denied");
+      window.location.replace("/auth");
+    }
+  }, []);
+  if (state === "allowed") return <AdminDashboardPage />;
+  return (
+    <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">
+      جارٍ التحقق من صلاحيات الدخول...
+    </div>
+  );
+}
 
 type SectionRecord = {
   id: string;

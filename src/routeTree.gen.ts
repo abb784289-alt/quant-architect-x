@@ -12,10 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedReportSessionIdRouteImport } from './routes/_authenticated/report.$sessionId'
-import { Route as AuthenticatedExamSectionIdRouteImport } from './routes/_authenticated/exam.$sectionId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -30,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedExamRoute = AuthenticatedExamRouteImport.update({
+  id: '/exam',
+  path: '/exam',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
@@ -47,19 +52,13 @@ const AuthenticatedReportSessionIdRoute =
     path: '/report/$sessionId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedExamSectionIdRoute =
-  AuthenticatedExamSectionIdRouteImport.update({
-    id: '/exam/$sectionId',
-    path: '/exam/$sectionId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/exam/$sectionId': typeof AuthenticatedExamSectionIdRoute
+  '/exam': typeof AuthenticatedExamRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
 }
 export interface FileRoutesByTo {
@@ -67,7 +66,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/exam/$sectionId': typeof AuthenticatedExamSectionIdRoute
+  '/exam': typeof AuthenticatedExamRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
 }
 export interface FileRoutesById {
@@ -77,7 +76,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/exam/$sectionId': typeof AuthenticatedExamSectionIdRoute
+  '/_authenticated/exam': typeof AuthenticatedExamRoute
   '/_authenticated/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
 }
 export interface FileRouteTypes {
@@ -87,16 +86,10 @@ export interface FileRouteTypes {
     | '/auth'
     | '/admin'
     | '/dashboard'
-    | '/exam/$sectionId'
+    | '/exam'
     | '/report/$sessionId'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/auth'
-    | '/admin'
-    | '/dashboard'
-    | '/exam/$sectionId'
-    | '/report/$sessionId'
+  to: '/' | '/auth' | '/admin' | '/dashboard' | '/exam' | '/report/$sessionId'
   id:
     | '__root__'
     | '/'
@@ -104,7 +97,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
-    | '/_authenticated/exam/$sectionId'
+    | '/_authenticated/exam'
     | '/_authenticated/report/$sessionId'
   fileRoutesById: FileRoutesById
 }
@@ -137,6 +130,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/exam': {
+      id: '/_authenticated/exam'
+      path: '/exam'
+      fullPath: '/exam'
+      preLoaderRoute: typeof AuthenticatedExamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -158,27 +158,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportSessionIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/exam/$sectionId': {
-      id: '/_authenticated/exam/$sectionId'
-      path: '/exam/$sectionId'
-      fullPath: '/exam/$sectionId'
-      preLoaderRoute: typeof AuthenticatedExamSectionIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedExamSectionIdRoute: typeof AuthenticatedExamSectionIdRoute
+  AuthenticatedExamRoute: typeof AuthenticatedExamRoute
   AuthenticatedReportSessionIdRoute: typeof AuthenticatedReportSessionIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedExamSectionIdRoute: AuthenticatedExamSectionIdRoute,
+  AuthenticatedExamRoute: AuthenticatedExamRoute,
   AuthenticatedReportSessionIdRoute: AuthenticatedReportSessionIdRoute,
 }
 
