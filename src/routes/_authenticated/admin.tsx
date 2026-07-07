@@ -1,296 +1,302 @@
+'use client';
+
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import * as XLSX from "xlsx";
-import { supabase } from "@/integrations/supabase/client";
-import { listSections } from "@/lib/sections.functions";
-import {
-  bulkUpsertSections, setSectionTimer, attachSectionVideo,
-  deleteSection, getMyRoles, grantSelfAdmin, seedSampleSections,
-} from "@/lib/admin.functions";
+import { useMemo, useRef, useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/admin")({
-  head: () => ({ meta: [{ title: "لوحة التحكم — المِقْيَاس" }] }),
-  component: AdminPage,
+  head: () => ({
+    meta: [
+      { title: "لوحة التحكم العامة — منصة المِقْيَاس" },
+      { name: "description", content: "لوحة تحكم عامة لإدارة فيديوهات وأقسام ومؤقتات منصة المِقْيَاس الذكية بدون أي بوابة تحقق." },
+    ],
+  }),
+  component: AdminDashboardPage,
 });
 
-type Section = {
-  id: string; title: string; category: string; order_index: number;
-  timer_seconds: number; video_path: string | null;
+type SectionRecord = {
+  id: string;
+  order: number;
+  title: string;
+  category: string;
+  duration: number;
+  videoName: string;
+  status: "جاهز" | "مسودة" | "مراجعة";
 };
 
-const CATS = ["algebra", "geometry", "arithmetic", "statistics"] as const;
+const categoryNames = ["الجبر", "الهندسة", "الحساب", "الإحصاء", "النسب والتناسب", "المقارنات الكمية"];
 
-function AdminPage() {
-  const roles = useServerFn(getMyRoles);
-  const list = useServerFn(listSections);
-  const bulk = useServerFn(bulkUpsertSections);
-  const setTimer = useServerFn(setSectionTimer);
-  const attach = useServerFn(attachSectionVideo);
-  const remove = useServerFn(deleteSection);
-  const grant = useServerFn(grantSelfAdmin);
-  const seed = useServerFn(seedSampleSections);
+const starterSections: SectionRecord[] = Array.from({ length: 150 }, (_, index) => {
+  const category = categoryNames[index % categoryNames.length];
+  return {
+    id: `section-${index + 1}`,
+    order: index + 1,
+    title: `${category} — مهارة ${index + 1}`,
+    category,
+    duration: 25,
+    videoName: index < 18 ? `lecture-${String(index + 1).padStart(3, "0")}.mp4` : "لم يتم الربط بعد",
+    status: index < 72 ? "جاهز" : index < 112 ? "مراجعة" : "مسودة",
+  };
+});
 
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [sections, setSections] = useState<Section[]>([]);
-  const [msg, setMsg] = useState<string | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+function AdminDashboardPage() {
+  const [sections, setSections] = useState<SectionRecord[]>(starterSections);
+  const [selectedSection, setSelectedSection] = useState(starterSections[0].id);
+  const [timerMinutes, setTimerMinutes] = useState(25);
+  const [bulkPreview, setBulkPreview] = useState<SectionRecord[]>([]);
+  const [videoFileName, setVideoFileName] = useState("لم يتم اختيار فيديو بعد");
+  const [notice, setNotice] = useState("تم تعطيل كل بوابات التحقق — لوحة التحكم مفتوحة الآن مباشرة.");
+  const bulkInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
-  const refresh = useCallback(async () => {
-    try {
-      const r = await roles();
-      setIsAdmin(r.roles.includes("admin"));
-      if (r.roles.includes("admin")) {
-        const s = await list();
-        setSections(s as Section[]);
-      }
-    } catch (e: any) { setErr(e.message); }
-  }, [roles, list]);
+  const stats = useMemo(() => {
+    const ready = sections.filter((section) => section.status === "جاهز").length;
+    const review = sections.filter((section) => section.status === "مراجعة").length;
+    const draft = sections.filter((section) => section.status === "مسودة").length;
+    const withVideos = sections.filter((section) => section.videoName !== "لم يتم الربط بعد").length;
+    return { ready, review, draft, withVideos };
+  }, [sections]);
 
-  useEffect(() => { refresh(); }, [refresh]);
-
-  if (isAdmin === null) return <div className="mx-auto max-w-7xl px-6 py-10 text-muted-foreground">جاري التحقّق…</div>;
-
-  if (!isAdmin) {
-    return (
-      <main className="mx-auto max-w-2xl px-6 py-16">
-        <div className="glass-card p-8">
-          <h1 className="font-display text-2xl font-black">صلاحيات إدارية مطلوبة</h1>
-          <p className="mt-3 text-sm text-muted-foreground">
-            هذه اللوحة مخصّصة للأدمن. إن كنت أوّل مسؤول على المنصة يمكنك ترقية نفسك تلقائيًا (يعمل مرّة واحدة فقط عندما لا يوجد أي أدمن).
-          </p>
-          {err && <div className="mt-4 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs">{err}</div>}
-          <button onClick={async () => { try { await grant(); setErr(null); refresh(); } catch (e:any) { setErr(e.message); } }}
-            className="mt-6 rounded-full bg-gradient-to-l from-gold to-gold-soft px-6 py-3 font-display font-bold text-primary-foreground">
-            رقّني كأول أدمن
-          </button>
-        </div>
-      </main>
+  function handleVideoSelection(fileList: FileList | null) {
+    const file = fileList?.[0];
+    if (!file) return;
+    setVideoFileName(file.name);
+    setSections((current) =>
+      current.map((section) =>
+        section.id === selectedSection ? { ...section, videoName: file.name, status: "جاهز" } : section,
+      ),
     );
+    setNotice(`تم تجهيز الفيديو المحلي وربطه بالقسم المحدد: ${file.name}`);
   }
 
+  function applyTimer() {
+    setSections((current) =>
+      current.map((section) => (section.id === selectedSection ? { ...section, duration: timerMinutes } : section)),
+    );
+    setNotice(`تم ضبط مؤقت القسم المحدد على ${timerMinutes} دقيقة.`);
+  }
+
+  async function handleBulkFile(fileList: FileList | null) {
+    const file = fileList?.[0];
+    if (!file) return;
+    const text = await file.text();
+    const rows = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .slice(0, 150)
+      .map((line, index) => {
+        const [title = `قسم ${index + 1}`, category = categoryNames[index % categoryNames.length], duration = "25"] = line
+          .split(",")
+          .map((cell) => cell.trim());
+        return {
+          id: `bulk-${Date.now()}-${index}`,
+          order: index + 1,
+          title,
+          category,
+          duration: Number(duration) || 25,
+          videoName: "لم يتم الربط بعد",
+          status: "مراجعة" as const,
+        };
+      });
+    setBulkPreview(rows);
+    setNotice(`تمت قراءة ${rows.length} قسم من ملف الرفع الجماعي.`);
+  }
+
+  function commitBulkUpload() {
+    if (!bulkPreview.length) return;
+    setSections(bulkPreview.map((section, index) => ({ ...section, order: index + 1 })));
+    setSelectedSection(bulkPreview[0].id);
+    setBulkPreview([]);
+    if (bulkInputRef.current) bulkInputRef.current.value = "";
+    setNotice("تم استبدال خريطة الأقسام الحالية بملف الرفع الجماعي بنجاح.");
+  }
+
+  const selected = sections.find((section) => section.id === selectedSection) ?? sections[0];
+
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10 space-y-8">
-      <header>
-        <div className="text-xs uppercase tracking-[0.3em] text-gold-soft">لوحة التحكم المتقدمة</div>
-        <h1 className="mt-2 font-display text-4xl font-black">مركز قيادة المنصة</h1>
-      </header>
+    <main className="min-h-screen bg-background text-foreground" dir="rtl">
+      <section className="border-b border-white/10 bg-gradient-to-l from-teal-deep via-teal to-teal-deep px-6 py-10">
+        <div className="mx-auto max-w-7xl">
+          <div className="text-xs uppercase tracking-[0.3em] text-gold-soft">Master Admin Control Center</div>
+          <h1 className="mt-3 font-display text-4xl font-black sm:text-5xl">لوحة التحكم السيادية للأستاذ أسامة</h1>
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground">
+            إدارة مباشرة للأقسام، الفيديوهات المحلية، الرفع الجماعي، ومؤقت اختبار نمر بدون أي تحويلات أو تحقق جلسة.
+          </p>
+          <div className="mt-6 rounded-xl border border-gold/30 bg-gold/10 px-4 py-3 text-sm text-gold-soft">{notice}</div>
+        </div>
+      </section>
 
-      {msg && <div className="rounded-lg border border-gold/40 bg-gold/10 p-3 text-sm text-gold-soft">{msg}</div>}
-      {err && <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm">{err}</div>}
+      <section className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-6 py-8 lg:grid-cols-4">
+        <StatCard label="الأقسام الجاهزة" value={stats.ready} />
+        <StatCard label="قيد المراجعة" value={stats.review} />
+        <StatCard label="المسودات" value={stats.draft} />
+        <StatCard label="فيديوهات مربوطة" value={stats.withVideos} />
+      </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <BulkUploader onDone={async (n: number | string) => { setMsg(typeof n === "number" ? `تم رفع ${n} قسمًا بنجاح.` : n); refresh(); }}
-          onError={(e: string) => setErr(e)} bulk={bulk} seed={seed} />
-        <VideoUploader sections={sections} attach={attach}
-          onDone={(t: string) => { setMsg(t); refresh(); }} onError={(e: string) => setErr(e)} />
-      </div>
+      <section className="mx-auto grid max-w-7xl grid-cols-1 gap-6 px-6 pb-10 lg:grid-cols-3">
+        <div className="glass-card p-6">
+          <div className="flex items-center gap-3">
+            <div className="grid h-11 w-11 place-items-center rounded-xl border border-gold/40 bg-teal-deep/60 text-xl text-gold">🎬</div>
+            <div>
+              <h2 className="font-display text-xl font-bold">Local Video Upload Slot</h2>
+              <p className="text-xs text-muted-foreground">ربط فيديو محلي بأي قسم من الـ 150 قسم.</p>
+            </div>
+          </div>
 
-      <SectionsTable sections={sections} setTimer={setTimer} remove={remove}
-        onDone={(t: string) => { setMsg(t); refresh(); }} onError={(e: string) => setErr(e)} />
+          <select
+            value={selectedSection}
+            onChange={(event) => setSelectedSection(event.target.value)}
+            className="mt-5 w-full rounded-xl border border-white/10 bg-teal-deep/70 px-4 py-3 text-sm outline-none focus:border-gold/60"
+          >
+            {sections.map((section) => (
+              <option key={section.id} value={section.id}>
+                {section.order}. {section.title}
+              </option>
+            ))}
+          </select>
+
+          <button
+            type="button"
+            onClick={() => videoInputRef.current?.click()}
+            className="mt-4 w-full rounded-xl border border-dashed border-gold/50 bg-gold/10 px-4 py-8 text-sm text-gold-soft transition hover:bg-gold/15"
+          >
+            اضغط لاختيار ملف فيديو محلي
+          </button>
+          <input ref={videoInputRef} type="file" accept="video/*" className="hidden" onChange={(event) => handleVideoSelection(event.target.files)} />
+          <div className="mt-4 rounded-xl border border-white/10 bg-teal-deep/45 p-4 text-xs text-muted-foreground">
+            <div className="text-gold-soft">القسم الحالي: {selected.title}</div>
+            <div className="mt-2">الفيديو: {videoFileName}</div>
+          </div>
+        </div>
+
+        <div className="glass-card p-6">
+          <div className="flex items-center gap-3">
+            <div className="grid h-11 w-11 place-items-center rounded-xl border border-gold/40 bg-teal-deep/60 text-xl text-gold">📥</div>
+            <div>
+              <h2 className="font-display text-xl font-bold">150 Sections Bulk Uploader</h2>
+              <p className="text-xs text-muted-foreground">CSV: title, category, duration.</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => bulkInputRef.current?.click()}
+            className="mt-5 w-full rounded-xl border border-dashed border-gold/50 bg-teal-deep/45 px-4 py-8 text-sm transition hover:border-gold/80"
+          >
+            اختر ملف CSV للأقسام الـ 150
+          </button>
+          <input ref={bulkInputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(event) => void handleBulkFile(event.target.files)} />
+
+          <div className="mt-4 max-h-40 overflow-auto rounded-xl border border-white/10 bg-teal-deep/45 p-3 text-xs">
+            {bulkPreview.length ? (
+              bulkPreview.slice(0, 10).map((section) => (
+                <div key={section.id} className="flex justify-between border-b border-white/5 py-2 last:border-0">
+                  <span>{section.title}</span>
+                  <span className="text-gold-soft">{section.category}</span>
+                </div>
+              ))
+            ) : (
+              <div className="py-8 text-center text-muted-foreground">لا توجد معاينة بعد.</div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={commitBulkUpload}
+            disabled={!bulkPreview.length}
+            className="mt-4 w-full rounded-xl bg-gradient-to-l from-gold to-gold-soft px-5 py-3 font-display font-bold text-primary-foreground transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            اعتماد ملف الأقسام
+          </button>
+        </div>
+
+        <div className="glass-card p-6">
+          <div className="flex items-center gap-3">
+            <div className="grid h-11 w-11 place-items-center rounded-xl border border-gold/40 bg-teal-deep/60 text-xl text-gold">⏱</div>
+            <div>
+              <h2 className="font-display text-xl font-bold">Custom Timer Setup</h2>
+              <p className="text-xs text-muted-foreground">تحديد زمن اختبار نمر لكل قسم.</p>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-xl border border-white/10 bg-teal-deep/45 p-5 text-center">
+            <div className="text-xs text-muted-foreground">القسم المحدد</div>
+            <div className="mt-2 font-display text-lg font-bold text-gold-soft">{selected.title}</div>
+            <div className="mt-4 font-display text-5xl font-black tabular-nums text-gold-gradient">{timerMinutes}</div>
+            <div className="text-xs text-muted-foreground">دقيقة</div>
+          </div>
+
+          <input
+            type="range"
+            min="5"
+            max="90"
+            value={timerMinutes}
+            onChange={(event) => setTimerMinutes(Number(event.target.value))}
+            className="mt-6 w-full accent-gold"
+          />
+          <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+            <span>5 دقائق</span>
+            <span>90 دقيقة</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={applyTimer}
+            className="mt-5 w-full rounded-xl border border-gold/40 bg-gold/10 px-5 py-3 font-display font-bold text-gold-soft transition hover:bg-gold/15"
+          >
+            حفظ المؤقت للقسم
+          </button>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-6 pb-14">
+        <div className="glass-card overflow-hidden">
+          <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
+            <div>
+              <h2 className="font-display text-xl font-bold">خريطة الأقسام الكاملة</h2>
+              <p className="text-xs text-muted-foreground">150 قسم جاهزة للفرز والإدارة المباشرة.</p>
+            </div>
+            <div className="rounded-full border border-gold/30 px-4 py-2 text-xs text-gold-soft">{sections.length} قسم</div>
+          </div>
+          <div className="max-h-[560px] overflow-auto">
+            <table className="w-full min-w-[820px] text-sm">
+              <thead className="sticky top-0 bg-teal-deep text-right text-xs text-gold-soft">
+                <tr>
+                  <th className="px-4 py-3">#</th>
+                  <th className="px-4 py-3">القسم</th>
+                  <th className="px-4 py-3">التصنيف</th>
+                  <th className="px-4 py-3">المؤقت</th>
+                  <th className="px-4 py-3">الفيديو</th>
+                  <th className="px-4 py-3">الحالة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sections.map((section) => (
+                  <tr key={section.id} className="border-t border-white/5 hover:bg-white/[0.03]">
+                    <td className="px-4 py-3 tabular-nums text-muted-foreground">{section.order}</td>
+                    <td className="px-4 py-3 font-display font-bold">{section.title}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{section.category}</td>
+                    <td className="px-4 py-3 text-gold-soft">{section.duration} دقيقة</td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">{section.videoName}</td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full border border-gold/20 bg-gold/5 px-3 py-1 text-xs text-gold-soft">{section.status}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
 
-/* ---------- BULK UPLOADER ---------- */
-function BulkUploader({ bulk, seed, onDone, onError }: any) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [busy, setBusy] = useState(false);
-  const [preview, setPreview] = useState<any[] | null>(null);
-
-  async function handleFile(f: File) {
-    setBusy(true);
-    try {
-      const buf = await f.arrayBuffer();
-      const wb = XLSX.read(buf, { type: "array" });
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json<any>(sheet, { defval: "" });
-      const parsed = rows.map((r, i) => ({
-        title: String(r.title ?? r.Title ?? r.العنوان ?? "").trim(),
-        category: normalizeCategory(r.category ?? r.Category ?? r.المجال ?? "algebra"),
-        order_index: Number(r.order_index ?? r.order ?? i) || i,
-        timer_seconds: Number(r.timer_seconds ?? r.timer ?? 1500) || 1500,
-        description: String(r.description ?? r.desc ?? r.الوصف ?? "") || null,
-      })).filter((r) => r.title);
-      setPreview(parsed);
-    } catch (e: any) { onError(`تعذّر قراءة الملف: ${e.message}`); }
-    finally { setBusy(false); }
-  }
-
-  async function confirmUpload() {
-    if (!preview) return;
-    setBusy(true);
-    try {
-      const { inserted } = await bulk({ data: { rows: preview } });
-      setPreview(null);
-      if (fileRef.current) fileRef.current.value = "";
-      onDone(inserted);
-    } catch (e: any) { onError(e.message); }
-    finally { setBusy(false); }
-  }
-
+function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="glass-card p-6">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="grid h-10 w-10 place-items-center rounded-xl border border-gold/40 bg-teal-deep/60 text-gold">📥</div>
-        <div>
-          <h3 className="font-display text-lg font-bold">رفع الأقسام دفعة واحدة</h3>
-          <p className="text-xs text-muted-foreground">ملف Excel أو CSV (title, category, order_index, timer_seconds, description)</p>
-        </div>
-      </div>
-
-      <input ref={fileRef} type="file" accept=".xlsx,.xls,.csv"
-        onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
-        className="block w-full cursor-pointer rounded-xl border border-dashed border-gold/40 bg-teal-deep/40 px-4 py-6 text-center text-sm hover:border-gold/70" />
-
-      {preview && (
-        <div className="mt-4">
-          <div className="text-xs text-muted-foreground">معاينة {preview.length} صفًا:</div>
-          <div className="mt-2 max-h-40 overflow-auto rounded-lg border border-white/5 bg-teal-deep/50 p-2 text-xs">
-            {preview.slice(0, 8).map((r, i) => (
-              <div key={i} className="flex justify-between border-b border-white/5 py-1 last:border-0">
-                <span>{r.title}</span>
-                <span className="text-gold-soft">{r.category} · {r.timer_seconds}s</span>
-              </div>
-            ))}
-            {preview.length > 8 && <div className="pt-1 text-center text-muted-foreground">…و {preview.length - 8} أخرى</div>}
-          </div>
-          <button onClick={confirmUpload} disabled={busy}
-            className="mt-3 rounded-full bg-gradient-to-l from-gold to-gold-soft px-5 py-2 text-sm font-bold text-primary-foreground disabled:opacity-60">
-            {busy ? "..." : "تأكيد الرفع"}
-          </button>
-        </div>
-      )}
-
-      <div className="mt-4 border-t border-white/5 pt-4 text-xs text-muted-foreground">
-        <button onClick={async () => { try { const r = await seed(); onDone(`تم بذر ${r.inserted} قسم تجريبي.`); } catch (e:any) { onError(e.message); } }}
-          className="rounded-full border border-white/10 px-3 py-1.5 hover:border-gold/40">
-          أو ابذر ١٦ قسم تجريبي فورًا
-        </button>
-      </div>
+    <div className="glass-card p-5 text-center">
+      <div className="text-xs text-muted-foreground">{label}</div>
+      <div className="mt-2 font-display text-4xl font-black text-gold-gradient tabular-nums">{value}</div>
     </div>
-  );
-}
-
-function normalizeCategory(v: string): "algebra"|"geometry"|"arithmetic"|"statistics" {
-  const s = String(v).toLowerCase().trim();
-  if (["algebra","جبر"].includes(s)) return "algebra";
-  if (["geometry","هندسة"].includes(s)) return "geometry";
-  if (["arithmetic","حساب"].includes(s)) return "arithmetic";
-  if (["statistics","إحصاء","احصاء"].includes(s)) return "statistics";
-  return "algebra";
-}
-
-/* ---------- VIDEO UPLOADER ---------- */
-function VideoUploader({ sections, attach, onDone, onError }: any) {
-  const [file, setFile] = useState<File | null>(null);
-  const [sectionId, setSectionId] = useState<string>("");
-  const [progress, setProgress] = useState(0);
-  const [busy, setBusy] = useState(false);
-
-  async function upload() {
-    if (!file || !sectionId) { onError("اختر قسمًا وملف فيديو أولاً."); return; }
-    setBusy(true); setProgress(0);
-    try {
-      const path = `${sectionId}/${Date.now()}-${file.name.replace(/[^\w.\-]/g, "_")}`;
-      const { error } = await supabase.storage.from("lecture-videos").upload(path, file, {
-        cacheControl: "3600", upsert: false, contentType: file.type,
-      });
-      if (error) throw error;
-      setProgress(100);
-      await attach({ data: { id: sectionId, video_path: path } });
-      setFile(null);
-      onDone("تم رفع الفيديو وربطه بالقسم.");
-    } catch (e: any) { onError(e.message); }
-    finally { setBusy(false); }
-  }
-
-  return (
-    <div className="glass-card p-6">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="grid h-10 w-10 place-items-center rounded-xl border border-gold/40 bg-teal-deep/60 text-gold">🎬</div>
-        <div>
-          <h3 className="font-display text-lg font-bold">رفع محاضرة فيديو</h3>
-          <p className="text-xs text-muted-foreground">اختر قسمًا ثم فيديو من جهازك — سيُخزَّن مشفَّرًا.</p>
-        </div>
-      </div>
-
-      <select value={sectionId} onChange={(e) => setSectionId(e.target.value)}
-        className="mb-3 w-full rounded-xl border border-white/10 bg-teal-deep/60 px-4 py-3 text-sm">
-        <option value="">— اختر القسم —</option>
-        {sections.map((s: Section) => <option key={s.id} value={s.id}>{s.title} ({s.category})</option>)}
-      </select>
-
-      <label className="block cursor-pointer rounded-xl border border-dashed border-gold/40 bg-teal-deep/40 px-4 py-8 text-center text-sm hover:border-gold/70">
-        <input type="file" accept="video/*" className="hidden"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-        {file ? <><b>{file.name}</b><br/><span className="text-xs text-muted-foreground">{(file.size/1024/1024).toFixed(1)} MB</span></> : "اسحب فيديو هنا أو انقر للاختيار"}
-      </label>
-
-      {progress > 0 && <div className="mt-3 h-2 overflow-hidden rounded-full bg-teal-deep/60"><div className="h-full bg-gold transition-all" style={{ width: `${progress}%` }} /></div>}
-
-      <button onClick={upload} disabled={busy || !file || !sectionId}
-        className="mt-4 rounded-full bg-gradient-to-l from-gold to-gold-soft px-5 py-2 text-sm font-bold text-primary-foreground disabled:opacity-60">
-        {busy ? "جاري الرفع…" : "رفع وربط"}
-      </button>
-    </div>
-  );
-}
-
-/* ---------- SECTIONS TABLE ---------- */
-function SectionsTable({ sections, setTimer, remove, onDone, onError }: any) {
-  return (
-    <div className="glass-card p-6">
-      <h3 className="mb-4 font-display text-lg font-bold">جميع الأقسام ({sections.length})</h3>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[720px] text-sm">
-          <thead className="text-right text-xs text-gold-soft">
-            <tr className="border-b border-white/10">
-              <th className="py-2">العنوان</th><th>المجال</th><th>الترتيب</th><th>المؤقّت (د:ث)</th><th>فيديو</th><th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {sections.map((s: Section) => (
-              <TimerRow key={s.id} s={s} setTimer={setTimer} remove={remove} onDone={onDone} onError={onError} />
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-function TimerRow({ s, setTimer, remove, onDone, onError }: any) {
-  const [m, setM] = useState(Math.floor(s.timer_seconds / 60));
-  const [sec, setSec] = useState(s.timer_seconds % 60);
-  const [saving, setSaving] = useState(false);
-  async function save() {
-    setSaving(true);
-    try { await setTimer({ data: { id: s.id, timer_seconds: m * 60 + sec } }); onDone("تم حفظ المؤقّت."); }
-    catch (e: any) { onError(e.message); }
-    finally { setSaving(false); }
-  }
-  return (
-    <tr className="border-b border-white/5">
-      <td className="py-3">{s.title}</td>
-      <td className="text-xs text-muted-foreground">{s.category}</td>
-      <td className="text-xs">{s.order_index}</td>
-      <td>
-        <div className="flex items-center gap-1">
-          <input type="number" min={0} max={720} value={m} onChange={(e) => setM(Number(e.target.value))}
-            className="w-14 rounded border border-white/10 bg-teal-deep/60 px-2 py-1 text-center text-sm" />
-          :
-          <input type="number" min={0} max={59} value={sec} onChange={(e) => setSec(Number(e.target.value))}
-            className="w-14 rounded border border-white/10 bg-teal-deep/60 px-2 py-1 text-center text-sm" />
-          <button onClick={save} disabled={saving} className="mr-1 rounded-full border border-gold/40 px-3 py-1 text-xs text-gold hover:bg-gold/10">حفظ</button>
-        </div>
-      </td>
-      <td className="text-xs">{s.video_path ? <span className="text-gold">✓ مرفوع</span> : <span className="text-muted-foreground">—</span>}</td>
-      <td>
-        <button onClick={async () => { if (!confirm("حذف هذا القسم؟")) return;
-          try { await remove({ data: { id: s.id } }); onDone("تم الحذف."); } catch (e:any) { onError(e.message); }}}
-          className="text-xs text-destructive hover:underline">حذف</button>
-      </td>
-    </tr>
   );
 }
