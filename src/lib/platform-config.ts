@@ -225,14 +225,18 @@ const TABLE_HTML_FIXES: Record<string, string> = {
 
 function applyQuestionSvgFixes(questions: Question[]): Question[] {
   return questions.map((q) => {
-    const svg = GEOMETRY_SVG_FIXES[q.id];
-    const withSvg = svg ? { ...q, svg } : q;
     const tableHtml = TABLE_HTML_FIXES[q.id];
     if (tableHtml) {
-      // Prefer real HTML tables — drop the SVG fallback so it isn't rendered.
-      return { ...withSvg, tableHtml, svg: undefined };
+      // Prefer real HTML tables — drop any SVG fallback so it isn't rendered.
+      return { ...q, tableHtml, svg: undefined };
     }
-    return withSvg;
+    // Geometric SVGs are unreliable — strip them entirely so no wrong
+    // diagrams are shown. The question prompt still describes the shape.
+    if (q.svg) {
+      const { svg: _drop, ...rest } = q;
+      return rest;
+    }
+    return q;
   });
 }
 
