@@ -6,14 +6,19 @@ import {
   FOUNDATION_CATEGORIES,
   TOTAL_SECTIONS,
   DEFAULT_TIMER_SECONDS,
+  SECONDS_PER_QUESTION,
   loadSections,
   saveSections,
   loadFoundationAssets,
   saveFoundationAssets,
   formatTimer,
+  getQuestions,
+  saveQuestions,
+  loadAllQuestions,
   type SectionConfig,
   type FoundationAsset,
   type FoundationCategoryId,
+  type Question,
 } from "@/lib/platform-config";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -38,10 +43,10 @@ function AdminGate() {
   return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ التحقق...</div>;
 }
 
-type Tab = "uploader" | "organizer" | "timers";
+type Tab = "questions" | "uploader" | "organizer" | "timers";
 
 function AdminControlCenter() {
-  const [tab, setTab] = useState<Tab>("uploader");
+  const [tab, setTab] = useState<Tab>("questions");
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-8" dir="rtl">
@@ -50,15 +55,17 @@ function AdminControlCenter() {
           مركز التحكم التنفيذي
         </div>
         <h1 className="text-3xl font-bold text-foreground">لوحة الأستاذ أسامة</h1>
-        <p className="text-sm text-muted-foreground mt-1">أدر الفيديوهات، الأقسام الـ 150، والمؤقتات من جهازك مباشرة.</p>
+        <p className="text-sm text-muted-foreground mt-1">أدر الأسئلة، الفيديوهات، الأقسام الـ 150، والمؤقتات من جهازك مباشرة. المؤقت الافتراضي = دقيقة لكل سؤال.</p>
       </header>
 
-      <div className="flex flex-wrap gap-1 rounded-2xl bg-surface-2 border border-border p-1 mb-6 max-w-2xl">
+      <div className="flex flex-wrap gap-1 rounded-2xl bg-surface-2 border border-border p-1 mb-6 max-w-3xl">
+        <TabBtn active={tab === "questions"} onClick={() => setTab("questions")}>بنك الأسئلة</TabBtn>
         <TabBtn active={tab === "uploader"} onClick={() => setTab("uploader")}>رفع الفيديوهات</TabBtn>
         <TabBtn active={tab === "organizer"} onClick={() => setTab("organizer")}>منظّم الأقسام (CSV)</TabBtn>
         <TabBtn active={tab === "timers"} onClick={() => setTab("timers")}>ضابط المؤقتات</TabBtn>
       </div>
 
+      {tab === "questions" && <QuestionsBank />}
       {tab === "uploader" && <VideoUploader />}
       {tab === "organizer" && <SectionOrganizer />}
       {tab === "timers" && <TimerController />}
