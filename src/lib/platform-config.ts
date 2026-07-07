@@ -552,8 +552,8 @@ export function loadAllQuestions(): Record<number, Question[]> {
 export function getQuestions(sectionNumber: number): Question[] {
   const all = loadAllQuestions();
   const custom = all[sectionNumber];
-  if (custom && custom.length > 0) return custom;
-  return SEED_QUESTIONS[sectionNumber] ?? [];
+  if (custom && custom.length > 0) return applyQuestionSvgFixes(custom);
+  return applyQuestionSvgFixes(SEED_QUESTIONS[sectionNumber] ?? []);
 }
 
 export function saveQuestions(sectionNumber: number, questions: Question[]) {
