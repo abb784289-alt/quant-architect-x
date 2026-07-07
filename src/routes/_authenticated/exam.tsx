@@ -130,6 +130,11 @@ function NemrExamEngine({ session }: { session: Session }) {
 
             <div style={{ fontSize: `${fontScale}rem` }}>
               <p className="text-foreground mb-4 leading-8">{active.prompt}</p>
+              {active.imageUrl && (
+                <div className="rounded-xl bg-white border border-border p-3 mb-4 text-center">
+                  <img src={active.imageUrl} alt="رسم السؤال" className="max-h-72 mx-auto rounded-lg" />
+                </div>
+              )}
               {active.latex && (
                 <div className="rounded-xl bg-surface-1 border border-border p-4 mb-6 text-center">
                   <BlockMath math={active.latex} />
