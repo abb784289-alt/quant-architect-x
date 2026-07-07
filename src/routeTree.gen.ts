@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedReportSessionIdRouteImport } from './routes/_authenticated/report.$sessionId'
 import { Route as AuthenticatedExamSectionIdRouteImport } from './routes/_authenticated/exam.$sectionId'
 
 const AuthRoute = AuthRouteImport.update({
@@ -40,6 +41,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReportSessionIdRoute =
+  AuthenticatedReportSessionIdRouteImport.update({
+    id: '/report/$sessionId',
+    path: '/report/$sessionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedExamSectionIdRoute =
   AuthenticatedExamSectionIdRouteImport.update({
     id: '/exam/$sectionId',
@@ -53,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/exam/$sectionId': typeof AuthenticatedExamSectionIdRoute
+  '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -60,6 +68,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/exam/$sectionId': typeof AuthenticatedExamSectionIdRoute
+  '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,12 +78,25 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/exam/$sectionId': typeof AuthenticatedExamSectionIdRoute
+  '/_authenticated/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/admin' | '/dashboard' | '/exam/$sectionId'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/dashboard'
+    | '/exam/$sectionId'
+    | '/report/$sessionId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/admin' | '/dashboard' | '/exam/$sectionId'
+  to:
+    | '/'
+    | '/auth'
+    | '/admin'
+    | '/dashboard'
+    | '/exam/$sectionId'
+    | '/report/$sessionId'
   id:
     | '__root__'
     | '/'
@@ -83,6 +105,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/exam/$sectionId'
+    | '/_authenticated/report/$sessionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -128,6 +151,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/report/$sessionId': {
+      id: '/_authenticated/report/$sessionId'
+      path: '/report/$sessionId'
+      fullPath: '/report/$sessionId'
+      preLoaderRoute: typeof AuthenticatedReportSessionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/exam/$sectionId': {
       id: '/_authenticated/exam/$sectionId'
       path: '/exam/$sectionId'
@@ -142,12 +172,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedExamSectionIdRoute: typeof AuthenticatedExamSectionIdRoute
+  AuthenticatedReportSessionIdRoute: typeof AuthenticatedReportSessionIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedExamSectionIdRoute: AuthenticatedExamSectionIdRoute,
+  AuthenticatedReportSessionIdRoute: AuthenticatedReportSessionIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
