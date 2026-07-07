@@ -116,7 +116,7 @@ function Index() {
           </p>
           <div className="mt-10 flex flex-wrap items-center gap-4">
             <a
-              href="/auth"
+              href="/dashboard"
               className="group relative inline-flex items-center gap-3 rounded-full bg-gradient-to-l from-gold to-gold-soft px-8 py-4 font-display text-base font-bold text-primary-foreground animate-pulse-gold transition hover:scale-[1.02]"
             >
               ابدأ رحلة التميز الآن
