@@ -165,7 +165,7 @@ function NemrExamEngine({ session }: { session: Session }) {
             </div>
 
             <div style={{ fontSize: `${fontScale}rem` }}>
-              <p className="text-foreground mb-4 leading-8">{active.prompt}</p>
+              <p className="text-foreground mb-4 leading-8"><MathText text={active.prompt} /></p>
               {active.svg && (
                 <div className="rounded-xl bg-white border border-border p-4 mb-4 flex justify-center [&_svg]:max-h-64 [&_svg]:w-auto"
                   dangerouslySetInnerHTML={{ __html: active.svg }} />
@@ -194,7 +194,7 @@ function NemrExamEngine({ session }: { session: Session }) {
                       <div className="flex items-center gap-3">
                         <div className={"h-8 w-8 rounded-lg grid place-items-center font-bold text-sm " +
                           (chosen ? "bg-teal text-white" : "bg-surface-2 text-foreground")}>{letters[idx]}</div>
-                        <span className="text-foreground">{choice}</span>
+                        <span className="text-foreground"><MathText text={choice} /></span>
                       </div>
                       <input
                         type="radio"
