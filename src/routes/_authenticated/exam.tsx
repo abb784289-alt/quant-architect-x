@@ -383,6 +383,104 @@ function UtilBtn({ children, onClick }: { children: React.ReactNode; onClick: ()
   );
 }
 
+// ────────────── Results ──────────────
+function ResultsView({
+  questions,
+  answers,
+  sectionNumber,
+  sectionTitle,
+  onRestart,
+  onBack,
+}: {
+  questions: Question[];
+  answers: Record<string, number>;
+  sectionNumber: number;
+  sectionTitle: string;
+  onRestart: () => void;
+  onBack: () => void;
+}) {
+  const letters = ["أ", "ب", "ج", "د"];
+  const correctCount = questions.reduce((n, q) => n + (answers[q.id] === q.correctIndex ? 1 : 0), 0);
+  const total = questions.length;
+  const pct = Math.round((correctCount / Math.max(1, total)) * 100);
+  const wrongs = questions.filter((q) => answers[q.id] !== q.correctIndex);
+
+  return (
+    <div dir="rtl" className="min-h-screen bg-surface-1">
+      <div className="mx-auto max-w-4xl px-5 py-8 space-y-6">
+        {/* Header */}
+        <div className="luxury-card p-6 text-center">
+          <div className="text-xs font-semibold text-teal-deep mb-2">نتيجة القسم {toArabic(sectionNumber)}</div>
+          <h1 className="font-display font-bold text-2xl text-foreground mb-1">{sectionTitle}</h1>
+          <div className="mt-6 flex items-center justify-center gap-6">
+            <div className={"h-32 w-32 rounded-full grid place-items-center border-8 " +
+              (pct >= 70 ? "border-teal bg-teal-soft text-teal-deep" :
+                pct >= 50 ? "border-gold bg-gold-soft text-foreground" : "border-red-300 bg-red-50 text-red-700")}>
+              <div className="text-center">
+                <div className="text-3xl font-bold">{toArabic(correctCount)}</div>
+                <div className="text-xs">من {toArabic(total)}</div>
+              </div>
+            </div>
+            <div className="text-right space-y-2">
+              <div className="text-sm"><span className="text-muted-foreground">النسبة:</span> <span className="font-bold text-lg text-foreground">{toArabic(pct)}٪</span></div>
+              <div className="text-sm"><span className="text-muted-foreground">صحيحة:</span> <span className="font-bold text-teal-deep">{toArabic(correctCount)}</span></div>
+              <div className="text-sm"><span className="text-muted-foreground">خاطئة:</span> <span className="font-bold text-red-600">{toArabic(total - correctCount)}</span></div>
+            </div>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-2 justify-center">
+            <button onClick={onRestart} className="rounded-xl bg-teal text-white px-5 py-2.5 text-sm font-bold hover:bg-teal-deep transition-colors">إعادة القسم</button>
+            <button onClick={onBack} className="rounded-xl border border-border bg-white px-5 py-2.5 text-sm font-bold hover:border-teal transition-colors">العودة للأقسام</button>
+          </div>
+        </div>
+
+        {/* Mistakes area */}
+        <div className="luxury-card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-bold text-lg text-foreground">مكان الأخطاء</h2>
+            <span className="text-xs font-semibold rounded-full bg-red-50 text-red-700 px-3 py-1 border border-red-200">{toArabic(wrongs.length)} خطأ</span>
+          </div>
+          {wrongs.length === 0 ? (
+            <div className="text-center py-8 text-teal-deep font-semibold">🎉 لا توجد أخطاء — درجة كاملة!</div>
+          ) : (
+            <div className="space-y-4">
+              {wrongs.map((q) => {
+                const chosen = answers[q.id];
+                return (
+                  <div key={q.id} className="rounded-xl border border-red-200 bg-red-50/40 p-4">
+                    <div className="text-sm text-foreground mb-3 leading-7"><MathText text={q.prompt} /></div>
+                    {q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: q.svg }} />}
+                    <div className="grid gap-1.5 text-xs">
+                      <div className="text-red-700"><span className="font-bold">إجابتك:</span> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : "لم تُجَب"}</div>
+                      <div className="text-teal-deep"><span className="font-bold">الإجابة الصحيحة:</span> {letters[q.correctIndex]} — <MathText text={q.choices[q.correctIndex]} /></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Full review */}
+        <div className="luxury-card p-6">
+          <h2 className="font-display font-bold text-lg text-foreground mb-4">مراجعة كاملة</h2>
+          <div className="grid grid-cols-10 gap-1.5">
+            {questions.map((q, i) => {
+              const ok = answers[q.id] === q.correctIndex;
+              return (
+                <div key={q.id} title={`سؤال ${toArabic(i + 1)} — ${ok ? "صحيح" : "خطأ"}`}
+                  className={"h-9 rounded-lg grid place-items-center text-xs font-bold border " +
+                    (ok ? "bg-teal text-white border-transparent" : "bg-red-500 text-white border-transparent")}>
+                  {toArabic(i + 1)}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ────────────── Scratchpad ──────────────
 type Stroke = { color: string; size: number; points: { x: number; y: number }[]; erase: boolean };
 
