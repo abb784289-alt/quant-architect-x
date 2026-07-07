@@ -63,6 +63,7 @@ function NemrExamEngine({ session }: { session: Session }) {
   const [remaining, setRemaining] = useState<number>(0);
   const [warned4, setWarned4] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [finished, setFinished] = useState(false);
 
   useEffect(() => {
     const n = sectionNumber ?? 1;
@@ -76,6 +77,7 @@ function NemrExamEngine({ session }: { session: Session }) {
     setFlagged({});
     setRemaining(computeTimerSeconds(c, qs.length));
     setWarned4(false);
+    setFinished(false);
   }, [sectionNumber]);
 
   useEffect(() => {
@@ -119,9 +121,44 @@ function NemrExamEngine({ session }: { session: Session }) {
       setTimeout(() => setToast(null), 5000);
       return;
     }
-    if (confirm("هل أنت متأكد من إنهاء هذا القسم؟")) {
-      navigate({ to: "/dashboard" });
-    }
+    if (!confirm("هل أنت متأكد من إنهاء هذا القسم؟")) return;
+    // احتساب النتيجة وحفظها
+    try {
+      const correct = questions.reduce((n, q) => n + (answers[q.id] === q.correctIndex ? 1 : 0), 0);
+      const attempt = {
+        at: Date.now(),
+        section: sectionNumber ?? 1,
+        sectionTitle: config?.title ?? "",
+        total: questions.length,
+        correct,
+        answers,
+        wrongIds: questions.filter((q) => answers[q.id] !== q.correctIndex).map((q) => q.id),
+      };
+      const key = "nemr:results";
+      const prev = JSON.parse(localStorage.getItem(key) || "[]");
+      prev.push(attempt);
+      localStorage.setItem(key, JSON.stringify(prev));
+    } catch {}
+    setFinished(true);
+  }
+
+  if (finished) {
+    return (
+      <ResultsView
+        questions={questions}
+        answers={answers}
+        sectionNumber={sectionNumber ?? 1}
+        sectionTitle={config?.title ?? ""}
+        onRestart={() => {
+          setAnswers({});
+          setCurrent(0);
+          setFinished(false);
+          setRemaining(computeTimerSeconds(config!, questions.length));
+          setWarned4(false);
+        }}
+        onBack={() => navigate({ to: "/dashboard" })}
+      />
+    );
   }
 
   return (
