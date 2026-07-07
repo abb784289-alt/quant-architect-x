@@ -9,49 +9,127 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedFoundationRouteImport } from './routes/_authenticated/foundation'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedReportSessionIdRouteImport } from './routes/_authenticated/report.$sessionId'
+import { Route as AuthenticatedFoundationCategoryIdRouteImport } from './routes/_authenticated/foundation.$categoryId'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedFoundationRoute = AuthenticatedFoundationRouteImport.update({
+  id: '/foundation',
+  path: '/foundation',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedReportSessionIdRoute =
   AuthenticatedReportSessionIdRouteImport.update({
-    id: '/_authenticated/report/$sessionId',
+    id: '/report/$sessionId',
     path: '/report/$sessionId',
-    getParentRoute: () => rootRouteImport,
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedFoundationCategoryIdRoute =
+  AuthenticatedFoundationCategoryIdRouteImport.update({
+    id: '/$categoryId',
+    path: '/$categoryId',
+    getParentRoute: () => AuthenticatedFoundationRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/foundation': typeof AuthenticatedFoundationRouteWithChildren
+  '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/foundation': typeof AuthenticatedFoundationRouteWithChildren
+  '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/foundation': typeof AuthenticatedFoundationRouteWithChildren
+  '/_authenticated/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/_authenticated/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/report/$sessionId'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/foundation'
+    | '/foundation/$categoryId'
+    | '/report/$sessionId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/report/$sessionId'
-  id: '__root__' | '/' | '/_authenticated/report/$sessionId'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/foundation'
+    | '/foundation/$categoryId'
+    | '/report/$sessionId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/foundation'
+    | '/_authenticated/foundation/$categoryId'
+    | '/_authenticated/report/$sessionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedReportSessionIdRoute: typeof AuthenticatedReportSessionIdRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -59,19 +137,71 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/foundation': {
+      id: '/_authenticated/foundation'
+      path: '/foundation'
+      fullPath: '/foundation'
+      preLoaderRoute: typeof AuthenticatedFoundationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/report/$sessionId': {
       id: '/_authenticated/report/$sessionId'
       path: '/report/$sessionId'
       fullPath: '/report/$sessionId'
       preLoaderRoute: typeof AuthenticatedReportSessionIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/foundation/$categoryId': {
+      id: '/_authenticated/foundation/$categoryId'
+      path: '/$categoryId'
+      fullPath: '/foundation/$categoryId'
+      preLoaderRoute: typeof AuthenticatedFoundationCategoryIdRouteImport
+      parentRoute: typeof AuthenticatedFoundationRoute
     }
   }
 }
 
+interface AuthenticatedFoundationRouteChildren {
+  AuthenticatedFoundationCategoryIdRoute: typeof AuthenticatedFoundationCategoryIdRoute
+}
+
+const AuthenticatedFoundationRouteChildren: AuthenticatedFoundationRouteChildren =
+  {
+    AuthenticatedFoundationCategoryIdRoute:
+      AuthenticatedFoundationCategoryIdRoute,
+  }
+
+const AuthenticatedFoundationRouteWithChildren =
+  AuthenticatedFoundationRoute._addFileChildren(
+    AuthenticatedFoundationRouteChildren,
+  )
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedFoundationRoute: typeof AuthenticatedFoundationRouteWithChildren
+  AuthenticatedReportSessionIdRoute: typeof AuthenticatedReportSessionIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedFoundationRoute: AuthenticatedFoundationRouteWithChildren,
+  AuthenticatedReportSessionIdRoute: AuthenticatedReportSessionIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedReportSessionIdRoute: AuthenticatedReportSessionIdRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
