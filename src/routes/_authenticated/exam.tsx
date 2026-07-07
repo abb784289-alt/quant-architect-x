@@ -301,6 +301,12 @@ function NemrExamEngine({ session }: { session: Session }) {
           </div>
         </div>
       )}
+
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-2xl bg-foreground text-white px-5 py-3 text-sm font-semibold shadow-2xl border border-gold/40 max-w-md text-center animate-in fade-in slide-in-from-bottom-4">
+          {toast}
+        </div>
+      )}
     </div>
   );
 }
