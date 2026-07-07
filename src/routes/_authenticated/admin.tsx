@@ -20,6 +20,7 @@ import {
   type FoundationCategoryId,
   type Question,
 } from "@/lib/platform-config";
+import { toArabic } from "@/lib/platform-config";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
