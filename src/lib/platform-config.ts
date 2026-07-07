@@ -105,6 +105,7 @@ export type Question = {
   id: string;
   prompt: string;
   latex?: string;
+  imageUrl?: string;
   choices: string[]; // exactly 4
   correctIndex: 0 | 1 | 2 | 3;
 };
