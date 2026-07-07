@@ -107,6 +107,7 @@ export type Question = {
   latex?: string;
   imageUrl?: string;
   svg?: string; // raw SVG markup for geometric shapes
+  tableHtml?: string; // raw HTML markup for real tables (preferred over svg when present)
   choices: string[]; // exactly 4
   correctIndex: 0 | 1 | 2 | 3;
 };
@@ -185,10 +186,53 @@ const GEOMETRY_SVG_FIXES: Record<string, string> = {
   s30q4: diagramSvg("0 0 220 150", `<path d="M45 25H125V75H95V125H45Z" ${SVG_LINE} ${SVG_FILL}/><path d="M45 75H95M95 75V125" ${SVG_THIN}/><text x="85" y="20" text-anchor="middle" ${SVG_TEXT}>٦ سم</text><text x="132" y="55" ${SVG_TEXT}>٤ سم</text><text x="102" y="105" ${SVG_TEXT}>٤ سم</text><text x="18" y="55" ${SVG_TEXT}>٤ سم</text><text x="18" y="105" ${SVG_TEXT}>٤ سم</text>`),
 };
 
+// ─────────────── Real HTML tables (replace SVG-based tables) ───────────────
+function htmlTable(headers: string[], rows: string[][], caption?: string): string {
+  const th = headers.map((h) => `<th scope="col">${h}</th>`).join("");
+  const body = rows
+    .map((r) => `<tr>${r.map((c, i) => (i === 0 ? `<th scope="row">${c}</th>` : `<td>${c}</td>`)).join("")}</tr>`)
+    .join("");
+  return `<table class="q-table" dir="rtl">${caption ? `<caption>${caption}</caption>` : ""}<thead><tr>${th}</tr></thead><tbody>${body}</tbody></table>`;
+}
+
+const TABLE_HTML_FIXES: Record<string, string> = {
+  s1q10: htmlTable(
+    ["طريقة التخطيط", "عدد الطلاب"],
+    [["يخطط دائماً", "٨"], ["يخطط لشهر", "١٢"], ["يخطط لأسبوع", "٣٢"], ["لا يخطط", "٤٠"]],
+  ),
+  s1q11: htmlTable(
+    ["العام", "النسبة"],
+    [["٢٠١٠", "٢٠٪"], ["٢٠١١", "١٥٪"], ["٢٠١٢", "١٨٪"], ["٢٠١٣", "١٢٪"]],
+    "النسبة المئوية للخريجين في المهن الصناعية",
+  ),
+  s2q2: htmlTable(
+    ["السيارة", "المسافة (كم/لتر)"],
+    [["سيارة (١)", "١٨"], ["سيارة (٣)", "١٩"], ["سيارة (٤)", "١٦"], ["سيارة (٥)", "١٧"]],
+  ),
+  s2q3: htmlTable(
+    ["السيارة", "الكيلومترات/لتر"],
+    [["سيارة (١)", "١٢"], ["سيارة (٢)", "١٥"], ["سيارة (٣)", "٢٠"], ["سيارة (٤)", "٨"]],
+  ),
+  s7q4: htmlTable(
+    ["الصف", "الدرجات", "عدد الطلاب"],
+    [["٣/١", "١ - ١٤", "٣"], ["٣/١", "١٥ - ٢٠", "١٨"], ["٣/٢", "١ - ٢٠", "٣٠"]],
+  ),
+  s29q4: htmlTable(
+    ["البيان", "القيمة"],
+    [["الدولة", "اليمن"], ["المساحة (كم²)", "٥٦٠٠٠٠"], ["الكثافة السكانية", "١٤"]],
+  ),
+};
+
 function applyQuestionSvgFixes(questions: Question[]): Question[] {
   return questions.map((q) => {
     const svg = GEOMETRY_SVG_FIXES[q.id];
-    return svg ? { ...q, svg } : q;
+    const withSvg = svg ? { ...q, svg } : q;
+    const tableHtml = TABLE_HTML_FIXES[q.id];
+    if (tableHtml) {
+      // Prefer real HTML tables — drop the SVG fallback so it isn't rendered.
+      return { ...withSvg, tableHtml, svg: undefined };
+    }
+    return withSvg;
   });
 }
 
