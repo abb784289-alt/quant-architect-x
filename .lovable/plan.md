@@ -1,45 +1,44 @@
-## Milestone 2 — Fix 404s + build the operational core
+# Fix Auth: Working localStorage Login/Register + Admin Bypass
 
-You're on **TanStack Start** (not Next.js), so routes live in `src/routes/*.tsx`, not `app/*/page.tsx`. I'll create the missing routes and wire real backend functionality. This is a large build — here's exactly what ships and in what order so nothing is a placeholder.
+Overwrite `src/routes/auth.tsx` with a complete, self-contained client component. No backend calls, no Supabase, no server functions — pure localStorage. This eliminates the "validation/database" rejections entirely.
 
-### Step 1 — Enable Lovable Cloud (required)
-Uploads (video + Excel), the 150 sections DB, exam sessions, AI evaluation, and admin auth all need a backend. I'll enable Lovable Cloud (managed Postgres + Storage + Auth + server functions + AI Gateway).
+## What the new page does
 
-### Step 2 — Database schema (migration)
-- `sections` — id, title, category (`algebra|geometry|arithmetic|statistics`), order_index, video_url, duration_seconds, timer_seconds (custom countdown), created_at
-- `questions` — id, section_id, prompt, choices (jsonb), correct_index, explanation
-- `exam_sessions` — id, user_id, section_id, started_at, submitted_at, auto_submitted, score, time_taken_seconds, answers (jsonb), skipped (int[]), ai_report (jsonb)
-- `user_roles` + `has_role()` (per platform security rules — admin gate)
-- RLS on every table + GRANTs; storage buckets `lecture-videos` (private, signed URLs) and `section-imports` (private)
+**Two tabs (RTL, deep teal + gold theme, matches existing palette):**
+- تسجيل الدخول (Sign In)
+- إنشاء حساب جديد (Register)
 
-### Step 3 — Missing routes (fixes every 404)
-- `src/routes/auth.tsx` — sign-in / sign-up (email + Google)
-- `src/routes/_authenticated/route.tsx` — auth gate
-- `src/routes/_authenticated/dashboard.tsx` — the 150-section academy, grouped in collapsible accordions per category (جبر / هندسة / حساب / إحصاء), progress badges, "ابدأ الاختبار" per section
-- `src/routes/_authenticated/exam.$sectionId.tsx` — Nimar exam engine, teal top bar with live `mm:ss` countdown seeded from `sections.timer_seconds`, auto-submit + screen lock at 00:00
-- `src/routes/_authenticated/report.$sessionId.tsx` — Smart AI Performance Report (mastery %, custom roadmap of sections to re-watch, motivational commentary "من الأستاذ أسامة")
-- `src/routes/_authenticated/admin.tsx` — admin-only control center:
-  - Drag-and-drop **video uploader** → Supabase Storage `lecture-videos`, attaches to a section
-  - **Bulk CSV/XLSX section uploader** (parsed client-side with SheetJS) → server fn inserts/updates the 150 sections
-  - Per-section **custom countdown timer** editor (دقائق : ثواني)
-- Update `src/routes/index.tsx` — "ابدأ" now links to `/dashboard` (or `/auth` if signed out)
+**Register tab fields:** Full Name, Email, Password, Mobile Number
+- On submit: light validation (non-empty, email contains `@`, password ≥ 6, mobile ≥ 8 digits)
+- Save `{ fullName, email, password, mobile, createdAt }` under `localStorage.user_account`
+- Show gold success toast: "تم إنشاء حسابك بنجاح — سجّل الدخول الآن"
+- Auto-switch to Sign In tab, prefill email
 
-### Step 4 — Server functions (`src/lib/*.functions.ts`)
-- `listSections`, `getSection`, `getQuestions`
-- `startExamSession`, `submitExamSession` (also called by auto-submit) — computes score, time, weak areas, then calls the AI evaluator and stores the report
-- `bulkUpsertSections` (admin) — accepts parsed rows
-- `setSectionTimer`, `attachSectionVideo` (admin)
-- `generateAiReport` — Lovable AI Gateway (`openai/gpt-5.5`) with structured `Output.object` → mastery, roadmap (section ids to rewatch), coaching commentary in Arabic voice of الأستاذ أسامة
+**Sign In tab fields:** Email, Password
+- **Admin bypass first:** if `email === "admin@miqyas.com"` AND `password === "admin@100percent"` → set `localStorage.session = { role: "admin", email }` → `window.location.href = "/admin"`
+- Otherwise: read `localStorage.user_account`, compare email + password
+  - Match → set `localStorage.session = { role: "student", email }` → `window.location.href = "/dashboard"`
+  - Empty fields → inline red message "من فضلك أدخل البريد وكلمة المرور"
+  - No account saved → "لا يوجد حساب بهذا البريد — أنشئ حساباً جديداً"
+  - Wrong password → "كلمة المرور غير صحيحة"
+- Never blocks a syntactically valid input; no regex rejection loop
 
-### Step 5 — Polish
-- Preserve the cinematic teal + gold design system already in place
-- RTL, Arabic copy throughout
-- Loading / empty / error states, no placeholders
+## Visual system (reuses existing tokens from `src/styles.css`)
 
-### Technical notes
-- Stack is TanStack Start; there is no `app/` or `pages/` directory. All Next.js `/admin/page.tsx`-style paths become TanStack routes as listed above — functionally identical URLs (`/admin`, `/dashboard`, `/exam/:sectionId`).
-- Video uploads go to Supabase Storage from the browser using the authenticated Supabase client (chunked, resumable), then a server fn records the returned path on the section.
-- Excel parsing uses `xlsx` in the browser so we never ship the file to a server function — only clean rows are sent.
-- Admin gate uses the `user_roles` + `has_role()` security-definer pattern (never a boolean on profiles).
+- Background: existing teal gradient from `body` (no override needed)
+- Card: `glass-card` + `gold-ring` utilities already defined
+- Tabs: two pill buttons; active = gold fill on teal-deep text; inactive = white/10 with border
+- Inputs: white/10 bg, gold focus ring, RTL, IBM Plex Arabic
+- Primary CTA: gold gradient with `animate-pulse-gold` on hover
+- Success/error banners: gold-tinted and red-tinted glass strips (no hardcoded hex; use existing tokens where possible)
+- Small footer note: "الدخول التجريبي محلي — بدون اتصال بقاعدة بيانات"
 
-Approve and I'll build steps 1→5 in order.
+## Files touched
+
+- `src/routes/auth.tsx` — full rewrite (single client component, `ssr: false` kept). No other files change.
+- No new packages, no migrations, no route tree edits.
+
+## Out of scope (intentionally)
+
+- No Supabase, no Twilio OTP, no Moyasar, no server functions in this step.
+- Admin/dashboard routes remain as they are (already publicly reachable per prior fix).
