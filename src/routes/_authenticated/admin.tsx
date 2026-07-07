@@ -503,6 +503,33 @@ function QuestionsBank() {
                   className="mt-1 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm font-mono focus:border-teal outline-none" />
               </label>
 
+              <div className="mb-3">
+                <span className="text-[11px] font-semibold text-foreground">صورة/رسم السؤال (اختياري — للأشكال الهندسية)</span>
+                <div className="mt-1 flex gap-2 items-start">
+                  <input value={q.imageUrl ?? ""} onChange={(e) => updateAt(i, { imageUrl: e.target.value })}
+                    placeholder="https://... أو ارفع صورة" dir="ltr"
+                    className="flex-1 rounded-xl border border-border bg-white px-3 py-2 text-sm focus:border-teal outline-none" />
+                  <label className="cursor-pointer rounded-xl border border-border bg-white px-3 py-2 text-xs font-semibold hover:border-teal transition-colors whitespace-nowrap">
+                    رفع صورة
+                    <input type="file" accept="image/*" hidden onChange={(e) => {
+                      const f = e.target.files?.[0]; if (!f) return;
+                      const reader = new FileReader();
+                      reader.onload = () => updateAt(i, { imageUrl: String(reader.result) });
+                      reader.readAsDataURL(f);
+                    }} />
+                  </label>
+                  {q.imageUrl && (
+                    <button type="button" onClick={() => updateAt(i, { imageUrl: "" })}
+                      className="rounded-xl border border-border bg-white px-3 py-2 text-xs font-semibold text-red-600 hover:border-red-400">حذف</button>
+                  )}
+                </div>
+                {q.imageUrl && (
+                  <div className="mt-2 rounded-xl border border-border bg-surface-1 p-2 inline-block">
+                    <img src={q.imageUrl} alt="معاينة" className="max-h-32 rounded-lg" />
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {q.choices.map((c, ci) => (
                   <label key={ci} className={"flex items-center gap-2 rounded-xl border p-2 transition-colors " +
