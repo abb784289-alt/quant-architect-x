@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/auth")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "بوابة الدخول — منصة المِقْيَاس الذكية" },
