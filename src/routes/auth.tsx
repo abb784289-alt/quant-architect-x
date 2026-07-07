@@ -1,0 +1,149 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState, type FormEvent } from "react";
+
+export const Route = createFileRoute("/auth")({
+  ssr: false,
+  head: () => ({
+    meta: [
+      { title: "بوابة الدخول — منصة المِقْيَاس الذكية" },
+      { name: "description", content: "تسجيل الدخول وإنشاء حساب في منصة المِقْيَاس الذكية للأستاذ أسامة فتح الدين." },
+    ],
+  }),
+  component: LightAuthPage,
+});
+
+const ADMIN_EMAIL = "admin@miqyas.com";
+const ADMIN_PASSWORD = "admin@100percent";
+const ACCOUNT_KEY = "user_account";
+const SESSION_KEY = "session";
+
+type StoredAccount = { fullName: string; email: string; password: string; mobile: string; createdAt: string };
+type Tab = "login" | "register";
+type Banner = { kind: "success" | "error" | "info"; text: string } | null;
+
+function LightAuthPage() {
+  const [tab, setTab] = useState<Tab>("login");
+  const [banner, setBanner] = useState<Banner>(null);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [regName, setRegName] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regMobile, setRegMobile] = useState("");
+
+  useEffect(() => {
+    if (banner) {
+      const t = setTimeout(() => setBanner(null), 5000);
+      return () => clearTimeout(t);
+    }
+  }, [banner]);
+
+  function handleLogin(e: FormEvent) {
+    e.preventDefault();
+    const email = loginEmail.trim();
+    const password = loginPassword;
+    if (!email || !password) { setBanner({ kind: "error", text: "من فضلك أدخل البريد وكلمة المرور." }); return; }
+    if (email.toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ role: "admin", email, at: new Date().toISOString() }));
+      window.location.href = "/admin";
+      return;
+    }
+    let account: StoredAccount | null = null;
+    try {
+      const raw = localStorage.getItem(ACCOUNT_KEY);
+      account = raw ? (JSON.parse(raw) as StoredAccount) : null;
+    } catch { account = null; }
+    // Permissive: if no matching account, still create a session as a student so the user is never blocked.
+    if (account && account.email.toLowerCase() === email.toLowerCase() && account.password !== password) {
+      setBanner({ kind: "error", text: "كلمة المرور غير صحيحة." });
+      return;
+    }
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ role: "student", email, at: new Date().toISOString() }));
+    window.location.href = "/dashboard";
+  }
+
+  function handleRegister(e: FormEvent) {
+    e.preventDefault();
+    const fullName = regName.trim();
+    const email = regEmail.trim();
+    const password = regPassword;
+    const mobile = regMobile.trim();
+    if (!fullName || !email || !password || !mobile) { setBanner({ kind: "error", text: "من فضلك أكمل جميع الحقول." }); return; }
+    if (!email.includes("@") || email.length < 5) { setBanner({ kind: "error", text: "صيغة البريد الإلكتروني غير صحيحة." }); return; }
+    if (password.length < 6) { setBanner({ kind: "error", text: "كلمة المرور يجب أن تكون 6 أحرف فأكثر." }); return; }
+    const account: StoredAccount = { fullName, email, password, mobile, createdAt: new Date().toISOString() };
+    localStorage.setItem(ACCOUNT_KEY, JSON.stringify(account));
+    localStorage.setItem(SESSION_KEY, JSON.stringify({ role: "student", email, at: new Date().toISOString() }));
+    window.location.href = "/dashboard";
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6" dir="rtl">
+      <div className="luxury-card w-full max-w-md p-8">
+        <div className="text-center mb-6">
+          <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-teal to-teal-deep text-white font-display text-2xl font-bold shadow-lg">م</div>
+          <h1 className="font-display text-2xl font-bold text-teal-gradient mb-1">منصة المِقْيَاس الذكية</h1>
+          <p className="text-xs text-muted-foreground">بوابة الدخول الرسمية — أ. أسامة فتح الدين</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-1 p-1 rounded-2xl bg-surface-2 border border-border mb-6">
+          <button type="button" onClick={() => { setTab("login"); setBanner(null); }}
+            className={"py-2.5 rounded-xl text-sm font-semibold transition-all " + (tab === "login" ? "bg-white text-teal-deep shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+            تسجيل الدخول
+          </button>
+          <button type="button" onClick={() => { setTab("register"); setBanner(null); }}
+            className={"py-2.5 rounded-xl text-sm font-semibold transition-all " + (tab === "register" ? "bg-white text-teal-deep shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+            إنشاء حساب
+          </button>
+        </div>
+
+        {banner && (
+          <div role="status" className={"mb-4 text-sm rounded-xl px-4 py-3 border " +
+            (banner.kind === "success" ? "bg-gold-soft border-gold/50 text-foreground"
+              : banner.kind === "error" ? "bg-red-50 border-red-200 text-red-700"
+              : "bg-surface-1 border-border text-foreground")}>{banner.text}</div>
+        )}
+
+        {tab === "login" ? (
+          <form onSubmit={handleLogin} className="space-y-4" noValidate>
+            <Field label="البريد الإلكتروني" type="email" value={loginEmail} onChange={setLoginEmail} placeholder="name@example.com" autoComplete="email" />
+            <Field label="كلمة المرور" type="password" value={loginPassword} onChange={setLoginPassword} placeholder="••••••••" autoComplete="current-password" />
+            <button type="submit" className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-l from-teal to-teal-deep hover:opacity-95 transition-all shadow-md hover:shadow-lg">
+              دخول
+            </button>
+            <p className="text-[11px] text-muted-foreground text-center pt-2">للأدمن: admin@miqyas.com</p>
+          </form>
+        ) : (
+          <form onSubmit={handleRegister} className="space-y-4" noValidate>
+            <Field label="الاسم بالكامل" type="text" value={regName} onChange={setRegName} placeholder="محمد أحمد" autoComplete="name" />
+            <Field label="البريد الإلكتروني" type="email" value={regEmail} onChange={setRegEmail} placeholder="name@example.com" autoComplete="email" />
+            <Field label="كلمة المرور" type="password" value={regPassword} onChange={setRegPassword} placeholder="6 أحرف فأكثر" autoComplete="new-password" />
+            <Field label="رقم الجوال" type="tel" value={regMobile} onChange={setRegMobile} placeholder="05xxxxxxxx" autoComplete="tel" />
+            <button type="submit" className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-l from-teal to-teal-deep hover:opacity-95 transition-all shadow-md hover:shadow-lg">
+              إنشاء الحساب والدخول
+            </button>
+          </form>
+        )}
+
+        <p className="text-[11px] text-muted-foreground mt-6 text-center">
+          الدخول محلي على جهازك — بدون قاعدة بيانات في هذه المرحلة.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, type, value, onChange, placeholder, autoComplete }: {
+  label: string; type: "email" | "password" | "text" | "tel"; value: string; onChange: (v: string) => void; placeholder?: string; autoComplete?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-semibold text-foreground mb-1.5">{label}</span>
+      <input
+        type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoComplete={autoComplete}
+        dir={type === "email" || type === "tel" ? "ltr" : "rtl"}
+        className="w-full rounded-xl bg-surface-1 border border-border focus:border-teal focus:ring-2 focus:ring-teal/30 outline-none px-4 py-3 text-foreground placeholder:text-muted-foreground/60 transition-all"
+      />
+    </label>
+  );
+}
