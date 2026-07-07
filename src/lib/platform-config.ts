@@ -118,17 +118,6 @@ export function toArabic(input: string | number): string {
   return String(input).replace(/[0-9]/g, (d) => AR_DIGITS[Number(d)]);
 }
 
-const SVG_LINE = `stroke="#0F766E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"`;
-const SVG_THIN = `stroke="#0F766E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"`;
-const SVG_FILL = `fill="#14B8A6" fill-opacity="0.18"`;
-const SVG_TEXT = `fill="#334155" stroke="none" font-size="13" font-family="Arial, sans-serif"`;
-const SVG_SMALL = `fill="#334155" stroke="none" font-size="11" font-family="Arial, sans-serif"`;
-
-function diagramSvg(viewBox: string, body: string): string {
-  return `<svg viewBox="${viewBox}" width="260" height="200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="رسم هندسي" shape-rendering="geometricPrecision">${body}</svg>`;
-}
-
-const GEOMETRY_SVG_FIXES: Record<string, string> = {
   s1q6: diagramSvg("0 0 260 220", `<rect x="70" y="60" width="120" height="120" ${SVG_LINE} fill="none"/><circle cx="70" cy="60" r="60" ${SVG_THIN} fill="none"/><circle cx="190" cy="60" r="60" ${SVG_THIN} fill="none"/><circle cx="70" cy="180" r="60" ${SVG_THIN} fill="none"/><circle cx="190" cy="180" r="60" ${SVG_THIN} fill="none"/><path d="M70 60 A60 60 0 0 1 130 60 A60 60 0 0 1 190 60 A60 60 0 0 1 190 120 A60 60 0 0 1 190 180 A60 60 0 0 1 130 180 A60 60 0 0 1 70 180 A60 60 0 0 1 70 120 A60 60 0 0 1 70 60Z" ${SVG_FILL} stroke="none"/><path d="M70 60H190V180H70Z" ${SVG_LINE} fill="none"/><path d="M80 188H180M80 184v8M180 184v8" ${SVG_THIN} fill="none"/><text x="130" y="208" text-anchor="middle" ${SVG_TEXT}>٤ سم</text>`),
   s2q6: diagramSvg("0 0 260 200", `<polygon points="40 165 220 165 130 35" ${SVG_LINE} ${SVG_FILL}/><path d="M130 35l-10 10M130 35l10 10" ${SVG_THIN}/><path d="M40 165h180" ${SVG_LINE}/><text x="130" y="184" text-anchor="middle" ${SVG_TEXT}>١٢</text><text x="83" y="104" text-anchor="middle" ${SVG_TEXT}>س</text><text x="177" y="104" text-anchor="middle" ${SVG_TEXT}>س</text><path d="M118 55A20 20 0 0 1 142 55" ${SVG_THIN} fill="none"/><text x="130" y="67" text-anchor="middle" ${SVG_TEXT}>٦٠°</text>`),
   s3q3: diagramSvg("0 0 180 180", `<rect x="35" y="30" width="110" height="110" ${SVG_LINE} ${SVG_FILL}/><path d="M35 140L145 30" ${SVG_LINE}/><path d="M35 122A18 18 0 0 0 53 140" ${SVG_THIN} fill="none"/><text x="58" y="126" ${SVG_TEXT}>س°</text><text x="28" y="150" ${SVG_TEXT}>أ</text><text x="148" y="28" ${SVG_TEXT}>ج</text>`),
