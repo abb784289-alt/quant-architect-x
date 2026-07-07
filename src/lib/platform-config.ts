@@ -106,21 +106,61 @@ export type Question = {
   prompt: string;
   latex?: string;
   imageUrl?: string;
+  svg?: string; // raw SVG markup for geometric shapes
   choices: string[]; // exactly 4
   correctIndex: 0 | 1 | 2 | 3;
 };
 
+// Arabic-Indic digits helper (٠١٢٣٤٥٦٧٨٩)
+const AR_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+export function toArabic(input: string | number): string {
+  return String(input).replace(/[0-9]/g, (d) => AR_DIGITS[Number(d)]);
+}
+
 export const SEED_QUESTIONS: Record<number, Question[]> = {
   1: [
-    { id: "s1q1", prompt: "اشترت هدى 10 قطع حلوى بريالين للقطعة الواحدة، وخُصم لها 5% من السعر الإجمالي لقطع الحلوى، فكم ريالاً دفعت؟", choices: ["19", "20", "21", "22"], correctIndex: 0 },
-    { id: "s1q2", prompt: "أي الأعداد التالية عبارة عن حاصل ضرب مكعبَي عددين متتاليين؟", choices: ["0", "27", "64", "125"], correctIndex: 0 },
-    { id: "s1q3", prompt: "إذا كان مجموع ثلاثة أعداد متتالية يساوي 18، فما العدد الأصغر منها؟", choices: ["1", "2", "5", "9"], correctIndex: 1 },
-    { id: "s1q4", prompt: "قارن بين القيمة الأولى: 41، والقيمة الثانية: (3+4)² − (2−4)³", choices: ["القيمة الأولى أكبر", "القيمة الثانية أكبر", "القيمتان متساويتان", "المعطيات غير كافية"], correctIndex: 1 },
-    { id: "s1q5", prompt: "أجرة الوقوف في أحد المواقف التجارية لكل ساعة أو أي جزء منها ريالان. دخل فهد الموقف الساعة 2:05 مساءً وخرج الساعة 7:45 مساءً، فإن أجرة وقوفه بالريالات تساوي:", choices: ["10", "11", "12", "13"], correctIndex: 2 },
-    { id: "s1q6", prompt: "مربع طول ضلعه 4 سم، ورؤوس المربع مراكز لدوائر متطابقة. كم سنتيمتراً مربعاً مساحة المنطقة المظللة؟", latex: "\\text{}", choices: ["16\\pi", "16+4\\pi", "4\\pi", "16-4\\pi"], correctIndex: 3 },
-    { id: "s1q7", prompt: "قارن بين: القيمة الأولى: محيط خماسي منتظم طول ضلعه 1 سم، والقيمة الثانية: محيط دائرة طول نصف قطرها 1 سم.", choices: ["القيمة الأولى أكبر", "القيمة الثانية أكبر", "القيمتان متساويتان", "المعطيات غير كافية"], correctIndex: 1 },
-    { id: "s1q8", prompt: "حديقة مستطيلة الشكل، طول محيطها 18 م، فإذا كان طولها 5 م، فكم متراً عرضها؟", choices: ["4", "5", "8", "10"], correctIndex: 0 },
-    { id: "s1q9", prompt: "إذا كان: 3س² − 23س = 3س − 29 + 2س². أي مما يلي أحد جذري المعادلة؟", latex: "3س^2 - 23س = 3س - 29 + 2س^2", choices: ["6", "5", "3", "1"], correctIndex: 2 },
+    { id: "s1q1", prompt: "اشترت هدى ١٠ قطع حلوى بريالَين للقطعة الواحدة، وخُصم لها ٥٪ من السعر الإجمالي لقطع الحلوى، فكم ريالاً دفعت؟", choices: ["١٩", "٢٠", "٢١", "٢٢"], correctIndex: 0 },
+    { id: "s1q2", prompt: "أيّ الأعداد التالية عبارة عن حاصل ضرب مكعبَي عددَين متتاليَين؟", choices: ["٠", "٢٧", "٦٤", "١٢٥"], correctIndex: 0 },
+    { id: "s1q3", prompt: "إذا كان مجموع ثلاثة أعداد متتالية يساوي ١٨، فما العدد الأصغر منها؟", choices: ["١", "٢", "٥", "٩"], correctIndex: 1 },
+    { id: "s1q4", prompt: "قارن بين القيمة الأولى: ٤١، والقيمة الثانية: (٣+٤)² − (٢−٤)³", choices: ["القيمة الأولى أكبر", "القيمة الثانية أكبر", "القيمتان متساويتان", "المعطيات غير كافية"], correctIndex: 1 },
+    { id: "s1q5", prompt: "أجرة الوقوف في أحد المواقف التجارية لكل ساعة أو أي جزء منها ريالان. دخل فهد الموقف الساعة ٢:٠٥ مساءً وخرج الساعة ٧:٤٥ مساءً، فإن أجرة وقوفه بالريالات تساوي:", choices: ["١٠", "١١", "١٢", "١٣"], correctIndex: 2 },
+    {
+      id: "s1q6",
+      prompt: "في الشكل المجاور، مربع طول ضلعه ٤ سم، ورؤوس المربع مراكز لدوائر متطابقة. كم سنتيمتراً مربعاً مساحة المنطقة المظللة؟",
+      svg: `<svg viewBox="0 0 140 150" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <mask id="q6mask">
+      <rect x="20" y="20" width="100" height="100" fill="white"/>
+      <circle cx="20" cy="20" r="50" fill="black"/>
+      <circle cx="120" cy="20" r="50" fill="black"/>
+      <circle cx="20" cy="120" r="50" fill="black"/>
+      <circle cx="120" cy="120" r="50" fill="black"/>
+    </mask>
+  </defs>
+  <rect x="20" y="20" width="100" height="100" fill="#0D9488" opacity="0.25" mask="url(#q6mask)"/>
+  <rect x="20" y="20" width="100" height="100" fill="none" stroke="#0F766E" stroke-width="1.6"/>
+  <path d="M 20 70 A 50 50 0 0 1 70 20" fill="none" stroke="#0F766E" stroke-width="1.2"/>
+  <path d="M 70 20 A 50 50 0 0 1 120 70" fill="none" stroke="#0F766E" stroke-width="1.2"/>
+  <path d="M 20 70 A 50 50 0 0 0 70 120" fill="none" stroke="#0F766E" stroke-width="1.2"/>
+  <path d="M 120 70 A 50 50 0 0 0 70 120" fill="none" stroke="#0F766E" stroke-width="1.2"/>
+  <text x="70" y="140" text-anchor="middle" font-size="10" fill="#0F766E" font-family="Cairo, sans-serif">٤ سم</text>
+</svg>`,
+      choices: ["١٦ط", "١٦ + ٤ط", "٤ط", "١٦ − ٤ط"],
+      correctIndex: 3,
+    },
+    { id: "s1q7", prompt: "قارن بين: القيمة الأولى: محيط خُماسي منتظم طول ضلعه ١ سم، والقيمة الثانية: محيط دائرة طول نصف قطرها ١ سم.", choices: ["القيمة الأولى أكبر", "القيمة الثانية أكبر", "القيمتان متساويتان", "المعطيات غير كافية"], correctIndex: 1 },
+    {
+      id: "s1q8",
+      prompt: "حديقة مستطيلة الشكل، طول محيطها ١٨ م، فإذا كان طولها ٥ م، فكم متراً عرضها؟",
+      svg: `<svg viewBox="0 0 180 120" xmlns="http://www.w3.org/2000/svg">
+  <rect x="20" y="30" width="140" height="70" fill="#0D9488" opacity="0.12" stroke="#0F766E" stroke-width="1.6"/>
+  <text x="90" y="22" text-anchor="middle" font-size="12" fill="#0F766E" font-family="Cairo, sans-serif">٥ م</text>
+  <text x="10" y="70" text-anchor="middle" font-size="12" fill="#0F766E" font-family="Cairo, sans-serif" transform="rotate(-90 10 70)">؟</text>
+</svg>`,
+      choices: ["٤", "٥", "٨", "١٠"],
+      correctIndex: 0,
+    },
+    { id: "s1q9", prompt: "إذا كان: ٣س² − ٢٣س = ٣س − ٢٩ + ٢س². أيّ مما يلي أحد جذرَي المعادلة؟", choices: ["٦", "٥", "٣", "١"], correctIndex: 2 },
   ],
 };
 
