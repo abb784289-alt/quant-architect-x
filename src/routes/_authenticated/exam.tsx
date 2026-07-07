@@ -5,6 +5,24 @@ import { BlockMath, InlineMath } from "react-katex";
 import { readSession, type Session } from "@/lib/session";
 import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, type SectionConfig, type Question } from "@/lib/platform-config";
 
+// Render text that may contain $...$ (inline) or $$...$$ (block) KaTeX segments
+function MathText({ text }: { text: string }) {
+  const parts = text.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith("$$") && part.endsWith("$$")) {
+          return <BlockMath key={i} math={part.slice(2, -2)} />;
+        }
+        if (part.startsWith("$") && part.endsWith("$") && part.length > 1) {
+          return <InlineMath key={i} math={part.slice(1, -1)} />;
+        }
+        return <span key={i}>{part}</span>;
+      })}
+    </>
+  );
+}
+
 export const Route = createFileRoute("/_authenticated/exam")({
   ssr: false,
   validateSearch: (s) => z.object({ section: z.coerce.number().int().min(1).max(150).optional() }).parse(s),
@@ -147,7 +165,7 @@ function NemrExamEngine({ session }: { session: Session }) {
             </div>
 
             <div style={{ fontSize: `${fontScale}rem` }}>
-              <p className="text-foreground mb-4 leading-8">{active.prompt}</p>
+              <p className="text-foreground mb-4 leading-8"><MathText text={active.prompt} /></p>
               {active.svg && (
                 <div className="rounded-xl bg-white border border-border p-4 mb-4 flex justify-center [&_svg]:max-h-64 [&_svg]:w-auto"
                   dangerouslySetInnerHTML={{ __html: active.svg }} />
@@ -176,7 +194,7 @@ function NemrExamEngine({ session }: { session: Session }) {
                       <div className="flex items-center gap-3">
                         <div className={"h-8 w-8 rounded-lg grid place-items-center font-bold text-sm " +
                           (chosen ? "bg-teal text-white" : "bg-surface-2 text-foreground")}>{letters[idx]}</div>
-                        <span className="text-foreground">{choice}</span>
+                        <span className="text-foreground"><MathText text={choice} /></span>
                       </div>
                       <input
                         type="radio"
