@@ -531,6 +531,18 @@ function QuestionsBank() {
                 )}
               </div>
 
+              <div className="mb-3">
+                <span className="text-[11px] font-semibold text-foreground">رسم هندسي SVG (اختياري — الصق كود SVG كامل)</span>
+                <textarea value={q.svg ?? ""} onChange={(e) => updateAt(i, { svg: e.target.value })}
+                  rows={3} dir="ltr"
+                  placeholder='<svg viewBox="0 0 100 100">...</svg>'
+                  className="mt-1 w-full rounded-xl border border-border bg-white px-3 py-2 text-xs font-mono focus:border-teal outline-none resize-y" />
+                {q.svg && (
+                  <div className="mt-2 rounded-xl border border-border bg-surface-1 p-3 inline-block max-w-full [&_svg]:max-h-40 [&_svg]:w-auto"
+                    dangerouslySetInnerHTML={{ __html: q.svg }} />
+                )}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {q.choices.map((c, ci) => (
                   <label key={ci} className={"flex items-center gap-2 rounded-xl border p-2 transition-colors " +
