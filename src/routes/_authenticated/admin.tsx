@@ -20,6 +20,7 @@ import {
   type FoundationCategoryId,
   type Question,
 } from "@/lib/platform-config";
+import { toArabic } from "@/lib/platform-config";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -527,6 +528,18 @@ function QuestionsBank() {
                   <div className="mt-2 rounded-xl border border-border bg-surface-1 p-2 inline-block">
                     <img src={q.imageUrl} alt="معاينة" className="max-h-32 rounded-lg" />
                   </div>
+                )}
+              </div>
+
+              <div className="mb-3">
+                <span className="text-[11px] font-semibold text-foreground">رسم هندسي SVG (اختياري — الصق كود SVG كامل)</span>
+                <textarea value={q.svg ?? ""} onChange={(e) => updateAt(i, { svg: e.target.value })}
+                  rows={3} dir="ltr"
+                  placeholder='<svg viewBox="0 0 100 100">...</svg>'
+                  className="mt-1 w-full rounded-xl border border-border bg-white px-3 py-2 text-xs font-mono focus:border-teal outline-none resize-y" />
+                {q.svg && (
+                  <div className="mt-2 rounded-xl border border-border bg-surface-1 p-3 inline-block max-w-full [&_svg]:max-h-40 [&_svg]:w-auto"
+                    dangerouslySetInnerHTML={{ __html: q.svg }} />
                 )}
               </div>
 

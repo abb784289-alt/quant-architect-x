@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { BlockMath, InlineMath } from "react-katex";
 import { readSession, type Session } from "@/lib/session";
-import { getSection, formatTimer, getQuestions, computeTimerSeconds, type SectionConfig, type Question } from "@/lib/platform-config";
+import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, type SectionConfig, type Question } from "@/lib/platform-config";
 
 export const Route = createFileRoute("/_authenticated/exam")({
   ssr: false,
@@ -96,16 +96,16 @@ function NemrExamEngine({ session }: { session: Session }) {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 rounded-xl bg-white border border-teal/30 px-3 py-1.5 shadow-sm">
               <span className="text-[10px] font-semibold text-muted-foreground">كود الاختبار</span>
-              <span className="font-mono font-bold text-teal-deep">نمر — قسم {config?.number ?? "…"}</span>
+              <span className="font-bold text-teal-deep">نمر — قسم {config?.number ? toArabic(config.number) : "…"}</span>
             </div>
-            <div className="text-xs text-muted-foreground">مجموع الأسئلة <span className="font-bold text-foreground">{questions.length}</span></div>
-            <div className="text-xs text-muted-foreground">تم الحلّ <span className="font-bold text-teal-deep">{solved}</span></div>
-            <div className="text-xs text-muted-foreground">متبقّي <span className="font-bold text-foreground">{unsolved}</span></div>
+            <div className="text-xs text-muted-foreground">مجموع الأسئلة <span className="font-bold text-foreground">{toArabic(questions.length)}</span></div>
+            <div className="text-xs text-muted-foreground">تم الحلّ <span className="font-bold text-teal-deep">{toArabic(solved)}</span></div>
+            <div className="text-xs text-muted-foreground">متبقّي <span className="font-bold text-foreground">{toArabic(unsolved)}</span></div>
           </div>
           <div className={"flex items-center gap-2 rounded-xl px-4 py-2 font-mono text-lg font-bold shadow-md border " +
             (remaining < 60 ? "bg-red-50 border-red-300 text-red-700 animate-pulse" : "bg-white border-teal/40 text-teal-deep")}>
             <span className="text-xs font-sans font-semibold text-muted-foreground">⏱</span>
-            {formatTimer(remaining)}
+            {toArabic(formatTimer(remaining))}
           </div>
         </div>
       </div>
@@ -120,7 +120,7 @@ function NemrExamEngine({ session }: { session: Session }) {
         <section className="col-span-12 lg:col-span-5">
           <div className="luxury-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-xs font-semibold text-teal-deep">سؤال {current + 1} / {questions.length}</div>
+              <div className="text-xs font-semibold text-teal-deep">سؤال {toArabic(current + 1)} / {toArabic(questions.length)}</div>
               <div className="flex items-center gap-1">
                 <button onClick={() => setFontScale((s) => Math.max(0.8, s - 0.1))} className="h-8 w-8 rounded-lg border border-border bg-white hover:border-teal transition-colors text-sm font-bold">A-</button>
                 <button onClick={() => setFontScale(1)} className="h-8 w-8 rounded-lg border border-border bg-white hover:border-teal transition-colors text-sm font-bold">A</button>
@@ -130,6 +130,10 @@ function NemrExamEngine({ session }: { session: Session }) {
 
             <div style={{ fontSize: `${fontScale}rem` }}>
               <p className="text-foreground mb-4 leading-8">{active.prompt}</p>
+              {active.svg && (
+                <div className="rounded-xl bg-white border border-border p-4 mb-4 flex justify-center [&_svg]:max-h-64 [&_svg]:w-auto"
+                  dangerouslySetInnerHTML={{ __html: active.svg }} />
+              )}
               {active.imageUrl && (
                 <div className="rounded-xl bg-white border border-border p-3 mb-4 text-center">
                   <img src={active.imageUrl} alt="رسم السؤال" className="max-h-72 mx-auto rounded-lg" />
@@ -154,7 +158,7 @@ function NemrExamEngine({ session }: { session: Session }) {
                       <div className="flex items-center gap-3">
                         <div className={"h-8 w-8 rounded-lg grid place-items-center font-bold text-sm " +
                           (chosen ? "bg-teal text-white" : "bg-surface-2 text-foreground")}>{letters[idx]}</div>
-                        <span className="text-foreground"><InlineMath math={choice} /></span>
+                        <span className="text-foreground">{choice}</span>
                       </div>
                       <input
                         type="radio"
@@ -229,7 +233,7 @@ function NemrExamEngine({ session }: { session: Session }) {
                           : isFlag
                             ? "bg-teal-soft text-teal-deep border-teal/40"
                             : "bg-surface-2 text-foreground border-border hover:bg-white")}
-                  >{i + 1}</button>
+                  >{toArabic(i + 1)}</button>
                 );
               })}
             </div>
