@@ -43,6 +43,8 @@ function NemrExamEngine({ session }: { session: Session }) {
   const [fontScale, setFontScale] = useState(1);
   const [modal, setModal] = useState<null | "section-inst" | "exam-inst" | "rules">(null);
   const [remaining, setRemaining] = useState<number>(0);
+  const [warned4, setWarned4] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
     const n = sectionNumber ?? 1;
@@ -55,6 +57,7 @@ function NemrExamEngine({ session }: { session: Session }) {
     setBookmarks({});
     setFlagged({});
     setRemaining(computeTimerSeconds(c, qs.length));
+    setWarned4(false);
   }, [sectionNumber]);
 
   useEffect(() => {
@@ -62,6 +65,16 @@ function NemrExamEngine({ session }: { session: Session }) {
     const t = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
     return () => clearInterval(t);
   }, [config]);
+
+  // إشعار عند تبقّي ٤ دقائق
+  useEffect(() => {
+    if (!config) return;
+    if (!warned4 && remaining > 0 && remaining <= 240) {
+      setWarned4(true);
+      setToast("⏰ تنبيه: تبقّى أقل من ٤ دقائق على انتهاء الاختبار — راجع إجاباتك.");
+      setTimeout(() => setToast(null), 8000);
+    }
+  }, [remaining, warned4, config]);
 
   if (questions.length === 0) {
     return (
@@ -83,6 +96,11 @@ function NemrExamEngine({ session }: { session: Session }) {
   const active = questions[current];
 
   function finish() {
+    if (unsolved > 0) {
+      setToast(`⚠️ لا يمكن إنهاء الاختبار قبل حلّ جميع الأسئلة. متبقّي ${toArabic(unsolved)} سؤال.`);
+      setTimeout(() => setToast(null), 5000);
+      return;
+    }
     if (confirm("هل أنت متأكد من إنهاء هذا القسم؟")) {
       navigate({ to: "/dashboard" });
     }
