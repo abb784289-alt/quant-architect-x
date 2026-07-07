@@ -155,12 +155,28 @@ const TABLE_HTML_FIXES: Record<string, string> = {
   ),
 };
 
+// ─────────────── Hand-crafted geometric SVGs (precise, per-question) ───────────────
+// Each entry replaces the question's original SVG with a professionally laid-out
+// diagram that respects the exact measurements/symbols stated in the prompt.
+const GEOMETRY_SVG_FIXES: Record<string, string> = {
+  // مربع طول ضلعه ٤ سم، ورؤوس المربع مراكز لأربع دوائر متطابقة نصف قطر كلٍّ منها ٢ سم
+  // (تتلامس عند منتصفات الأضلاع). المنطقة المظللة = مساحة المربع − مساحة دائرة كاملة = ١٦ − ٤π.
+  s1q6: `<svg viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="مربع طول ضلعه ٤ سم مع أربع دوائر ربعية عند رؤوسه" style="max-width:280px;width:100%;height:auto"><path d="M40 40 H240 V240 H40 Z M40 40 L40 140 A100 100 0 0 1 140 40 Z M240 40 L140 40 A100 100 0 0 1 240 140 Z M240 240 L240 140 A100 100 0 0 1 140 240 Z M40 240 L140 240 A100 100 0 0 1 40 140 Z" fill="#14B8A6" fill-opacity="0.32" fill-rule="evenodd" stroke="none"/><rect x="40" y="40" width="200" height="200" fill="none" stroke="#0F766E" stroke-width="2"/><path d="M40 140 A100 100 0 0 1 140 40" fill="none" stroke="#0F766E" stroke-width="1.5"/><path d="M140 40 A100 100 0 0 1 240 140" fill="none" stroke="#0F766E" stroke-width="1.5"/><path d="M240 140 A100 100 0 0 1 140 240" fill="none" stroke="#0F766E" stroke-width="1.5"/><path d="M140 240 A100 100 0 0 1 40 140" fill="none" stroke="#0F766E" stroke-width="1.5"/><circle cx="40" cy="40" r="3" fill="#0F766E"/><circle cx="240" cy="40" r="3" fill="#0F766E"/><circle cx="40" cy="240" r="3" fill="#0F766E"/><circle cx="240" cy="240" r="3" fill="#0F766E"/><line x1="40" y1="24" x2="240" y2="24" stroke="#334155" stroke-width="1"/><line x1="40" y1="20" x2="40" y2="28" stroke="#334155" stroke-width="1"/><line x1="240" y1="20" x2="240" y2="28" stroke="#334155" stroke-width="1"/><text x="140" y="17" font-size="14" fill="#334155" text-anchor="middle" font-family="system-ui,sans-serif">٤ سم</text><line x1="40" y1="140" x2="40" y2="140" /><text x="35" y="94" font-size="12" fill="#0F766E" text-anchor="end" font-family="system-ui,sans-serif">نق = ٢</text><line x1="40" y1="90" x2="70" y2="90" stroke="#0F766E" stroke-width="1" stroke-dasharray="3 2"/></svg>`,
+
+  // مثلث متساوي الساقين، زاوية الرأس = ٦٠°، القاعدة = ١٢، والضلعان المتساويان = س
+  s2q6: `<svg viewBox="0 0 300 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="مثلث متساوي الساقين زاوية رأسه ٦٠ درجة وقاعدته ١٢" style="max-width:300px;width:100%;height:auto"><polygon points="150,30 40,210 260,210" fill="#14B8A6" fill-opacity="0.18" stroke="#0F766E" stroke-width="2" stroke-linejoin="round"/><path d="M135 55.98 A30 30 0 0 0 165 55.98" fill="none" stroke="#0F766E" stroke-width="1.5"/><text x="150" y="72" font-size="13" fill="#0F766E" text-anchor="middle" font-family="system-ui,sans-serif">٦٠°</text><line x1="92" y1="118" x2="98" y2="122" stroke="#0F766E" stroke-width="1.6"/><line x1="202" y1="122" x2="208" y2="118" stroke="#0F766E" stroke-width="1.6"/><text x="72" y="122" font-size="15" fill="#334155" text-anchor="end" font-family="system-ui,sans-serif">س</text><text x="228" y="122" font-size="15" fill="#334155" text-anchor="start" font-family="system-ui,sans-serif">س</text><line x1="40" y1="228" x2="260" y2="228" stroke="#334155" stroke-width="1"/><line x1="40" y1="224" x2="40" y2="232" stroke="#334155" stroke-width="1"/><line x1="260" y1="224" x2="260" y2="232" stroke="#334155" stroke-width="1"/><text x="150" y="245" font-size="14" fill="#334155" text-anchor="middle" font-family="system-ui,sans-serif">١٢</text></svg>`,
+};
+
 function applyQuestionSvgFixes(questions: Question[]): Question[] {
   return questions.map((q) => {
     const tableHtml = TABLE_HTML_FIXES[q.id];
     if (tableHtml) {
       // Prefer real HTML tables — drop any SVG fallback so it isn't rendered.
       return { ...q, tableHtml, svg: undefined };
+    }
+    const fixedSvg = GEOMETRY_SVG_FIXES[q.id];
+    if (fixedSvg) {
+      return { ...q, svg: fixedSvg };
     }
     // Geometric SVGs are unreliable — strip them entirely so no wrong
     // diagrams are shown. The question prompt still describes the shape.
