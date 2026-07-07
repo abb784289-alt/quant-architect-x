@@ -73,7 +73,11 @@ function SectionsDashboard() {
             <h1 className="text-3xl font-bold text-foreground">لوحة الأقسام</h1>
             <p className="text-sm text-muted-foreground mt-1">اختر رقم القسم أو ابحث للانتقال المباشر إلى اختبار نمر التفاعلي.</p>
           </div>
-          <form onSubmit={onSubmit} className="flex items-center gap-2 w-full max-w-md">
+          <div className="flex flex-col gap-2 w-full max-w-md">
+          <button type="button" onClick={() => navigate({ to: "/mistakes" })} className="self-end rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-2 text-xs font-bold hover:border-red-400 transition-colors">
+            ⚑ مكان الأخطاء
+          </button>
+          <form onSubmit={onSubmit} className="flex items-center gap-2">
             <div className="relative flex-1">
               <input
                 ref={inputRef}
@@ -89,6 +93,7 @@ function SectionsDashboard() {
               اذهب
             </button>
           </form>
+          </div>
         </div>
       </section>
 
