@@ -80,11 +80,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "منصة المِقْيَاس الذكية | أ. أسامة فتح الدين — القدرات الكمي" },
       { name: "description", content: "منصة تعليمية متكاملة لاختبار القدرات العامة (كمي) مع كبير الخبراء الأستاذ أسامة فتح الدين — 150 قسماً، محاكي نمر التفاعلي، ودفتر أخطاء ذكي." },
       { name: "author", content: "Al-Miqyas Academy" },
-      { property: "og:title", content: "منصة المِقْيَاس الذكية — قُد قدراتك نحو الـ 100٪" },
-      { property: "og:description", content: "تدريب احترافي على القسم الكمي من اختبار القدرات مع الأستاذ أسامة فتح الدين محمد." },
+      { property: "og:title", content: "منصة المِقْيَاس الذكية | أ. أسامة فتح الدين — القدرات الكمي" },
+      { property: "og:description", content: "منصة تعليمية متكاملة لاختبار القدرات العامة (كمي) مع كبير الخبراء الأستاذ أسامة فتح الدين — 150 قسماً، محاكي نمر التفاعلي، ودفتر أخطاء ذكي." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "منصة المِقْيَاس الذكية | أ. أسامة فتح الدين — القدرات الكمي" },
+      { name: "twitter:description", content: "منصة تعليمية متكاملة لاختبار القدرات العامة (كمي) مع كبير الخبراء الأستاذ أسامة فتح الدين — 150 قسماً، محاكي نمر التفاعلي، ودفتر أخطاء ذكي." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/7GdzcCxaG4SIHv0he6VCI9YnhgD2/social-images/social-1783522535186-miqyas_logo_v1_compass.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/7GdzcCxaG4SIHv0he6VCI9YnhgD2/social-images/social-1783522535186-miqyas_logo_v1_compass.webp" },
     ],
     links: [
       {
