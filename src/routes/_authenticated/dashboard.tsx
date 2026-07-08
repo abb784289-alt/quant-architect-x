@@ -30,6 +30,7 @@ function SectionsDashboard() {
   const [sections, setSections] = useState<SectionConfig[]>([]);
   const [qCounts, setQCounts] = useState<Record<number, number>>({});
   const [query, setQuery] = useState("");
+  const [showInfo, setShowInfo] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -61,43 +62,47 @@ function SectionsDashboard() {
     }
   }
 
-  return (
-    <main className="mx-auto max-w-7xl px-6 py-10" dir="rtl">
-      <section className="mb-8">
-        <div className="flex flex-wrap items-end justify-between gap-4 mb-6">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-teal-soft text-teal-deep px-3 py-1 text-[11px] font-semibold mb-3">
-              <span className="h-1.5 w-1.5 rounded-full bg-teal animate-pulse" />
-              150 قسم تدريبي مسلسل
-            </div>
-            <h1 className="text-3xl font-bold text-foreground">لوحة الأقسام</h1>
-            <p className="text-sm text-muted-foreground mt-1">اختر رقم القسم أو ابحث للانتقال المباشر إلى اختبار نمر التفاعلي.</p>
-          </div>
-          <div className="flex flex-col gap-2 w-full max-w-md">
-          <button type="button" onClick={() => navigate({ to: "/mistakes" })} className="self-end rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-2 text-xs font-bold hover:border-red-400 transition-colors">
-            ⚑ مكان الأخطاء
-          </button>
-          <form onSubmit={onSubmit} className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <input
-                ref={inputRef}
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="اكتب رقم القسم (1 - 150) واضغط Enter"
-                inputMode="numeric"
-                className="w-full rounded-2xl bg-white border border-border pr-11 pl-4 py-3 text-sm focus:border-teal focus:ring-2 focus:ring-teal/30 outline-none transition-all"
-              />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">⌕</span>
-            </div>
-            <button type="submit" className="rounded-2xl bg-teal text-white px-5 py-3 text-sm font-semibold hover:bg-teal-deep transition-colors shadow-sm">
-              اذهب
-            </button>
-          </form>
-          </div>
-        </div>
-      </section>
+  const readyCount = Object.values(qCounts).filter((c) => c > 0).length;
 
-      <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+  return (
+    <main className="mx-auto max-w-6xl px-6 py-8 md:py-12" dir="rtl">
+      {/* Sticky compact search — الأقسام أول حاجة */}
+      <div className="sticky top-0 z-20 -mx-6 px-6 pt-2 pb-4 mb-8 bg-surface/85 backdrop-blur-md">
+        <form onSubmit={onSubmit} className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="ابحث برقم القسم أو اسمه…"
+              className="w-full rounded-2xl bg-white border border-border pr-12 pl-4 py-4 text-base focus:border-teal focus:ring-2 focus:ring-teal/30 outline-none transition-all"
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground text-xl">⌕</span>
+          </div>
+          <button type="button" onClick={() => navigate({ to: "/mistakes" })} className="rounded-2xl border border-red-200 bg-red-50 text-red-700 px-4 py-4 text-sm font-bold hover:border-red-400 transition-colors" title="مكان الأخطاء">
+            ⚑
+          </button>
+        </form>
+
+        {/* الإحصائيات مطويّة */}
+        <button
+          type="button"
+          onClick={() => setShowInfo((v) => !v)}
+          className="mt-3 text-xs text-muted-foreground hover:text-teal-deep flex items-center gap-1.5 transition-colors"
+        >
+          <span>{showInfo ? "▾" : "▸"}</span>
+          <span>{toArabic(readyCount)} من {toArabic(150)} قسم جاهز</span>
+        </button>
+        {showInfo && (
+          <div className="mt-3 rounded-2xl bg-teal-soft/40 border border-teal/20 p-4 text-sm text-teal-deep leading-relaxed">
+            <strong className="font-bold">لوحة الأقسام —</strong>{" "}
+            اختر رقم القسم أو ابحث للانتقال المباشر إلى اختبار نمر التفاعلي. كل قسم يحتوي على ١١ سؤالاً مع مؤقّت مخصّص.
+          </div>
+        )}
+      </div>
+
+      {/* الأقسام — أكبر وأوسع */}
+      <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
         {filtered.map((s) => {
           const count = qCounts[s.number] ?? 0;
           const ready = count > 0;
@@ -107,31 +112,27 @@ function SectionsDashboard() {
               key={s.number}
               type="button"
               onClick={() => navigate({ to: "/exam", search: { section: s.number } })}
-              className={"group luxury-card p-4 text-right transition-all " +
-                (ready ? "hover:border-teal/50 hover:-translate-y-0.5 hover:shadow-lg" : "opacity-70 hover:opacity-95")}
+              className={"group luxury-card p-5 md:p-6 text-right transition-all " +
+                (ready ? "hover:border-teal/50 hover:-translate-y-0.5 hover:shadow-lg" : "opacity-60 hover:opacity-90")}
             >
-              <div className="flex items-center justify-between mb-3">
-                <div className={"h-9 w-9 rounded-xl border grid place-items-center font-bold text-sm " +
+              <div className="flex items-center justify-between mb-4">
+                <div className={"h-11 w-11 rounded-2xl border grid place-items-center font-bold text-base " +
                   (ready ? "bg-gradient-to-br from-teal-soft to-white border-border text-teal-deep" : "bg-surface-2 border-border text-muted-foreground")}>
                   {toArabic(s.number)}
                 </div>
                 {ready ? (
-                  <span className="text-[10px] rounded-full bg-teal-soft text-teal-deep px-2 py-0.5 font-bold border border-teal/30">{toArabic(count)} سؤال</span>
+                  <span className="text-[11px] rounded-full bg-teal-soft text-teal-deep px-2.5 py-1 font-bold border border-teal/30">{toArabic(count)}</span>
                 ) : (
-                  <span className="text-[10px] rounded-full bg-gold-soft text-foreground px-2 py-0.5 font-semibold border border-gold/40">جارٍ العمل</span>
+                  <span className="text-[11px] rounded-full bg-gold-soft text-foreground px-2.5 py-1 font-semibold border border-gold/40">قريباً</span>
                 )}
               </div>
-              <div className="font-display font-bold text-foreground mb-1 text-sm">{s.title}</div>
-              <div className="text-[11px] text-muted-foreground">{ready ? `مؤقّت ${toArabic(formatTimer(timer))}` : "قسم قيد التجهيز"}</div>
-              <div className={"mt-3 text-[11px] font-semibold transition-opacity " +
-                (ready ? "text-teal-deep opacity-0 group-hover:opacity-100" : "text-gold")}>
-                {ready ? "ابدأ اختبار نمر ←" : "قريباً"}
-              </div>
+              <div className="font-display font-bold text-foreground mb-1.5 text-[15px] leading-snug line-clamp-2">{s.title}</div>
+              <div className="text-xs text-muted-foreground">{ready ? toArabic(formatTimer(timer)) : "قيد التجهيز"}</div>
             </button>
           );
         })}
         {filtered.length === 0 && (
-          <div className="col-span-full text-center py-16 text-muted-foreground text-sm">
+          <div className="col-span-full text-center py-20 text-muted-foreground">
             لا يوجد قسم يطابق البحث.
           </div>
         )}
