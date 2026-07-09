@@ -25,7 +25,11 @@ function MathText({ text }: { text: string }) {
 
 export const Route = createFileRoute("/_authenticated/exam")({
   ssr: false,
-  validateSearch: (s) => z.object({ section: z.coerce.number().int().min(1).max(150).optional() }).parse(s),
+  validateSearch: (s) =>
+    z.object({
+      section: z.coerce.number().int().min(1).max(150).optional(),
+      mode: z.enum(["exam", "practice"]).optional(),
+    }).parse(s),
   head: () => ({
     meta: [
       { title: "نظام نمر — منصة المِقْيَاس" },
@@ -46,12 +50,48 @@ function ExamGate() {
   if (!ready || !session) {
     return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ تحميل محرك الاختبار...</div>;
   }
-  return <NemrExamEngine session={session} />;
+  return <ExamOrPicker session={session} />;
 }
 
-function NemrExamEngine({ session }: { session: Session }) {
+function ExamOrPicker({ session }: { session: Session }) {
+  const { mode, section } = Route.useSearch();
+  const navigate = useNavigate();
+  if (!mode) {
+    return (
+      <div dir="rtl" className="min-h-[70vh] grid place-items-center px-6 py-10">
+        <div className="luxury-card p-8 max-w-2xl w-full text-center">
+          <div className="text-xs font-semibold text-teal-deep mb-2">القسم {toArabic(section ?? 1)}</div>
+          <h1 className="font-display font-bold text-2xl text-foreground mb-2">اختر طريقة الدخول</h1>
+          <p className="text-sm text-muted-foreground mb-6">تقدر تحلّ القسم كاختبار بوقت محدّد، أو كتدريب بدون وقت وبراحتك.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button
+              onClick={() => navigate({ to: "/exam", search: { section, mode: "exam" } })}
+              className="group rounded-2xl border-2 border-teal/40 bg-gradient-to-br from-teal-soft to-white p-6 text-right hover:border-teal hover:shadow-lg transition-all"
+            >
+              <div className="text-3xl mb-2">⏱</div>
+              <div className="font-display font-bold text-lg text-teal-deep mb-1">اختبار بوقت</div>
+              <div className="text-xs text-muted-foreground leading-6">مؤقّت رسمي — تنبيه قبل انتهاء الوقت — النتيجة تظهر في النهاية.</div>
+            </button>
+            <button
+              onClick={() => navigate({ to: "/exam", search: { section, mode: "practice" } })}
+              className="group rounded-2xl border-2 border-gold/40 bg-gradient-to-br from-gold-soft to-white p-6 text-right hover:border-gold hover:shadow-lg transition-all"
+            >
+              <div className="text-3xl mb-2">🧘</div>
+              <div className="font-display font-bold text-lg text-foreground mb-1">تدريب بدون وقت</div>
+              <div className="text-xs text-muted-foreground leading-6">بلا مؤقّت — خُذ راحتك — النتيجة تظهر بعد الإنهاء برضو.</div>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  return <NemrExamEngine session={session} mode={mode} />;
+}
+
+function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "practice" }) {
   const navigate = useNavigate();
   const { section: sectionNumber } = Route.useSearch();
+  const isPractice = mode === "practice";
   const [config, setConfig] = useState<SectionConfig | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [current, setCurrent] = useState(0);
@@ -81,20 +121,20 @@ function NemrExamEngine({ session }: { session: Session }) {
   }, [sectionNumber]);
 
   useEffect(() => {
-    if (!config) return;
+    if (!config || isPractice) return;
     const t = setInterval(() => setRemaining((r) => Math.max(0, r - 1)), 1000);
     return () => clearInterval(t);
-  }, [config]);
+  }, [config, isPractice]);
 
   // إشعار عند تبقّي ٤ دقائق
   useEffect(() => {
-    if (!config) return;
+    if (!config || isPractice) return;
     if (!warned4 && remaining > 0 && remaining <= 240) {
       setWarned4(true);
       setToast("⏰ تنبيه: تبقّى أقل من ٤ دقائق على انتهاء الاختبار — راجع إجاباتك.");
       setTimeout(() => setToast(null), 8000);
     }
-  }, [remaining, warned4, config]);
+  }, [remaining, warned4, config, isPractice]);
 
   if (questions.length === 0) {
     return (
@@ -116,12 +156,15 @@ function NemrExamEngine({ session }: { session: Session }) {
   const active = questions[current];
 
   function finish() {
-    if (unsolved > 0) {
+    if (!isPractice && unsolved > 0) {
       setToast(`⚠️ لا يمكن إنهاء الاختبار قبل حلّ جميع الأسئلة. متبقّي ${toArabic(unsolved)} سؤال.`);
       setTimeout(() => setToast(null), 5000);
       return;
     }
-    if (!confirm("هل أنت متأكد من إنهاء هذا القسم؟")) return;
+    const msg = isPractice
+      ? (unsolved > 0 ? `متبقّي ${toArabic(unsolved)} سؤال بدون إجابة. هل تريد إنهاء التدريب وعرض النتيجة؟` : "هل تريد إنهاء التدريب وعرض النتيجة؟")
+      : "هل أنت متأكد من إنهاء هذا القسم؟";
+    if (!confirm(msg)) return;
     // احتساب النتيجة وحفظها
     try {
       const correct = questions.reduce((n, q) => n + (answers[q.id] === q.correctIndex ? 1 : 0), 0);
@@ -129,6 +172,7 @@ function NemrExamEngine({ session }: { session: Session }) {
         at: Date.now(),
         section: sectionNumber ?? 1,
         sectionTitle: config?.title ?? "",
+        mode,
         total: questions.length,
         correct,
         answers,
@@ -149,6 +193,7 @@ function NemrExamEngine({ session }: { session: Session }) {
         answers={answers}
         sectionNumber={sectionNumber ?? 1}
         sectionTitle={config?.title ?? ""}
+        mode={mode}
         onRestart={() => {
           setAnswers({});
           setCurrent(0);
@@ -168,18 +213,25 @@ function NemrExamEngine({ session }: { session: Session }) {
         <div className="mx-auto max-w-[1400px] flex items-center justify-between gap-4 px-5 py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 rounded-xl bg-white border border-teal/30 px-3 py-1.5 shadow-sm">
-              <span className="text-[10px] font-semibold text-muted-foreground">كود الاختبار</span>
-              <span className="font-bold text-teal-deep">نمر — قسم {config?.number ? toArabic(config.number) : "…"}</span>
+              <span className="text-[10px] font-semibold text-muted-foreground">{isPractice ? "وضع" : "كود الاختبار"}</span>
+              <span className="font-bold text-teal-deep">{isPractice ? "تدريب" : "اختبار"} — قسم {config?.number ? toArabic(config.number) : "…"}</span>
             </div>
             <div className="text-xs text-muted-foreground">مجموع الأسئلة <span className="font-bold text-foreground">{toArabic(questions.length)}</span></div>
             <div className="text-xs text-muted-foreground">تم الحلّ <span className="font-bold text-teal-deep">{toArabic(solved)}</span></div>
             <div className="text-xs text-muted-foreground">متبقّي <span className="font-bold text-foreground">{toArabic(unsolved)}</span></div>
           </div>
-          <div className={"flex items-center gap-2 rounded-xl px-4 py-2 font-mono text-lg font-bold shadow-md border " +
-            (remaining < 60 ? "bg-red-50 border-red-300 text-red-700 animate-pulse" : "bg-white border-teal/40 text-teal-deep")}>
-            <span className="text-xs font-sans font-semibold text-muted-foreground">⏱</span>
-            {toArabic(formatTimer(remaining))}
-          </div>
+          {isPractice ? (
+            <div className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold shadow-md border bg-gold-soft border-gold/40 text-foreground">
+              <span>🧘</span>
+              <span>تدريب — بدون وقت</span>
+            </div>
+          ) : (
+            <div className={"flex items-center gap-2 rounded-xl px-4 py-2 font-mono text-lg font-bold shadow-md border " +
+              (remaining < 60 ? "bg-red-50 border-red-300 text-red-700 animate-pulse" : "bg-white border-teal/40 text-teal-deep")}>
+              <span className="text-xs font-sans font-semibold text-muted-foreground">⏱</span>
+              {toArabic(formatTimer(remaining))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -328,16 +380,18 @@ function NemrExamEngine({ session }: { session: Session }) {
             <UtilBtn onClick={() => setModal("rules")}>القوانين</UtilBtn>
             <button
               onClick={finish}
-              disabled={unsolved > 0}
-              title={unsolved > 0 ? `يجب حلّ جميع الأسئلة أولاً (متبقّي ${toArabic(unsolved)})` : "إنهاء الاختبار"}
+              disabled={!isPractice && unsolved > 0}
+              title={!isPractice && unsolved > 0 ? `يجب حلّ جميع الأسئلة أولاً (متبقّي ${toArabic(unsolved)})` : (isPractice ? "إنهاء التدريب" : "إنهاء الاختبار")}
               className={
                 "w-full rounded-xl font-bold py-3 text-sm shadow-md transition-colors " +
-                (unsolved > 0
+                (!isPractice && unsolved > 0
                   ? "bg-surface-2 text-muted-foreground cursor-not-allowed border border-border"
                   : "bg-red-600 hover:bg-red-700 text-white")
               }
             >
-              {unsolved > 0 ? `إنهاء القسم (متبقّي ${toArabic(unsolved)})` : "إنهاء القسم"}
+              {isPractice
+                ? "إنهاء التدريب وعرض النتيجة"
+                : (unsolved > 0 ? `إنهاء القسم (متبقّي ${toArabic(unsolved)})` : "إنهاء القسم")}
             </button>
           </div>
         </aside>
@@ -393,6 +447,7 @@ function ResultsView({
   answers,
   sectionNumber,
   sectionTitle,
+  mode,
   onRestart,
   onBack,
 }: {
@@ -400,6 +455,7 @@ function ResultsView({
   answers: Record<string, number>;
   sectionNumber: number;
   sectionTitle: string;
+  mode: "exam" | "practice";
   onRestart: () => void;
   onBack: () => void;
 }) {
@@ -414,7 +470,9 @@ function ResultsView({
       <div className="mx-auto max-w-4xl px-5 py-8 space-y-6">
         {/* Header */}
         <div className="luxury-card p-6 text-center">
-          <div className="text-xs font-semibold text-teal-deep mb-2">نتيجة القسم {toArabic(sectionNumber)}</div>
+          <div className="text-xs font-semibold text-teal-deep mb-2">
+            نتيجة {mode === "practice" ? "التدريب" : "الاختبار"} — القسم {toArabic(sectionNumber)}
+          </div>
           <h1 className="font-display font-bold text-2xl text-foreground mb-1">{sectionTitle}</h1>
           <div className="mt-6 flex items-center justify-center gap-6">
             <div className={"h-32 w-32 rounded-full grid place-items-center border-8 " +
