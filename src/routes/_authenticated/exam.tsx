@@ -236,13 +236,75 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
       </div>
 
       <div className="mx-auto max-w-[1400px] grid grid-cols-12 gap-4 px-5 py-5">
-        {/* Scratchpad */}
-        <aside className="col-span-12 lg:col-span-4">
-          <Scratchpad questionId={active.id} />
+        {/* Sidebar (right in RTL) */}
+        <aside className="col-span-12 lg:col-span-3 space-y-3 order-1">
+          <div className="luxury-card p-3">
+            <div className="text-[10px] font-semibold text-muted-foreground mb-1.5">هوية الطالب</div>
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-teal to-teal-deep text-white grid place-items-center font-bold text-xs">
+                {session.email.charAt(0).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[11px] font-bold text-foreground truncate" dir="ltr">{session.email}</div>
+                <div className="text-[10px] text-muted-foreground">{session.role === "admin" ? "مدرّب" : "طالب"}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="luxury-card p-3">
+            <div className="text-[10px] font-semibold text-muted-foreground mb-2">شبكة الأسئلة</div>
+            <div className="grid grid-cols-5 gap-1">
+              {questions.map((q, i) => {
+                const answered = answers[q.id] !== undefined;
+                const isActive = i === current;
+                const isFlag = flagged[q.id];
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => setCurrent(i)}
+                    className={"h-7 rounded-md text-[10px] font-bold transition-all border " +
+                      (isActive
+                        ? "gold-ring bg-white text-teal-deep border-transparent"
+                        : answered
+                          ? "bg-answered text-white border-transparent hover:opacity-90"
+                          : isFlag
+                            ? "bg-teal-soft text-teal-deep border-teal/40"
+                            : "bg-surface-2 text-foreground border-border hover:bg-white")}
+                  >{toArabic(i + 1)}</button>
+                );
+              })}
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-1 text-[9px]">
+              <Legend color="bg-answered" label="مُجاب" />
+              <Legend color="bg-teal-soft border border-teal/40" label="مرجعي" />
+              <Legend color="bg-surface-2 border border-border" label="لم يُزَر" />
+            </div>
+          </div>
+
+          <div className="luxury-card p-2.5 space-y-1.5">
+            <UtilBtn onClick={() => setModal("section-inst")}>تعليمات القسم</UtilBtn>
+            <UtilBtn onClick={() => setModal("exam-inst")}>تعليمات الاختبار</UtilBtn>
+            <UtilBtn onClick={() => setModal("rules")}>القوانين</UtilBtn>
+            <button
+              onClick={finish}
+              disabled={!isPractice && unsolved > 0}
+              title={!isPractice && unsolved > 0 ? `يجب حلّ جميع الأسئلة أولاً (متبقّي ${toArabic(unsolved)})` : (isPractice ? "إنهاء التدريب" : "إنهاء الاختبار")}
+              className={
+                "w-full rounded-lg font-bold py-2.5 text-xs shadow-md transition-colors " +
+                (!isPractice && unsolved > 0
+                  ? "bg-surface-2 text-muted-foreground cursor-not-allowed border border-border"
+                  : "bg-red-600 hover:bg-red-700 text-white")
+              }
+            >
+              {isPractice
+                ? "إنهاء التدريب وعرض النتيجة"
+                : (unsolved > 0 ? `إنهاء القسم (متبقّي ${toArabic(unsolved)})` : "إنهاء القسم")}
+            </button>
+          </div>
         </aside>
 
-        {/* Question + choices */}
-        <section className="col-span-12 lg:col-span-5">
+        {/* Question + choices (middle, larger) */}
+        <section className="col-span-12 lg:col-span-6 order-2">
           <div className="luxury-card p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="text-xs font-semibold text-teal-deep">سؤال {toArabic(current + 1)} / {toArabic(questions.length)}</div>
@@ -253,7 +315,7 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
               </div>
             </div>
 
-            <div style={{ fontSize: `${fontScale}rem` }}>
+            <div style={{ fontSize: `${fontScale * 1.12}rem` }}>
               <p className="text-foreground mb-4 leading-8"><MathText text={active.prompt} /></p>
               {active.tableHtml && (
                 <div className="rounded-xl bg-white border border-border p-4 mb-4 overflow-x-auto"
@@ -328,72 +390,9 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
           </div>
         </section>
 
-        {/* Sidebar */}
-        <aside className="col-span-12 lg:col-span-3 space-y-4">
-          <div className="luxury-card p-4">
-            <div className="text-xs font-semibold text-muted-foreground mb-2">هوية الطالب</div>
-            <div className="flex items-center gap-3">
-              <div className="h-11 w-11 rounded-full bg-gradient-to-br from-teal to-teal-deep text-white grid place-items-center font-bold">
-                {session.email.charAt(0).toUpperCase()}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-bold text-foreground truncate" dir="ltr">{session.email}</div>
-                <div className="text-[11px] text-muted-foreground">{session.role === "admin" ? "مدرّب" : "طالب"}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="luxury-card p-4">
-            <div className="text-xs font-semibold text-muted-foreground mb-3">شبكة الأسئلة</div>
-            <div className="grid grid-cols-5 gap-1.5">
-              {questions.map((q, i) => {
-                const answered = answers[q.id] !== undefined;
-                const isActive = i === current;
-                const isFlag = flagged[q.id];
-                return (
-                  <button
-                    key={q.id}
-                    onClick={() => setCurrent(i)}
-                    className={"h-9 rounded-lg text-xs font-bold transition-all border " +
-                      (isActive
-                        ? "gold-ring bg-white text-teal-deep border-transparent"
-                        : answered
-                          ? "bg-answered text-white border-transparent hover:opacity-90"
-                          : isFlag
-                            ? "bg-teal-soft text-teal-deep border-teal/40"
-                            : "bg-surface-2 text-foreground border-border hover:bg-white")}
-                  >{toArabic(i + 1)}</button>
-                );
-              })}
-            </div>
-            <div className="mt-3 grid grid-cols-3 gap-2 text-[10px]">
-              <Legend color="bg-answered" label="مُجاب" />
-              <Legend color="bg-teal-soft border border-teal/40" label="مرجعي" />
-              <Legend color="bg-surface-2 border border-border" label="لم يُزَر" />
-            </div>
-          </div>
-
-          {/* Floating utility panel */}
-          <div className="luxury-card p-3 space-y-2">
-            <UtilBtn onClick={() => setModal("section-inst")}>تعليمات القسم</UtilBtn>
-            <UtilBtn onClick={() => setModal("exam-inst")}>تعليمات الاختبار</UtilBtn>
-            <UtilBtn onClick={() => setModal("rules")}>القوانين</UtilBtn>
-            <button
-              onClick={finish}
-              disabled={!isPractice && unsolved > 0}
-              title={!isPractice && unsolved > 0 ? `يجب حلّ جميع الأسئلة أولاً (متبقّي ${toArabic(unsolved)})` : (isPractice ? "إنهاء التدريب" : "إنهاء الاختبار")}
-              className={
-                "w-full rounded-xl font-bold py-3 text-sm shadow-md transition-colors " +
-                (!isPractice && unsolved > 0
-                  ? "bg-surface-2 text-muted-foreground cursor-not-allowed border border-border"
-                  : "bg-red-600 hover:bg-red-700 text-white")
-              }
-            >
-              {isPractice
-                ? "إنهاء التدريب وعرض النتيجة"
-                : (unsolved > 0 ? `إنهاء القسم (متبقّي ${toArabic(unsolved)})` : "إنهاء القسم")}
-            </button>
-          </div>
+        {/* Scratchpad (left in RTL) */}
+        <aside className="col-span-12 lg:col-span-3 order-3">
+          <Scratchpad questionId={active.id} />
         </aside>
       </div>
 
