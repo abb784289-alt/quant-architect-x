@@ -26,9 +26,17 @@ export const getSection = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!section) throw new Error("Section not found");
 
-    const { data: questions, error: qErr } = await context.supabase
+    // Check if caller is admin — only admins get the answer key
+    const { data: adminRow } = await context.supabase
+      .from("user_roles").select("role").eq("user_id", context.userId).eq("role", "admin").maybeSingle();
+    const isAdmin = !!adminRow;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const cols = isAdmin
+      ? "id,prompt,choices,correct_index,explanation,order_index"
+      : "id,prompt,choices,order_index";
+    const { data: questions, error: qErr } = await supabaseAdmin
       .from("questions")
-      .select("id,prompt,choices,correct_index,explanation,order_index")
+      .select(cols)
       .eq("section_id", data.id)
       .order("order_index");
     if (qErr) throw new Error(qErr.message);
