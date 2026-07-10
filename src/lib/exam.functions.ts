@@ -8,6 +8,7 @@ export const startExamSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ section_id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: section, error: sErr } = await context.supabase
       .from("sections")
       .select("id,title,timer_seconds")
@@ -15,12 +16,12 @@ export const startExamSession = createServerFn({ method: "POST" })
       .maybeSingle();
     if (sErr || !section) throw new Error(sErr?.message || "Section not found");
 
-    const { count } = await context.supabase
+    const { count } = await supabaseAdmin
       .from("questions")
       .select("id", { count: "exact", head: true })
       .eq("section_id", data.section_id);
 
-    const { data: session, error } = await context.supabase
+    const { data: session, error } = await supabaseAdmin
       .from("exam_sessions")
       .insert({
         user_id: context.userId,
@@ -43,7 +44,8 @@ export const submitExamSession = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => SubmitInput.parse(d))
   .handler(async ({ data, context }) => {
-    const { data: session, error: sErr } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: session, error: sErr } = await supabaseAdmin
       .from("exam_sessions")
       .select("id, user_id, section_id, started_at, submitted_at")
       .eq("id", data.session_id)
@@ -52,13 +54,13 @@ export const submitExamSession = createServerFn({ method: "POST" })
     if (session.user_id !== context.userId) throw new Error("Forbidden");
     if (session.submitted_at) throw new Error("Already submitted");
 
-    const { data: section } = await context.supabase
+    const { data: section } = await supabaseAdmin
       .from("sections")
       .select("id,title,category")
       .eq("id", session.section_id)
       .single();
 
-    const { data: questions } = await context.supabase
+    const { data: questions } = await supabaseAdmin
       .from("questions")
       .select("id,prompt,correct_index,order_index")
       .eq("section_id", session.section_id)
@@ -95,7 +97,7 @@ export const submitExamSession = createServerFn({ method: "POST" })
       aiReport = { fallback: true, message: "تعذّر توليد التقرير الذكي حاليًا." };
     }
 
-    const { error: uErr } = await context.supabase
+    const { error: uErr } = await supabaseAdmin
       .from("exam_sessions")
       .update({
         submitted_at: new Date().toISOString(),
