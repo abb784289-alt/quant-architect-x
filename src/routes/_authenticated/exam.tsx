@@ -2,8 +2,17 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { BlockMath, InlineMath } from "react-katex";
-import { readSession, type Session } from "@/lib/session";
+import DOMPurify from "dompurify";
+import { readSession, loadSession, type Session } from "@/lib/session";
 import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, type SectionConfig, type Question } from "@/lib/platform-config";
+
+const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
+function sanitizeSvg(html: string): string {
+  return DOMPurify.sanitize(html, SVG_PURIFY_CONFIG) as unknown as string;
+}
+function sanitizeHtml(html: string): string {
+  return DOMPurify.sanitize(html) as unknown as string;
+}
 
 // Render text that may contain $...$ (inline) or $$...$$ (block) KaTeX segments
 function MathText({ text }: { text: string }) {
@@ -43,9 +52,10 @@ function ExamGate() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    const s = readSession();
-    if (!s) { window.location.replace("/auth"); return; }
-    setSession(s); setReady(true);
+    loadSession().then((s) => {
+      if (!s) { window.location.replace("/auth"); return; }
+      setSession(s); setReady(true);
+    });
   }, []);
   if (!ready || !session) {
     return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ تحميل محرك الاختبار...</div>;
