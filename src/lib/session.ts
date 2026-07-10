@@ -30,7 +30,19 @@ function subscribeOnce() {
 export function readSession(): Session | null {
   purgeLegacy();
   subscribeOnce();
-  return cachedSession;
+  if (cachedSession) return cachedSession;
+  if (typeof window === "undefined") return null;
+  // Kick off async refresh; return a placeholder if we detect a Supabase session token.
+  void loadSession();
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (k && k.startsWith("sb-") && k.endsWith("-auth-token")) {
+        return { role: "student", email: "", userId: "" };
+      }
+    }
+  } catch { /* ignore */ }
+  return null;
 }
 
 /**
