@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import Papa from "papaparse";
-import { readSession } from "@/lib/session";
+import DOMPurify from "dompurify";
+import { getMyRoles } from "@/lib/admin.functions";
+
+const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
+function sanitizeSvg(html: string): string {
+  return DOMPurify.sanitize(html, SVG_PURIFY_CONFIG) as unknown as string;
+}
 import {
   FOUNDATION_CATEGORIES,
   TOTAL_SECTIONS,
@@ -36,9 +42,13 @@ export const Route = createFileRoute("/_authenticated/admin")({
 function AdminGate() {
   const [state, setState] = useState<"checking" | "allowed" | "denied">("checking");
   useEffect(() => {
-    const s = readSession();
-    if (s?.role === "admin") setState("allowed");
-    else { setState("denied"); window.location.replace("/auth"); }
+    // Verify admin role server-side (never trust client storage).
+    getMyRoles()
+      .then((res) => {
+        if (res?.roles?.includes("admin")) setState("allowed");
+        else { setState("denied"); window.location.replace("/dashboard"); }
+      })
+      .catch(() => { setState("denied"); window.location.replace("/auth"); });
   }, []);
   if (state === "allowed") return <AdminControlCenter />;
   return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ التحقق...</div>;
@@ -539,7 +549,7 @@ function QuestionsBank() {
                   className="mt-1 w-full rounded-xl border border-border bg-white px-3 py-2 text-xs font-mono focus:border-teal outline-none resize-y" />
                 {q.svg && (
                   <div className="mt-2 rounded-xl border border-border bg-surface-1 p-3 inline-block max-w-full [&_svg]:max-h-40 [&_svg]:w-auto"
-                    dangerouslySetInnerHTML={{ __html: q.svg }} />
+                    dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />
                 )}
               </div>
 

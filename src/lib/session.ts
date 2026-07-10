@@ -1,24 +1,78 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export type SessionRole = "admin" | "student";
-export type Session = { role: SessionRole; email: string; at?: string };
+export type Session = { role: SessionRole; email: string; userId: string };
 
-const SESSION_KEY = "session";
+// Legacy localStorage keys we sweep on every read to eliminate stale plaintext data.
+const LEGACY_KEYS = ["session", "user_account"];
 
-export function readSession(): Session | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(SESSION_KEY);
-    if (!raw) return null;
-    const s = JSON.parse(raw) as Session;
-    if (!s || (s.role !== "admin" && s.role !== "student")) return null;
-    return s;
-  } catch {
-    return null;
+function purgeLegacy() {
+  if (typeof window === "undefined") return;
+  for (const k of LEGACY_KEYS) {
+    try { window.localStorage.removeItem(k); } catch { /* ignore */ }
   }
 }
 
-export function clearSession() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(SESSION_KEY);
+let cachedSession: Session | null = null;
+let subscribed = false;
+
+function subscribeOnce() {
+  if (subscribed || typeof window === "undefined") return;
+  subscribed = true;
+  supabase.auth.onAuthStateChange(() => { void loadSession(); });
+}
+
+/**
+ * Synchronous, best-effort session getter for rendering UI shells.
+ * Reflects the last value resolved by loadSession(). Never trust this for
+ * privileged decisions — always verify server-side.
+ */
+export function readSession(): Session | null {
+  purgeLegacy();
+  subscribeOnce();
+  if (cachedSession) return cachedSession;
+  if (typeof window === "undefined") return null;
+  // Kick off async refresh; return a placeholder if we detect a Supabase session token.
+  void loadSession();
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (k && k.startsWith("sb-") && k.endsWith("-auth-token")) {
+        return { role: "student", email: "", userId: "" };
+      }
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
+/**
+ * Reads the current Supabase-authenticated session and resolves the role
+ * from the server-side `user_roles` table. Returns null if not signed in.
+ * Role is never trusted from client storage.
+ */
+export async function loadSession(): Promise<Session | null> {
+  if (typeof window === "undefined") return null;
+  purgeLegacy();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) { cachedSession = null; return null; }
+  const { data: roleRow } = await supabase
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("role", "admin")
+    .maybeSingle();
+  cachedSession = {
+    role: roleRow ? "admin" : "student",
+    email: user.email ?? "",
+    userId: user.id,
+  };
+  return cachedSession;
+}
+
+export async function clearSession() {
+  purgeLegacy();
+  cachedSession = null;
+  try { await supabase.auth.signOut(); } catch { /* ignore */ }
 }
 
 export function redirectToAuth() {

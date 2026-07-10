@@ -2,8 +2,17 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { BlockMath, InlineMath } from "react-katex";
-import { readSession, type Session } from "@/lib/session";
+import DOMPurify from "dompurify";
+import { readSession, loadSession, type Session } from "@/lib/session";
 import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, type SectionConfig, type Question } from "@/lib/platform-config";
+
+const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
+function sanitizeSvg(html: string): string {
+  return DOMPurify.sanitize(html, SVG_PURIFY_CONFIG) as unknown as string;
+}
+function sanitizeHtml(html: string): string {
+  return DOMPurify.sanitize(html) as unknown as string;
+}
 
 // Render text that may contain $...$ (inline) or $$...$$ (block) KaTeX segments
 function MathText({ text }: { text: string }) {
@@ -43,9 +52,10 @@ function ExamGate() {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    const s = readSession();
-    if (!s) { window.location.replace("/auth"); return; }
-    setSession(s); setReady(true);
+    loadSession().then((s) => {
+      if (!s) { window.location.replace("/auth"); return; }
+      setSession(s); setReady(true);
+    });
   }, []);
   if (!ready || !session) {
     return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ تحميل محرك الاختبار...</div>;
@@ -319,11 +329,11 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
               <p className="text-foreground mb-4 leading-8"><MathText text={active.prompt} /></p>
               {active.tableHtml && (
                 <div className="rounded-xl bg-white border border-border p-4 mb-4 overflow-x-auto"
-                  dangerouslySetInnerHTML={{ __html: active.tableHtml }} />
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(active.tableHtml) }} />
               )}
               {!active.tableHtml && active.svg && (
                 <div className="rounded-xl bg-white border border-border p-4 mb-4 flex justify-center [&_svg]:max-h-64 [&_svg]:w-auto"
-                  dangerouslySetInnerHTML={{ __html: active.svg }} />
+                  dangerouslySetInnerHTML={{ __html: sanitizeSvg(active.svg) }} />
               )}
               {active.imageUrl && (
                 <div className="rounded-xl bg-white border border-border p-3 mb-4 text-center">
@@ -510,8 +520,8 @@ function ResultsView({
                   <div key={q.id} className="rounded-xl border border-red-200 bg-red-50/40 p-4">
                     <div className="text-sm text-foreground mb-3 leading-7"><MathText text={q.prompt} /></div>
                     {q.tableHtml
-                      ? <div className="rounded-lg bg-white border border-border p-3 mb-3 overflow-x-auto" dangerouslySetInnerHTML={{ __html: q.tableHtml }} />
-                      : q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: q.svg }} />}
+                      ? <div className="rounded-lg bg-white border border-border p-3 mb-3 overflow-x-auto" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.tableHtml) }} />
+                      : q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />}
                     <div className="grid gap-1.5 text-xs">
                       <div className="text-red-700"><span className="font-bold">إجابتك:</span> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : "لم تُجَب"}</div>
                       <div className="text-teal-deep"><span className="font-bold">الإجابة الصحيحة:</span> {letters[q.correctIndex]} — <MathText text={q.choices[q.correctIndex]} /></div>

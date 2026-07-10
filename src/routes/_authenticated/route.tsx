@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { readSession, clearSession, type Session } from "@/lib/session";
+import { loadSession, clearSession, type Session } from "@/lib/session";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authenticated")({
 
 function RoleAwareShell() {
   const [session, setSession] = useState<Session | null>(null);
-  useEffect(() => { setSession(readSession()); }, []);
+  useEffect(() => { loadSession().then(setSession); }, []);
   const isAdmin = session?.role === "admin";
 
   return (
@@ -38,7 +38,7 @@ function RoleAwareShell() {
             {session ? (
               <button
                 type="button"
-                onClick={() => { clearSession(); window.location.href = "/auth"; }}
+                onClick={async () => { await clearSession(); window.location.href = "/auth"; }}
                 className="mr-2 rounded-full border border-border px-3 py-1.5 text-xs text-muted-foreground hover:border-teal hover:text-teal-deep transition-colors"
               >
                 تسجيل الخروج

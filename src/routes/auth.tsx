@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -12,12 +13,6 @@ export const Route = createFileRoute("/auth")({
   component: LightAuthPage,
 });
 
-const ADMIN_EMAIL = "admin@miqyas.com";
-const ADMIN_PASSWORD = "admin@100percent";
-const ACCOUNT_KEY = "user_account";
-const SESSION_KEY = "session";
-
-type StoredAccount = { fullName: string; email: string; password: string; mobile: string; createdAt: string };
 type Tab = "login" | "register";
 type Banner = { kind: "success" | "error" | "info"; text: string } | null;
 
@@ -30,6 +25,15 @@ function LightAuthPage() {
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regMobile, setRegMobile] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  // Sweep any legacy plaintext credentials/session left by the old client-side auth.
+  useEffect(() => {
+    try {
+      localStorage.removeItem("user_account");
+      localStorage.removeItem("session");
+    } catch { /* ignore */ }
+  }, []);
 
   useEffect(() => {
     if (banner) {
@@ -38,31 +42,21 @@ function LightAuthPage() {
     }
   }, [banner]);
 
-  function handleLogin(e: FormEvent) {
+  async function handleLogin(e: FormEvent) {
     e.preventDefault();
     const email = loginEmail.trim();
     const password = loginPassword;
     if (!email || !password) { setBanner({ kind: "error", text: "من فضلك أدخل البريد وكلمة المرور." }); return; }
-    if (email.toLowerCase() === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      localStorage.setItem(SESSION_KEY, JSON.stringify({ role: "admin", email, at: new Date().toISOString() }));
-      window.location.href = "/admin";
-      return;
-    }
-    let account: StoredAccount | null = null;
-    try {
-      const raw = localStorage.getItem(ACCOUNT_KEY);
-      account = raw ? (JSON.parse(raw) as StoredAccount) : null;
-    } catch { account = null; }
-    // Permissive: if no matching account, still create a session as a student so the user is never blocked.
-    if (account && account.email.toLowerCase() === email.toLowerCase() && account.password !== password) {
-      setBanner({ kind: "error", text: "كلمة المرور غير صحيحة." });
-      return;
-    }
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ role: "student", email, at: new Date().toISOString() }));
+    setBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setBusy(false);
+    if (error) { setBanner({ kind: "error", text: "بيانات الدخول غير صحيحة." }); return; }
+    // Role (admin vs student) is resolved server-side via user_roles; go to dashboard,
+    // admins can navigate to /admin from the header link.
     window.location.href = "/dashboard";
   }
 
-  function handleRegister(e: FormEvent) {
+  async function handleRegister(e: FormEvent) {
     e.preventDefault();
     const fullName = regName.trim();
     const email = regEmail.trim();
@@ -71,10 +65,22 @@ function LightAuthPage() {
     if (!fullName || !email || !password || !mobile) { setBanner({ kind: "error", text: "من فضلك أكمل جميع الحقول." }); return; }
     if (!email.includes("@") || email.length < 5) { setBanner({ kind: "error", text: "صيغة البريد الإلكتروني غير صحيحة." }); return; }
     if (password.length < 6) { setBanner({ kind: "error", text: "كلمة المرور يجب أن تكون 6 أحرف فأكثر." }); return; }
-    const account: StoredAccount = { fullName, email, password, mobile, createdAt: new Date().toISOString() };
-    localStorage.setItem(ACCOUNT_KEY, JSON.stringify(account));
-    localStorage.setItem(SESSION_KEY, JSON.stringify({ role: "student", email, at: new Date().toISOString() }));
-    window.location.href = "/dashboard";
+    setBusy(true);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/dashboard`,
+        data: { full_name: fullName, mobile },
+      },
+    });
+    setBusy(false);
+    if (error) {
+      setBanner({ kind: "error", text: error.message.includes("registered") ? "هذا البريد مسجل بالفعل." : "تعذّر إنشاء الحساب." });
+      return;
+    }
+    setBanner({ kind: "success", text: "تم إنشاء الحساب. تحقّق من بريدك لتأكيد الحساب ثم سجّل الدخول." });
+    setTab("login");
   }
 
   return (
@@ -108,10 +114,9 @@ function LightAuthPage() {
           <form onSubmit={handleLogin} className="space-y-4" noValidate>
             <Field label="البريد الإلكتروني" type="email" value={loginEmail} onChange={setLoginEmail} placeholder="name@example.com" autoComplete="email" />
             <Field label="كلمة المرور" type="password" value={loginPassword} onChange={setLoginPassword} placeholder="••••••••" autoComplete="current-password" />
-            <button type="submit" className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-l from-teal to-teal-deep hover:opacity-95 transition-all shadow-md hover:shadow-lg">
-              دخول
+            <button type="submit" disabled={busy} className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-l from-teal to-teal-deep hover:opacity-95 transition-all shadow-md hover:shadow-lg disabled:opacity-60">
+              {busy ? "جارٍ الدخول..." : "دخول"}
             </button>
-            <p className="text-[11px] text-muted-foreground text-center pt-2">للأدمن: admin@miqyas.com</p>
           </form>
         ) : (
           <form onSubmit={handleRegister} className="space-y-4" noValidate>
@@ -119,14 +124,14 @@ function LightAuthPage() {
             <Field label="البريد الإلكتروني" type="email" value={regEmail} onChange={setRegEmail} placeholder="name@example.com" autoComplete="email" />
             <Field label="كلمة المرور" type="password" value={regPassword} onChange={setRegPassword} placeholder="6 أحرف فأكثر" autoComplete="new-password" />
             <Field label="رقم الجوال" type="tel" value={regMobile} onChange={setRegMobile} placeholder="05xxxxxxxx" autoComplete="tel" />
-            <button type="submit" className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-l from-teal to-teal-deep hover:opacity-95 transition-all shadow-md hover:shadow-lg">
-              إنشاء الحساب والدخول
+            <button type="submit" disabled={busy} className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-l from-teal to-teal-deep hover:opacity-95 transition-all shadow-md hover:shadow-lg disabled:opacity-60">
+              {busy ? "جارٍ الإنشاء..." : "إنشاء الحساب"}
             </button>
           </form>
         )}
 
         <p className="text-[11px] text-muted-foreground mt-6 text-center">
-          الدخول محلي على جهازك — بدون قاعدة بيانات في هذه المرحلة.
+          الدخول محمي عبر بروتوكولات آمنة — كلمة المرور لا تُخزَّن على جهازك.
         </p>
       </div>
     </div>
