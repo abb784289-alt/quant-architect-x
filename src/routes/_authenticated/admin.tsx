@@ -544,7 +544,7 @@ function QuestionsBank() {
                   className="mt-1 w-full rounded-xl border border-border bg-white px-3 py-2 text-xs font-mono focus:border-teal outline-none resize-y" />
                 {q.svg && (
                   <div className="mt-2 rounded-xl border border-border bg-surface-1 p-3 inline-block max-w-full [&_svg]:max-h-40 [&_svg]:w-auto"
-                    dangerouslySetInnerHTML={{ __html: q.svg }} />
+                    dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />
                 )}
               </div>
 
