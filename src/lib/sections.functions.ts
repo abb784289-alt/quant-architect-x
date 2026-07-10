@@ -35,7 +35,8 @@ export const getSection = createServerFn({ method: "POST" })
 
     let videoUrl: string | null = null;
     if (section.video_path) {
-      const { data: signed } = await context.supabase.storage
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: signed } = await supabaseAdmin.storage
         .from("lecture-videos")
         .createSignedUrl(section.video_path, 60 * 60);
       videoUrl = signed?.signedUrl ?? null;
