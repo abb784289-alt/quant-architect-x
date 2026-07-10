@@ -3,6 +3,11 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import Papa from "papaparse";
 import DOMPurify from "dompurify";
 import { getMyRoles } from "@/lib/admin.functions";
+
+const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
+function sanitizeSvg(html: string): string {
+  return DOMPurify.sanitize(html, SVG_PURIFY_CONFIG) as unknown as string;
+}
 import {
   FOUNDATION_CATEGORIES,
   TOTAL_SECTIONS,
