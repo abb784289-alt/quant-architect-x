@@ -42,22 +42,24 @@ export async function loadSession(): Promise<Session | null> {
   if (typeof window === "undefined") return null;
   purgeLegacy();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) { cachedSession = null; return null; }
   const { data: roleRow } = await supabase
     .from("user_roles")
     .select("role")
     .eq("user_id", user.id)
     .eq("role", "admin")
     .maybeSingle();
-  return {
+  cachedSession = {
     role: roleRow ? "admin" : "student",
     email: user.email ?? "",
     userId: user.id,
   };
+  return cachedSession;
 }
 
 export async function clearSession() {
   purgeLegacy();
+  cachedSession = null;
   try { await supabase.auth.signOut(); } catch { /* ignore */ }
 }
 
