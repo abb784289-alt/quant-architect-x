@@ -28,7 +28,7 @@ export type FoundationAsset = {
 
 const SECTIONS_KEY = "sections_config_v1";
 const FOUNDATION_KEY = "foundation_assets_v1";
-const QUESTIONS_KEY = "questions_bank_v1";
+const QUESTIONS_KEY = "questions_bank_v2";
 
 export const TOTAL_SECTIONS = 90;
 export const DEFAULT_TIMER_SECONDS = 0; // 0 = auto (1 minute per question)
