@@ -13,6 +13,26 @@ function purgeLegacy() {
   }
 }
 
+let cachedSession: Session | null = null;
+let subscribed = false;
+
+function subscribeOnce() {
+  if (subscribed || typeof window === "undefined") return;
+  subscribed = true;
+  supabase.auth.onAuthStateChange(() => { void loadSession(); });
+}
+
+/**
+ * Synchronous, best-effort session getter for rendering UI shells.
+ * Reflects the last value resolved by loadSession(). Never trust this for
+ * privileged decisions — always verify server-side.
+ */
+export function readSession(): Session | null {
+  purgeLegacy();
+  subscribeOnce();
+  return cachedSession;
+}
+
 /**
  * Reads the current Supabase-authenticated session and resolves the role
  * from the server-side `user_roles` table. Returns null if not signed in.
