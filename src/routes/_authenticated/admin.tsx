@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import Papa from "papaparse";
-import { readSession } from "@/lib/session";
+import DOMPurify from "dompurify";
+import { getMyRoles } from "@/lib/admin.functions";
 import {
   FOUNDATION_CATEGORIES,
   TOTAL_SECTIONS,
@@ -36,9 +37,13 @@ export const Route = createFileRoute("/_authenticated/admin")({
 function AdminGate() {
   const [state, setState] = useState<"checking" | "allowed" | "denied">("checking");
   useEffect(() => {
-    const s = readSession();
-    if (s?.role === "admin") setState("allowed");
-    else { setState("denied"); window.location.replace("/auth"); }
+    // Verify admin role server-side (never trust client storage).
+    getMyRoles()
+      .then((res) => {
+        if (res?.roles?.includes("admin")) setState("allowed");
+        else { setState("denied"); window.location.replace("/dashboard"); }
+      })
+      .catch(() => { setState("denied"); window.location.replace("/auth"); });
   }, []);
   if (state === "allowed") return <AdminControlCenter />;
   return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ التحقق...</div>;
