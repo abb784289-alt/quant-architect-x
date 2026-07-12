@@ -587,3 +587,227 @@ function QuestionsBank() {
     </section>
   );
 }
+
+// ────────────── Student Questions Inbox (Admin) ──────────────
+type StudentQuestion = {
+  id: string;
+  user_id: string;
+  question_text: string | null;
+  question_image_path: string | null;
+  reply_text: string | null;
+  reply_video_path: string | null;
+  replied_at: string | null;
+  created_at: string;
+};
+
+function StudentQuestionsInbox() {
+  const [items, setItems] = useState<StudentQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "pending" | "answered">("all");
+
+  async function refresh() {
+    setLoading(true);
+    setError(null);
+    try {
+      const rows = (await listAllQuestions()) as StudentQuestion[];
+      setItems(rows);
+    } catch (e: any) {
+      setError(e?.message || "تعذّر التحميل");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => { refresh(); }, []);
+
+  const shown = items.filter((q) => {
+    if (filter === "pending") return !q.replied_at;
+    if (filter === "answered") return !!q.replied_at;
+    return true;
+  });
+
+  const pendingCount = items.filter((q) => !q.replied_at).length;
+
+  return (
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-1 rounded-xl bg-surface-2 border border-border p-1">
+          <FilterBtn active={filter === "all"} onClick={() => setFilter("all")}>الكل ({toArabic(items.length)})</FilterBtn>
+          <FilterBtn active={filter === "pending"} onClick={() => setFilter("pending")}>بانتظار الرد ({toArabic(pendingCount)})</FilterBtn>
+          <FilterBtn active={filter === "answered"} onClick={() => setFilter("answered")}>مُجاب ({toArabic(items.length - pendingCount)})</FilterBtn>
+        </div>
+        <button type="button" onClick={refresh} className="text-sm rounded-xl border border-border bg-white px-3 py-2 hover:border-teal">تحديث</button>
+      </div>
+
+      {error && <div className="text-sm rounded-xl bg-red-50 border border-red-200 text-red-700 px-3 py-2">{error}</div>}
+
+      {loading ? (
+        <div className="text-sm text-muted-foreground">جارٍ التحميل…</div>
+      ) : shown.length === 0 ? (
+        <div className="luxury-card p-6 text-center text-sm text-muted-foreground">لا توجد أسئلة.</div>
+      ) : (
+        <div className="space-y-3">
+          {shown.map((q) => (
+            <AdminQuestionCard key={q.id} row={q} onChanged={refresh} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function FilterBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button type="button" onClick={onClick}
+      className={"px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors " +
+        (active ? "bg-white text-teal-deep shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+      {children}
+    </button>
+  );
+}
+
+function AdminQuestionCard({ row, onChanged }: { row: StudentQuestion; onChanged: () => void }) {
+  const [imgUrl, setImgUrl] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState(row.reply_text ?? "");
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const videoInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (row.question_image_path) {
+      getMediaSignedUrl({ data: { question_id: row.id, kind: "image" } })
+        .then((r) => !cancelled && setImgUrl(r.url)).catch(() => {});
+    }
+    if (row.reply_video_path) {
+      getMediaSignedUrl({ data: { question_id: row.id, kind: "video" } })
+        .then((r) => !cancelled && setVideoUrl(r.url)).catch(() => {});
+    }
+    return () => { cancelled = true; };
+  }, [row.id, row.question_image_path, row.reply_video_path]);
+
+  function pickVideo(f: File | null) {
+    if (!f) return;
+    if (!f.type.startsWith("video/")) { setErr("اختر ملف فيديو"); return; }
+    if (f.size > 300 * 1024 * 1024) { setErr("حجم الفيديو أكبر من 300MB"); return; }
+    setErr(null);
+    if (videoPreview) URL.revokeObjectURL(videoPreview);
+    setVideoFile(f);
+    setVideoPreview(URL.createObjectURL(f));
+  }
+
+  async function submitReply() {
+    setErr(null);
+    setMsg(null);
+    if (!replyText.trim() && !videoFile && !row.reply_video_path) {
+      setErr("أضِف رسالة أو فيديو"); return;
+    }
+    setSaving(true);
+    try {
+      let videoPath: string | null = row.reply_video_path;
+      if (videoFile) {
+        const { data: userData } = await supabase.auth.getUser();
+        const uid = userData.user?.id;
+        if (!uid) throw new Error("انتهت الجلسة");
+        const ext = videoFile.name.split(".").pop()?.toLowerCase() || "mp4";
+        const path = `${uid}/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage
+          .from("reply-videos")
+          .upload(path, videoFile, { contentType: videoFile.type, upsert: false });
+        if (upErr) throw new Error(upErr.message);
+        videoPath = path;
+      }
+      await replyToQuestion({
+        data: {
+          id: row.id,
+          reply_text: replyText.trim() || null,
+          reply_video_path: videoPath,
+        },
+      });
+      setMsg("تم إرسال الرد.");
+      setVideoFile(null);
+      if (videoPreview) URL.revokeObjectURL(videoPreview);
+      setVideoPreview(null);
+      if (videoInput.current) videoInput.current.value = "";
+      onChanged();
+    } catch (e: any) {
+      setErr(e?.message || "تعذّر إرسال الرد");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onDelete() {
+    if (!confirm("حذف هذا السؤال نهائياً؟")) return;
+    try {
+      await deleteQuestion({ data: { id: row.id } });
+      onChanged();
+    } catch (e: any) {
+      setErr(e?.message || "تعذّر الحذف");
+    }
+  }
+
+  return (
+    <article className="luxury-card p-5">
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[11px] text-muted-foreground">
+          <span className="font-mono">{row.user_id.slice(0, 8)}…</span>
+          <span className="mx-2">·</span>
+          <span>{new Date(row.created_at).toLocaleString("ar-EG")}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {row.replied_at ? (
+            <span className="text-[11px] rounded-full bg-teal-soft text-teal-deep border border-teal/30 px-2.5 py-0.5 font-bold">تم الرد</span>
+          ) : (
+            <span className="text-[11px] rounded-full bg-gold-soft text-foreground border border-gold/40 px-2.5 py-0.5 font-semibold">بانتظار الرد</span>
+          )}
+          <button type="button" onClick={onDelete} className="text-xs text-red-600 hover:underline">حذف</button>
+        </div>
+      </div>
+
+      {row.question_text && (
+        <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{row.question_text}</p>
+      )}
+      {imgUrl && (
+        <a href={imgUrl} target="_blank" rel="noopener noreferrer">
+          <img src={imgUrl} alt="سؤال" className="mt-3 max-h-80 rounded-xl border border-border object-contain bg-black/5" />
+        </a>
+      )}
+
+      <div className="mt-4 pt-4 border-t border-border space-y-3">
+        <div className="text-xs font-bold text-teal-deep">رد الأستاذ أسامة</div>
+        <textarea
+          value={replyText}
+          onChange={(e) => setReplyText(e.target.value)}
+          rows={3}
+          maxLength={8000}
+          placeholder="اكتب الرد النصي…"
+          className="w-full rounded-xl border border-border bg-white px-4 py-2.5 text-sm focus:border-teal focus:ring-2 focus:ring-teal/30 outline-none resize-y"
+        />
+        <div className="flex items-center gap-3 flex-wrap">
+          <input ref={videoInput} type="file" accept="video/*" hidden onChange={(e) => pickVideo(e.target.files?.[0] ?? null)} />
+          <button type="button" onClick={() => videoInput.current?.click()}
+            className="rounded-xl border border-border bg-surface-2 px-4 py-2 text-sm font-semibold hover:border-teal">
+            {row.reply_video_path ? "استبدال الفيديو" : "إرفاق فيديو رد"}
+          </button>
+          {videoFile && <span className="text-xs text-muted-foreground truncate">{videoFile.name} · {(videoFile.size / (1024*1024)).toFixed(1)}MB</span>}
+        </div>
+        {videoPreview && <video src={videoPreview} controls className="w-full rounded-xl bg-black aspect-video" />}
+        {!videoPreview && videoUrl && <video src={videoUrl} controls className="w-full rounded-xl bg-black aspect-video" />}
+
+        {err && <div className="text-sm rounded-xl bg-red-50 border border-red-200 text-red-700 px-3 py-2">{err}</div>}
+        {msg && <div className="text-sm rounded-xl bg-teal-soft border border-teal/30 text-teal-deep px-3 py-2">{msg}</div>}
+
+        <button type="button" onClick={submitReply} disabled={saving}
+          className="w-full rounded-xl bg-gradient-to-l from-teal to-teal-deep text-white py-2.5 font-bold hover:opacity-95 shadow-md disabled:opacity-60">
+          {saving ? "جارٍ الحفظ…" : row.replied_at ? "تحديث الرد" : "إرسال الرد"}
+        </button>
+      </div>
+    </article>
+  );
+}
