@@ -82,6 +82,9 @@ function SectionsDashboard() {
           <button type="button" onClick={() => navigate({ to: "/mistakes" })} className="rounded-2xl border border-red-200 bg-red-50 text-red-700 px-4 py-4 text-sm font-bold hover:border-red-400 transition-colors" title="مكان الأخطاء">
             ⚑
           </button>
+          <button type="button" onClick={() => navigate({ to: "/ask" })} className="rounded-2xl border border-gold/40 bg-gold-soft text-foreground px-4 py-4 text-sm font-bold hover:border-gold transition-colors" title="اسأل الأستاذ أسامة">
+            ✎
+          </button>
         </form>
 
         {/* الإحصائيات مطويّة */}
