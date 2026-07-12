@@ -3,6 +3,13 @@ import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import Papa from "papaparse";
 import DOMPurify from "dompurify";
 import { getMyRoles } from "@/lib/admin.functions";
+import {
+  listAllQuestions,
+  replyToQuestion,
+  deleteQuestion,
+  getMediaSignedUrl,
+} from "@/lib/questions.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
 function sanitizeSvg(html: string): string {
@@ -54,7 +61,7 @@ function AdminGate() {
   return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ التحقق...</div>;
 }
 
-type Tab = "questions" | "uploader" | "organizer" | "timers";
+type Tab = "questions" | "student-questions" | "uploader" | "organizer" | "timers";
 
 function AdminControlCenter() {
   const [tab, setTab] = useState<Tab>("questions");
@@ -71,12 +78,14 @@ function AdminControlCenter() {
 
       <div className="flex flex-wrap gap-1 rounded-2xl bg-surface-2 border border-border p-1 mb-6 max-w-3xl">
         <TabBtn active={tab === "questions"} onClick={() => setTab("questions")}>بنك الأسئلة</TabBtn>
+        <TabBtn active={tab === "student-questions"} onClick={() => setTab("student-questions")}>أسئلة الطلاب</TabBtn>
         <TabBtn active={tab === "uploader"} onClick={() => setTab("uploader")}>رفع الفيديوهات</TabBtn>
         <TabBtn active={tab === "organizer"} onClick={() => setTab("organizer")}>منظّم الأقسام (CSV)</TabBtn>
         <TabBtn active={tab === "timers"} onClick={() => setTab("timers")}>ضابط المؤقتات</TabBtn>
       </div>
 
       {tab === "questions" && <QuestionsBank />}
+      {tab === "student-questions" && <StudentQuestionsInbox />}
       {tab === "uploader" && <VideoUploader />}
       {tab === "organizer" && <SectionOrganizer />}
       {tab === "timers" && <TimerController />}
