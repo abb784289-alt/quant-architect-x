@@ -67,6 +67,27 @@ export type Database = {
           },
         ]
       }
+      question_bank: {
+        Row: {
+          questions: Json
+          section_number: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          questions?: Json
+          section_number: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          questions?: Json
+          section_number?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       questions: {
         Row: {
           choices: Json
