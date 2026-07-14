@@ -1345,7 +1345,7 @@ export function hydrateQuestionBankFromServer(): Promise<void> {
   hydratePromise = (async () => {
     try {
       const { fetchAllQuestionBank } = await import("./question-bank.functions");
-      const rows = (await fetchAllQuestionBank()) as Array<{
+      const rows = (await fetchAllQuestionBank()) as unknown as Array<{
         section_number: number;
         questions: Question[];
       }>;
