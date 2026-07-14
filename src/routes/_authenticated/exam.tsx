@@ -4,7 +4,7 @@ import { z } from "zod";
 import { BlockMath, InlineMath } from "react-katex";
 import DOMPurify from "dompurify";
 import { readSession, loadSession, type Session } from "@/lib/session";
-import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, type SectionConfig, type Question } from "@/lib/platform-config";
+import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, hydrateQuestionBankFromServer, type SectionConfig, type Question } from "@/lib/platform-config";
 
 const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
 function sanitizeSvg(html: string): string {
@@ -117,17 +117,23 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
 
   useEffect(() => {
     const n = sectionNumber ?? 1;
-    const c = getSection(n);
-    const qs = getQuestions(n);
-    setConfig(c);
-    setQuestions(qs);
-    setCurrent(0);
-    setAnswers({});
-    setBookmarks({});
-    setFlagged({});
-    setRemaining(computeTimerSeconds(c, qs.length));
-    setWarned4(false);
-    setFinished(false);
+    let cancelled = false;
+    // Ensure we have the freshest question bank from the shared server before starting.
+    hydrateQuestionBankFromServer().finally(() => {
+      if (cancelled) return;
+      const c = getSection(n);
+      const qs = getQuestions(n);
+      setConfig(c);
+      setQuestions(qs);
+      setCurrent(0);
+      setAnswers({});
+      setBookmarks({});
+      setFlagged({});
+      setRemaining(computeTimerSeconds(c, qs.length));
+      setWarned4(false);
+      setFinished(false);
+    });
+    return () => { cancelled = true; };
   }, [sectionNumber]);
 
   useEffect(() => {

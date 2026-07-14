@@ -1332,6 +1332,46 @@ export function saveQuestions(sectionNumber: number, questions: Question[]) {
   const all = loadAllQuestions();
   all[sectionNumber] = questions;
   window.localStorage.setItem(QUESTIONS_KEY, JSON.stringify(all));
+  // Fire-and-forget: push to shared server bank so every student sees the edit.
+  void pushQuestionsToServer(sectionNumber, questions);
+}
+
+// ─────────────── Server-backed question bank (shared across users) ───────────────
+let hydratePromise: Promise<void> | null = null;
+
+export function hydrateQuestionBankFromServer(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (hydratePromise) return hydratePromise;
+  hydratePromise = (async () => {
+    try {
+      const { fetchAllQuestionBank } = await import("./question-bank.functions");
+      const rows = (await fetchAllQuestionBank()) as unknown as Array<{
+        section_number: number;
+        questions: Question[];
+      }>;
+      if (!rows || rows.length === 0) return;
+      const merged = loadAllQuestions();
+      for (const row of rows) {
+        if (Array.isArray(row.questions) && row.questions.length > 0) {
+          merged[row.section_number] = row.questions;
+        }
+      }
+      window.localStorage.setItem(QUESTIONS_KEY, JSON.stringify(merged));
+      window.dispatchEvent(new CustomEvent("question-bank:hydrated"));
+    } catch (e) {
+      console.warn("[question-bank] hydrate failed", e);
+    }
+  })();
+  return hydratePromise;
+}
+
+async function pushQuestionsToServer(sectionNumber: number, questions: Question[]) {
+  try {
+    const { saveSectionQuestionBank } = await import("./question-bank.functions");
+    await saveSectionQuestionBank({ data: { section_number: sectionNumber, questions } });
+  } catch (e) {
+    console.warn("[question-bank] save failed", e);
+  }
 }
 
 export function computeTimerSeconds(section: SectionConfig, questionCount: number): number {

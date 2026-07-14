@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { loadSession, clearSession, type Session } from "@/lib/session";
+import { hydrateQuestionBankFromServer } from "@/lib/platform-config";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -9,7 +10,10 @@ export const Route = createFileRoute("/_authenticated")({
 
 function RoleAwareShell() {
   const [session, setSession] = useState<Session | null>(null);
-  useEffect(() => { loadSession().then(setSession); }, []);
+  useEffect(() => {
+    loadSession().then(setSession);
+    hydrateQuestionBankFromServer();
+  }, []);
   const isAdmin = session?.role === "admin";
 
   return (
