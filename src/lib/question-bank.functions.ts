@@ -48,7 +48,7 @@ export const gradeSectionAttempt = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        section_number: z.number().int().min(1).max(500),
+        section_number: z.number().int().min(1).max(3000),
         answers: z.record(z.string(), z.number().int().min(0).max(3)),
       })
       .parse(d),
@@ -89,7 +89,7 @@ export const saveSectionQuestionBank = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     z
       .object({
-        section_number: z.number().int().min(1).max(500),
+        section_number: z.number().int().min(1).max(3000),
         questions: z.array(QuestionSchema).max(500),
       })
       .parse(d),

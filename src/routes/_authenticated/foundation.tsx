@@ -1,9 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 import { readSession } from "@/lib/session";
+import { TRACKS, isTrackId, type TrackId } from "@/lib/platform-config";
 
 export const Route = createFileRoute("/_authenticated/foundation")({
   ssr: false,
+  validateSearch: (s) => z.object({ track: z.enum(["quantitative", "verbal"]).optional() }).parse(s),
   head: () => ({
     meta: [
       { title: "قسم التأسيس الشامل — منصة المِقْيَاس" },
@@ -14,32 +17,41 @@ export const Route = createFileRoute("/_authenticated/foundation")({
 });
 
 function FoundationGate() {
+  const { track } = Route.useSearch();
   const [ok, setOk] = useState<boolean | null>(null);
   useEffect(() => {
     const s = readSession();
     if (!s) { setOk(false); window.location.replace("/auth"); return; }
     setOk(true);
   }, []);
-  if (ok) return <FoundationComingSoon />;
+  const activeTrack: TrackId = isTrackId(track) ? track : "quantitative";
+  if (ok) return <FoundationComingSoon track={activeTrack} />;
   return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ التحميل...</div>;
 }
 
-function FoundationComingSoon() {
+function FoundationComingSoon({ track }: { track: TrackId }) {
+  const meta = TRACKS[track];
+  const isTeal = meta.accent === "teal";
   return (
     <main className="mx-auto max-w-3xl px-6 py-16" dir="rtl">
       <div className="luxury-card p-10 text-center">
+        <div className={"inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold border mb-4 " +
+          (isTeal ? "bg-teal-soft text-teal-deep border-teal/30" : "bg-gold-soft text-foreground border-gold/40")}>
+          <span>{meta.icon}</span>
+          <span>تأسيس — {meta.label}</span>
+        </div>
         <div className="mx-auto mb-6 h-20 w-20 rounded-3xl bg-gradient-to-br from-gold-soft to-white border border-gold/40 grid place-items-center text-4xl">
           🛠️
         </div>
         <div className="inline-flex items-center gap-2 rounded-full bg-gold-soft text-foreground px-3 py-1 text-[11px] font-semibold mb-4 border border-gold/40">
           قيد العمل
         </div>
-        <h1 className="text-3xl font-bold text-foreground mb-3">قسم التأسيس الشامل</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-3">قسم التأسيس الشامل — {meta.shortLabel}</h1>
         <p className="text-sm text-muted-foreground leading-7 max-w-lg mx-auto mb-6">
-          يجهّز الأستاذ أسامة فتح الدين حالياً محاور التأسيس (النسبة والتناسب، الهندسة، الإحصاء، المتوسطات). سيتم إطلاقها قريباً بشكل متكامل.
+          يجهّز الأستاذ أسامة فتح الدين حالياً محاور التأسيس لمسار <b>{meta.label}</b>. سيتم إطلاقها قريباً بشكل متكامل.
         </p>
-        <a href="/dashboard" className="inline-block rounded-xl bg-teal text-white px-6 py-3 text-sm font-bold hover:bg-teal-deep transition-colors">
-          الذهاب للأقسام الـ 150
+        <a href={`/dashboard?track=${track}`} className="inline-block rounded-xl bg-teal text-white px-6 py-3 text-sm font-bold hover:bg-teal-deep transition-colors">
+          الذهاب لأقسام {meta.shortLabel}
         </a>
       </div>
     </main>

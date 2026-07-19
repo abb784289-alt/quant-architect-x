@@ -4,7 +4,7 @@ import { z } from "zod";
 import { BlockMath, InlineMath } from "react-katex";
 import DOMPurify from "dompurify";
 import { readSession, loadSession, type Session } from "@/lib/session";
-import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, hydrateQuestionBankFromServer, type SectionConfig, type Question } from "@/lib/platform-config";
+import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, hydrateQuestionBankFromServer, serverSectionNumber, resultsKey, TRACKS, isTrackId, type SectionConfig, type Question, type TrackId } from "@/lib/platform-config";
 import { gradeSectionAttempt } from "@/lib/question-bank.functions";
 
 const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
@@ -37,8 +37,9 @@ export const Route = createFileRoute("/_authenticated/exam")({
   ssr: false,
   validateSearch: (s) =>
     z.object({
-      section: z.coerce.number().int().min(1).max(150).optional(),
+      section: z.coerce.number().int().min(1).max(500).optional(),
       mode: z.enum(["exam", "practice"]).optional(),
+      track: z.enum(["quantitative", "verbal"]).optional(),
     }).parse(s),
   head: () => ({
     meta: [
@@ -65,18 +66,21 @@ function ExamGate() {
 }
 
 function ExamOrPicker({ session }: { session: Session }) {
-  const { mode, section } = Route.useSearch();
+  const { mode, section, track } = Route.useSearch();
+  const activeTrack: TrackId = isTrackId(track) ? track : "quantitative";
   const navigate = useNavigate();
   if (!mode) {
     return (
       <div dir="rtl" className="min-h-[70vh] grid place-items-center px-6 py-10">
         <div className="luxury-card p-8 max-w-2xl w-full text-center">
-          <div className="text-xs font-semibold text-teal-deep mb-2">القسم {toArabic(section ?? 1)}</div>
+          <div className="text-xs font-semibold text-teal-deep mb-2">
+            {TRACKS[activeTrack].label} — القسم {toArabic(section ?? 1)}
+          </div>
           <h1 className="font-display font-bold text-2xl text-foreground mb-2">اختر طريقة الدخول</h1>
           <p className="text-sm text-muted-foreground mb-6">تقدر تحلّ القسم كاختبار بوقت محدّد، أو كتدريب بدون وقت وبراحتك.</p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
-              onClick={() => navigate({ to: "/exam", search: { section, mode: "exam" } })}
+              onClick={() => navigate({ to: "/exam", search: { section, mode: "exam", track: activeTrack } })}
               className="group rounded-2xl border-2 border-teal/40 bg-gradient-to-br from-teal-soft to-white p-6 text-right hover:border-teal hover:shadow-lg transition-all"
             >
               <div className="text-3xl mb-2">⏱</div>
@@ -84,7 +88,7 @@ function ExamOrPicker({ session }: { session: Session }) {
               <div className="text-xs text-muted-foreground leading-6">مؤقّت رسمي — تنبيه قبل انتهاء الوقت — النتيجة تظهر في النهاية.</div>
             </button>
             <button
-              onClick={() => navigate({ to: "/exam", search: { section, mode: "practice" } })}
+              onClick={() => navigate({ to: "/exam", search: { section, mode: "practice", track: activeTrack } })}
               className="group rounded-2xl border-2 border-gold/40 bg-gradient-to-br from-gold-soft to-white p-6 text-right hover:border-gold hover:shadow-lg transition-all"
             >
               <div className="text-3xl mb-2">🧘</div>
@@ -96,10 +100,10 @@ function ExamOrPicker({ session }: { session: Session }) {
       </div>
     );
   }
-  return <NemrExamEngine session={session} mode={mode} />;
+  return <NemrExamEngine session={session} mode={mode} track={activeTrack} />;
 }
 
-function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "practice" }) {
+function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exam" | "practice"; track: TrackId }) {
   const navigate = useNavigate();
   const { section: sectionNumber } = Route.useSearch();
   const isPractice = mode === "practice";
@@ -122,8 +126,8 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
     // Ensure we have the freshest question bank from the shared server before starting.
     hydrateQuestionBankFromServer().finally(() => {
       if (cancelled) return;
-      const c = getSection(n);
-      const qs = getQuestions(n);
+      const c = getSection(n, track);
+      const qs = getQuestions(n, track);
       setConfig(c);
       setQuestions(qs);
       setCurrent(0);
@@ -135,7 +139,7 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
       setFinished(false);
     });
     return () => { cancelled = true; };
-  }, [sectionNumber]);
+  }, [sectionNumber, track]);
 
   useEffect(() => {
     if (!config || isPractice) return;
@@ -160,7 +164,7 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
           <div className="text-3xl mb-3">📝</div>
           <h2 className="font-display font-bold text-lg text-foreground mb-2">لا توجد أسئلة في هذا القسم بعد</h2>
           <p className="text-sm text-muted-foreground mb-5">يمكن للمدرّب إضافة أسئلة القسم رقم {sectionNumber ?? 1} من مركز التحكم.</p>
-          <button onClick={() => navigate({ to: "/dashboard" })} className="rounded-xl bg-teal text-white px-5 py-2.5 text-sm font-bold hover:bg-teal-deep transition-colors">
+          <button onClick={() => navigate({ to: "/dashboard", search: { track } })} className="rounded-xl bg-teal text-white px-5 py-2.5 text-sm font-bold hover:bg-teal-deep transition-colors">
             العودة للأقسام
           </button>
         </div>
@@ -194,7 +198,7 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
         if (typeof a === "number") answersByQid[q.id] = a;
       }
       const graded = await gradeSectionAttempt({
-        data: { section_number: sectionNumber ?? 1, answers: answersByQid },
+        data: { section_number: serverSectionNumber(track, sectionNumber ?? 1), answers: answersByQid },
       });
       const correctMap: Record<string, number> = {};
       for (const [qid, r] of Object.entries(graded.results)) correctMap[qid] = (r as any).correctIndex;
@@ -207,6 +211,7 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
         section: sectionNumber ?? 1,
         sectionTitle: config?.title ?? "",
         mode,
+        track,
         total: questions.length,
         correct: graded.correct,
         answers,
@@ -214,7 +219,7 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
         correctByQid: correctMap,
       };
       try {
-        const key = "nemr:results";
+        const key = resultsKey(track);
         const prev = JSON.parse(localStorage.getItem(key) || "[]");
         prev.push(attempt);
         localStorage.setItem(key, JSON.stringify(prev));
@@ -245,7 +250,7 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
           setRemaining(computeTimerSeconds(config!, questions.length));
           setWarned4(false);
         }}
-        onBack={() => navigate({ to: "/dashboard" })}
+        onBack={() => navigate({ to: "/dashboard", search: { track } })}
       />
     );
   }

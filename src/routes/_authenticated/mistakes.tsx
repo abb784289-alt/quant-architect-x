@@ -1,7 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
 import { BlockMath, InlineMath } from "react-katex";
-import { loadAllQuestions, SEED_QUESTIONS, toArabic, type Question } from "@/lib/platform-config";
+import { loadAllQuestions, SEED_QUESTIONS, toArabic, resultsKey, TRACKS, isTrackId, type Question, type TrackId } from "@/lib/platform-config";
 
 function MathText({ text }: { text: string }) {
   const parts = text.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
@@ -29,25 +30,31 @@ type Attempt = {
 
 export const Route = createFileRoute("/_authenticated/mistakes")({
   ssr: false,
+  validateSearch: (s) => z.object({ track: z.enum(["quantitative", "verbal"]).optional() }).parse(s),
   head: () => ({ meta: [{ title: "أخطائي — منصة المِقْيَاس" }, { name: "description", content: "مراجعة كل الأسئلة التي أخطأت فيها عبر جميع الأقسام." }] }),
   component: MistakesPage,
 });
 
 function MistakesPage() {
   const navigate = useNavigate();
+  const { track } = Route.useSearch();
+  const activeTrack: TrackId = isTrackId(track) ? track : "quantitative";
+  const meta = TRACKS[activeTrack];
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [bank, setBank] = useState<Record<string, Question>>({});
 
   useEffect(() => {
     try {
-      const raw = JSON.parse(localStorage.getItem("nemr:results") || "[]");
+      const raw = JSON.parse(localStorage.getItem(resultsKey(activeTrack)) || "[]");
       setAttempts(raw as Attempt[]);
     } catch { setAttempts([]); }
     const b: Record<string, Question> = {};
-    const all = { ...SEED_QUESTIONS, ...loadAllQuestions() };
+    const all = activeTrack === "quantitative"
+      ? { ...SEED_QUESTIONS, ...loadAllQuestions("quantitative") }
+      : { ...loadAllQuestions("verbal") };
     Object.values(all).forEach((arr) => arr.forEach((q) => (b[q.id] = q)));
     setBank(b);
-  }, []);
+  }, [activeTrack]);
 
   const totals = useMemo(() => {
     const total = attempts.reduce((s, a) => s + a.total, 0);
@@ -58,18 +65,18 @@ function MistakesPage() {
   const letters = ["أ", "ب", "ج", "د"];
 
   function clearAll() {
-    if (confirm("مسح كل السجل؟")) { localStorage.removeItem("nemr:results"); setAttempts([]); }
+    if (confirm("مسح كل السجل؟")) { localStorage.removeItem(resultsKey(activeTrack)); setAttempts([]); }
   }
 
   return (
     <main dir="rtl" className="mx-auto max-w-4xl px-5 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">مكان الأخطاء</h1>
-          <p className="text-sm text-muted-foreground mt-1">مراجعة كل ما أخطأت فيه — مرتّبة حسب أحدث محاولة.</p>
+          <h1 className="text-2xl font-bold text-foreground">مكان الأخطاء — {meta.shortLabel}</h1>
+          <p className="text-sm text-muted-foreground mt-1">مراجعة أخطاء مسار {meta.label} — مرتّبة حسب أحدث محاولة.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => navigate({ to: "/dashboard" })} className="rounded-xl border border-border bg-white px-4 py-2 text-xs font-bold hover:border-teal">← الأقسام</button>
+          <button onClick={() => navigate({ to: "/dashboard", search: { track: activeTrack } })} className="rounded-xl border border-border bg-white px-4 py-2 text-xs font-bold hover:border-teal">← الأقسام</button>
           {attempts.length > 0 && <button onClick={clearAll} className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-2 text-xs font-bold hover:border-red-400">مسح السجل</button>}
         </div>
       </div>

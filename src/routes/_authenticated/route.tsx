@@ -20,7 +20,7 @@ function RoleAwareShell() {
     <div dir="rtl" className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border bg-white/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
-          <Link to="/dashboard" className="flex items-center gap-3">
+          <Link to="/tracks" className="flex items-center gap-3">
             <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-teal to-teal-deep text-white font-display font-bold shadow-md">م</div>
             <div className="leading-tight">
               <div className="font-display font-bold text-foreground">المِقْيَاس</div>
@@ -28,11 +28,14 @@ function RoleAwareShell() {
             </div>
           </Link>
           <nav className="flex items-center gap-1 text-sm">
-            <Link to="/dashboard" className="rounded-lg px-3 py-2 text-foreground/80 hover:bg-surface-2 hover:text-teal-deep transition-colors">
-              الـ 150 قسم
+            <Link to="/tracks" className="rounded-lg px-3 py-2 text-foreground/80 hover:bg-surface-2 hover:text-teal-deep transition-colors">
+              المسارات
             </Link>
-            <Link to="/foundation" className="rounded-lg px-3 py-2 text-foreground/80 hover:bg-surface-2 hover:text-teal-deep transition-colors">
-              قسم التأسيس
+            <Link to="/dashboard" search={{ track: "quantitative" } as any} className="rounded-lg px-3 py-2 text-teal-deep hover:bg-teal-soft transition-colors">
+              كمي
+            </Link>
+            <Link to="/dashboard" search={{ track: "verbal" } as any} className="rounded-lg px-3 py-2 text-foreground hover:bg-gold-soft transition-colors">
+              لفظي
             </Link>
             {isAdmin && (
               <Link to="/admin" className="rounded-lg px-3 py-2 text-gold hover:bg-gold-soft transition-colors font-semibold">
