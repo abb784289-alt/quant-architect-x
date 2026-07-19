@@ -560,7 +560,7 @@ function ResultsView({
                       : q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />}
                     <div className="grid gap-1.5 text-xs">
                       <div className="text-red-700"><span className="font-bold">إجابتك:</span> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : "لم تُجَب"}</div>
-                      <div className="text-teal-deep"><span className="font-bold">الإجابة الصحيحة:</span> {letters[q.correctIndex]} — <MathText text={q.choices[q.correctIndex]} /></div>
+                      <div className="text-teal-deep"><span className="font-bold">الإجابة الصحيحة:</span> {letters[correctByQid[q.id]]} — <MathText text={q.choices[correctByQid[q.id]]} /></div>
                     </div>
                   </div>
                 );
@@ -574,7 +574,7 @@ function ResultsView({
           <h2 className="font-display font-bold text-lg text-foreground mb-4">مراجعة كاملة</h2>
           <div className="grid grid-cols-10 gap-1.5">
             {questions.map((q, i) => {
-              const ok = answers[q.id] === q.correctIndex;
+              const ok = answers[q.id] === correctByQid[q.id];
               return (
                 <div key={q.id} title={`سؤال ${toArabic(i + 1)} — ${ok ? "صحيح" : "خطأ"}`}
                   className={"h-9 rounded-lg grid place-items-center text-xs font-bold border " +
