@@ -1,5 +1,52 @@
 export type FoundationCategoryId = "ratios" | "geometry" | "statistics" | "averages";
 
+// ─────────────────── Tracks (كمي / لفظي) ───────────────────
+export type TrackId = "quantitative" | "verbal";
+
+export const TRACKS: Record<TrackId, {
+  id: TrackId;
+  label: string;
+  shortLabel: string;
+  subtitle: string;
+  total: number;
+  accent: "teal" | "gold";
+  icon: string;
+}> = {
+  quantitative: {
+    id: "quantitative",
+    label: "القسم الكمي",
+    shortLabel: "كمي",
+    subtitle: "الرياضيات — 90 قسمًا",
+    total: 90,
+    accent: "teal",
+    icon: "∑",
+  },
+  verbal: {
+    id: "verbal",
+    label: "القسم اللفظي",
+    shortLabel: "لفظي",
+    subtitle: "اللغة — 260 قسمًا",
+    total: 260,
+    accent: "gold",
+    icon: "ﻥ",
+  },
+};
+
+export function isTrackId(v: unknown): v is TrackId {
+  return v === "quantitative" || v === "verbal";
+}
+
+// Server-side section_number is offset for verbal so both tracks
+// share the same question_bank table without collisions.
+const VERBAL_SERVER_OFFSET = 2000;
+export function serverSectionNumber(track: TrackId, n: number): number {
+  return track === "verbal" ? VERBAL_SERVER_OFFSET + n : n;
+}
+export function localFromServerSectionNumber(serverN: number): { track: TrackId; n: number } {
+  if (serverN > VERBAL_SERVER_OFFSET) return { track: "verbal", n: serverN - VERBAL_SERVER_OFFSET };
+  return { track: "quantitative", n: serverN };
+}
+
 export const FOUNDATION_CATEGORIES: {
   id: FoundationCategoryId;
   title: string;
@@ -30,53 +77,61 @@ const SECTIONS_KEY = "sections_config_v1";
 const FOUNDATION_KEY = "foundation_assets_v1";
 const QUESTIONS_KEY = "questions_bank_v2";
 
+function sectionsKey(track: TrackId) { return track === "verbal" ? `${SECTIONS_KEY}_verbal` : SECTIONS_KEY; }
+function foundationKey(track: TrackId) { return track === "verbal" ? `${FOUNDATION_KEY}_verbal` : FOUNDATION_KEY; }
+function questionsKey(track: TrackId) { return track === "verbal" ? `${QUESTIONS_KEY}_verbal` : QUESTIONS_KEY; }
+export function resultsKey(track: TrackId) { return track === "verbal" ? "nemr:results:verbal" : "nemr:results"; }
+
 export const TOTAL_SECTIONS = 90;
 export const DEFAULT_TIMER_SECONDS = 0; // 0 = auto (1 minute per question)
 export const SECONDS_PER_QUESTION = 60;
+
+export function totalSections(track: TrackId = "quantitative"): number { return TRACKS[track].total; }
 
 export function defaultSection(n: number): SectionConfig {
   return { number: n, title: `القسم ${toArabic(n)}`, timerSeconds: DEFAULT_TIMER_SECONDS, videoUrl: "" };
 }
 
-export function loadSections(): SectionConfig[] {
+export function loadSections(track: TrackId = "quantitative"): SectionConfig[] {
+  const total = totalSections(track);
   if (typeof window === "undefined") {
-    return Array.from({ length: TOTAL_SECTIONS }, (_, i) => defaultSection(i + 1));
+    return Array.from({ length: total }, (_, i) => defaultSection(i + 1));
   }
   try {
-    const raw = window.localStorage.getItem(SECTIONS_KEY);
+    const raw = window.localStorage.getItem(sectionsKey(track));
     const parsed = raw ? (JSON.parse(raw) as Partial<SectionConfig>[]) : [];
     const byNumber = new Map<number, Partial<SectionConfig>>();
     parsed.forEach((s) => {
       if (s && typeof s.number === "number") byNumber.set(s.number, s);
     });
-    return Array.from({ length: TOTAL_SECTIONS }, (_, i) => {
+    return Array.from({ length: total }, (_, i) => {
       const n = i + 1;
       const override = byNumber.get(n) ?? {};
       return { ...defaultSection(n), ...override, number: n };
     });
   } catch {
-    return Array.from({ length: TOTAL_SECTIONS }, (_, i) => defaultSection(i + 1));
+    return Array.from({ length: total }, (_, i) => defaultSection(i + 1));
   }
 }
 
-export function saveSections(sections: SectionConfig[]) {
+export function saveSections(sections: SectionConfig[], track: TrackId = "quantitative") {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
+  window.localStorage.setItem(sectionsKey(track), JSON.stringify(sections));
 }
 
-export function getSection(n: number): SectionConfig {
-  const all = loadSections();
+export function getSection(n: number, track: TrackId = "quantitative"): SectionConfig {
+  const all = loadSections(track);
   return all.find((s) => s.number === n) ?? defaultSection(n);
 }
 
-export function loadFoundationAssets(): Record<FoundationCategoryId, FoundationAsset> {
+export function loadFoundationAssets(track: TrackId = "quantitative"): Record<FoundationCategoryId, FoundationAsset> {
   const empty = FOUNDATION_CATEGORIES.reduce((acc, c) => {
     acc[c.id] = { categoryId: c.id, title: c.title, videoUrl: "", formulas: "" };
     return acc;
   }, {} as Record<FoundationCategoryId, FoundationAsset>);
   if (typeof window === "undefined") return empty;
   try {
-    const raw = window.localStorage.getItem(FOUNDATION_KEY);
+    const raw = window.localStorage.getItem(foundationKey(track));
     if (!raw) return empty;
     const parsed = JSON.parse(raw) as Partial<Record<FoundationCategoryId, FoundationAsset>>;
     for (const cat of FOUNDATION_CATEGORIES) {
@@ -89,9 +144,9 @@ export function loadFoundationAssets(): Record<FoundationCategoryId, FoundationA
   }
 }
 
-export function saveFoundationAssets(assets: Record<FoundationCategoryId, FoundationAsset>) {
+export function saveFoundationAssets(assets: Record<FoundationCategoryId, FoundationAsset>, track: TrackId = "quantitative") {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(FOUNDATION_KEY, JSON.stringify(assets));
+  window.localStorage.setItem(foundationKey(track), JSON.stringify(assets));
 }
 
 export function formatTimer(totalSeconds: number): string {
