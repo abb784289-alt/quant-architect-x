@@ -53,7 +53,7 @@ function LightAuthPage() {
     if (error) { setBanner({ kind: "error", text: "بيانات الدخول غير صحيحة." }); return; }
     // Role (admin vs student) is resolved server-side via user_roles; go to dashboard,
     // admins can navigate to /admin from the header link.
-    window.location.href = "/dashboard";
+    window.location.href = "/tracks";
   }
 
   async function handleRegister(e: FormEvent) {
