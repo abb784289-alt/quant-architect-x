@@ -70,7 +70,7 @@ function LightAuthPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/dashboard`,
+        emailRedirectTo: `${window.location.origin}/tracks`,
         data: { full_name: fullName, mobile },
       },
     });
