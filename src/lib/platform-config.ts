@@ -1367,28 +1367,30 @@ export const SEED_QUESTIONS: Record<number, Question[]> = {
     { id: "s90q11", prompt: "", imageUrl: "/__l5e/assets-v1/1c2b74c1-2214-4cc6-97de-fa677af486d4/s90q11.jpg", choices: ["أ", "ب", "ج", "د"], correctIndex: 0 },
   ],
 };
-export function loadAllQuestions(): Record<number, Question[]> {
+export function loadAllQuestions(track: TrackId = "quantitative"): Record<number, Question[]> {
   if (typeof window === "undefined") return {};
   try {
-    const raw = window.localStorage.getItem(QUESTIONS_KEY);
+    const raw = window.localStorage.getItem(questionsKey(track));
     return raw ? (JSON.parse(raw) as Record<number, Question[]>) : {};
   } catch { return {}; }
 }
 
-export function getQuestions(sectionNumber: number): Question[] {
-  const all = loadAllQuestions();
+export function getQuestions(sectionNumber: number, track: TrackId = "quantitative"): Question[] {
+  const all = loadAllQuestions(track);
   const custom = all[sectionNumber];
   if (custom && custom.length > 0) return applyQuestionSvgFixes(custom);
+  // Verbal has no seeded question bank yet — starts empty until admin uploads.
+  if (track === "verbal") return [];
   return applyQuestionSvgFixes(SEED_QUESTIONS[sectionNumber] ?? []);
 }
 
-export function saveQuestions(sectionNumber: number, questions: Question[]) {
+export function saveQuestions(sectionNumber: number, questions: Question[], track: TrackId = "quantitative") {
   if (typeof window === "undefined") return;
-  const all = loadAllQuestions();
+  const all = loadAllQuestions(track);
   all[sectionNumber] = questions;
-  window.localStorage.setItem(QUESTIONS_KEY, JSON.stringify(all));
+  window.localStorage.setItem(questionsKey(track), JSON.stringify(all));
   // Fire-and-forget: push to shared server bank so every student sees the edit.
-  void pushQuestionsToServer(sectionNumber, questions);
+  void pushQuestionsToServer(sectionNumber, questions, track);
 }
 
 // ─────────────── Server-backed question bank (shared across users) ───────────────
@@ -1405,13 +1407,16 @@ export function hydrateQuestionBankFromServer(): Promise<void> {
         questions: Question[];
       }>;
       if (!rows || rows.length === 0) return;
-      const merged = loadAllQuestions();
+      const mergedQuant = loadAllQuestions("quantitative");
+      const mergedVerbal = loadAllQuestions("verbal");
       for (const row of rows) {
-        if (Array.isArray(row.questions) && row.questions.length > 0) {
-          merged[row.section_number] = row.questions;
-        }
+        if (!Array.isArray(row.questions) || row.questions.length === 0) continue;
+        const { track, n } = localFromServerSectionNumber(row.section_number);
+        if (track === "verbal") mergedVerbal[n] = row.questions;
+        else mergedQuant[n] = row.questions;
       }
-      window.localStorage.setItem(QUESTIONS_KEY, JSON.stringify(merged));
+      window.localStorage.setItem(questionsKey("quantitative"), JSON.stringify(mergedQuant));
+      window.localStorage.setItem(questionsKey("verbal"), JSON.stringify(mergedVerbal));
       window.dispatchEvent(new CustomEvent("question-bank:hydrated"));
     } catch (e) {
       console.warn("[question-bank] hydrate failed", e);
@@ -1420,10 +1425,10 @@ export function hydrateQuestionBankFromServer(): Promise<void> {
   return hydratePromise;
 }
 
-async function pushQuestionsToServer(sectionNumber: number, questions: Question[]) {
+async function pushQuestionsToServer(sectionNumber: number, questions: Question[], track: TrackId = "quantitative") {
   try {
     const { saveSectionQuestionBank } = await import("./question-bank.functions");
-    await saveSectionQuestionBank({ data: { section_number: sectionNumber, questions } });
+    await saveSectionQuestionBank({ data: { section_number: serverSectionNumber(track, sectionNumber), questions } });
   } catch (e) {
     console.warn("[question-bank] save failed", e);
   }
