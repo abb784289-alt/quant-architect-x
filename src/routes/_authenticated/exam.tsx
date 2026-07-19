@@ -5,6 +5,7 @@ import { BlockMath, InlineMath } from "react-katex";
 import DOMPurify from "dompurify";
 import { readSession, loadSession, type Session } from "@/lib/session";
 import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, hydrateQuestionBankFromServer, type SectionConfig, type Question } from "@/lib/platform-config";
+import { gradeSectionAttempt } from "@/lib/question-bank.functions";
 
 const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
 function sanitizeSvg(html: string): string {
@@ -171,7 +172,10 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
   const unsolved = questions.length - solved;
   const active = questions[current];
 
-  function finish() {
+  const [correctByQid, setCorrectByQid] = useState<Record<string, number>>({});
+  const [grading, setGrading] = useState(false);
+
+  async function finish() {
     if (!isPractice && unsolved > 0) {
       setToast(`⚠️ لا يمكن إنهاء الاختبار قبل حلّ جميع الأسئلة. متبقّي ${toArabic(unsolved)} سؤال.`);
       setTimeout(() => setToast(null), 5000);
@@ -181,25 +185,47 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
       ? (unsolved > 0 ? `متبقّي ${toArabic(unsolved)} سؤال بدون إجابة. هل تريد إنهاء التدريب وعرض النتيجة؟` : "هل تريد إنهاء التدريب وعرض النتيجة؟")
       : "هل أنت متأكد من إنهاء هذا القسم؟";
     if (!confirm(msg)) return;
-    // احتساب النتيجة وحفظها
+    // Grade server-side — answer keys never live in the browser bundle.
+    setGrading(true);
     try {
-      const correct = questions.reduce((n, q) => n + (answers[q.id] === q.correctIndex ? 1 : 0), 0);
+      const answersByQid: Record<string, number> = {};
+      for (const q of questions) {
+        const a = answers[q.id];
+        if (typeof a === "number") answersByQid[q.id] = a;
+      }
+      const graded = await gradeSectionAttempt({
+        data: { section_number: sectionNumber ?? 1, answers: answersByQid },
+      });
+      const correctMap: Record<string, number> = {};
+      for (const [qid, r] of Object.entries(graded.results)) correctMap[qid] = (r as any).correctIndex;
+      setCorrectByQid(correctMap);
+      const wrongIds = questions
+        .filter((q) => !graded.results[q.id] || !(graded.results[q.id] as any).ok)
+        .map((q) => q.id);
       const attempt = {
         at: Date.now(),
         section: sectionNumber ?? 1,
         sectionTitle: config?.title ?? "",
         mode,
         total: questions.length,
-        correct,
+        correct: graded.correct,
         answers,
-        wrongIds: questions.filter((q) => answers[q.id] !== q.correctIndex).map((q) => q.id),
+        wrongIds,
+        correctByQid: correctMap,
       };
-      const key = "nemr:results";
-      const prev = JSON.parse(localStorage.getItem(key) || "[]");
-      prev.push(attempt);
-      localStorage.setItem(key, JSON.stringify(prev));
-    } catch {}
-    setFinished(true);
+      try {
+        const key = "nemr:results";
+        const prev = JSON.parse(localStorage.getItem(key) || "[]");
+        prev.push(attempt);
+        localStorage.setItem(key, JSON.stringify(prev));
+      } catch {}
+      setFinished(true);
+    } catch (e: any) {
+      setToast("تعذّر احتساب النتيجة: " + (e?.message ?? "خطأ غير معروف"));
+      setTimeout(() => setToast(null), 6000);
+    } finally {
+      setGrading(false);
+    }
   }
 
   if (finished) {
@@ -207,6 +233,7 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
       <ResultsView
         questions={questions}
         answers={answers}
+        correctByQid={correctByQid}
         sectionNumber={sectionNumber ?? 1}
         sectionTitle={config?.title ?? ""}
         mode={mode}
@@ -214,6 +241,7 @@ function NemrExamEngine({ session, mode }: { session: Session; mode: "exam" | "p
           setAnswers({});
           setCurrent(0);
           setFinished(false);
+          setCorrectByQid({});
           setRemaining(computeTimerSeconds(config!, questions.length));
           setWarned4(false);
         }}
@@ -460,6 +488,7 @@ function UtilBtn({ children, onClick }: { children: React.ReactNode; onClick: ()
 function ResultsView({
   questions,
   answers,
+  correctByQid,
   sectionNumber,
   sectionTitle,
   mode,
@@ -468,6 +497,7 @@ function ResultsView({
 }: {
   questions: Question[];
   answers: Record<string, number>;
+  correctByQid: Record<string, number>;
   sectionNumber: number;
   sectionTitle: string;
   mode: "exam" | "practice";
@@ -475,10 +505,10 @@ function ResultsView({
   onBack: () => void;
 }) {
   const letters = ["أ", "ب", "ج", "د"];
-  const correctCount = questions.reduce((n, q) => n + (answers[q.id] === q.correctIndex ? 1 : 0), 0);
+  const correctCount = questions.reduce((n, q) => n + (answers[q.id] === correctByQid[q.id] ? 1 : 0), 0);
   const total = questions.length;
   const pct = Math.round((correctCount / Math.max(1, total)) * 100);
-  const wrongs = questions.filter((q) => answers[q.id] !== q.correctIndex);
+  const wrongs = questions.filter((q) => answers[q.id] !== correctByQid[q.id]);
 
   return (
     <div dir="rtl" className="min-h-screen bg-surface-1">
@@ -530,7 +560,7 @@ function ResultsView({
                       : q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />}
                     <div className="grid gap-1.5 text-xs">
                       <div className="text-red-700"><span className="font-bold">إجابتك:</span> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : "لم تُجَب"}</div>
-                      <div className="text-teal-deep"><span className="font-bold">الإجابة الصحيحة:</span> {letters[q.correctIndex]} — <MathText text={q.choices[q.correctIndex]} /></div>
+                      <div className="text-teal-deep"><span className="font-bold">الإجابة الصحيحة:</span> {letters[correctByQid[q.id]]} — <MathText text={q.choices[correctByQid[q.id]]} /></div>
                     </div>
                   </div>
                 );
@@ -544,7 +574,7 @@ function ResultsView({
           <h2 className="font-display font-bold text-lg text-foreground mb-4">مراجعة كاملة</h2>
           <div className="grid grid-cols-10 gap-1.5">
             {questions.map((q, i) => {
-              const ok = answers[q.id] === q.correctIndex;
+              const ok = answers[q.id] === correctByQid[q.id];
               return (
                 <div key={q.id} title={`سؤال ${toArabic(i + 1)} — ${ok ? "صحيح" : "خطأ"}`}
                   className={"h-9 rounded-lg grid place-items-center text-xs font-bold border " +

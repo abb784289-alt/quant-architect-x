@@ -129,12 +129,42 @@ export type Database = {
           },
         ]
       }
+      section_enrollments: {
+        Row: {
+          created_at: string
+          id: string
+          section_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          section_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          section_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "section_enrollments_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sections: {
         Row: {
           category: Database["public"]["Enums"]["section_category"]
           created_at: string
           description: string | null
           id: string
+          is_free: boolean
           order_index: number
           published: boolean
           timer_seconds: number
@@ -147,6 +177,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_free?: boolean
           order_index?: number
           published?: boolean
           timer_seconds?: number
@@ -159,6 +190,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_free?: boolean
           order_index?: number
           published?: boolean
           timer_seconds?: number

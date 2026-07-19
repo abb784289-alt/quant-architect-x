@@ -24,6 +24,7 @@ type Attempt = {
   correct: number;
   answers: Record<string, number>;
   wrongIds: string[];
+  correctByQid?: Record<string, number>;
 };
 
 export const Route = createFileRoute("/_authenticated/mistakes")({
@@ -100,11 +101,14 @@ function MistakesPage() {
               {a.wrongIds.map((qid) => {
                 const q = bank[qid]; if (!q) return null;
                 const chosen = a.answers[qid];
+                const correctIdx = a.correctByQid?.[qid] ?? (q as any).correctIndex;
                 return (
                   <div key={qid} className="rounded-xl border border-red-200 bg-red-50/40 p-3">
                     <div className="text-sm text-foreground mb-2 leading-7"><MathText text={q.prompt} /></div>
                     <div className="text-xs text-red-700"><b>إجابتك:</b> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : "لم تُجَب"}</div>
-                    <div className="text-xs text-teal-deep"><b>الصحيحة:</b> {letters[q.correctIndex]} — <MathText text={q.choices[q.correctIndex]} /></div>
+                    {typeof correctIdx === "number" && (
+                      <div className="text-xs text-teal-deep"><b>الصحيحة:</b> {letters[correctIdx]} — <MathText text={q.choices[correctIdx]} /></div>
+                    )}
                   </div>
                 );
               })}

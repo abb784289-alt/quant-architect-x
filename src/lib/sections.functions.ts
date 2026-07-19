@@ -43,11 +43,25 @@ export const getSection = createServerFn({ method: "POST" })
 
     let videoUrl: string | null = null;
     if (section.video_path) {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: signed } = await supabaseAdmin.storage
-        .from("lecture-videos")
-        .createSignedUrl(section.video_path, 60 * 60);
-      videoUrl = signed?.signedUrl ?? null;
+      // Gate lecture video access: admin OR section marked free OR user has an
+      // enrollment row for this section.
+      let allowed = isAdmin || (section as any).is_free === true;
+      if (!allowed) {
+        const { data: enr } = await context.supabase
+          .from("section_enrollments")
+          .select("id")
+          .eq("user_id", context.userId)
+          .eq("section_id", data.id)
+          .maybeSingle();
+        allowed = !!enr;
+      }
+      if (allowed) {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { data: signed } = await supabaseAdmin.storage
+          .from("lecture-videos")
+          .createSignedUrl(section.video_path, 60 * 60);
+        videoUrl = signed?.signedUrl ?? null;
+      }
     }
     return { section, questions: questions ?? [], videoUrl };
   });
