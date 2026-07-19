@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTracksRouteImport } from './routes/_authenticated/tracks'
 import { Route as AuthenticatedMistakesRouteImport } from './routes/_authenticated/mistakes'
 import { Route as AuthenticatedFoundationRouteImport } from './routes/_authenticated/foundation'
 import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
@@ -35,6 +36,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTracksRoute = AuthenticatedTracksRouteImport.update({
+  id: '/tracks',
+  path: '/tracks',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMistakesRoute = AuthenticatedMistakesRouteImport.update({
   id: '/mistakes',
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/exam': typeof AuthenticatedExamRoute
   '/foundation': typeof AuthenticatedFoundationRouteWithChildren
   '/mistakes': typeof AuthenticatedMistakesRoute
+  '/tracks': typeof AuthenticatedTracksRoute
   '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
   '/api/public/bootstrap-admin': typeof ApiPublicBootstrapAdminRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/exam': typeof AuthenticatedExamRoute
   '/foundation': typeof AuthenticatedFoundationRouteWithChildren
   '/mistakes': typeof AuthenticatedMistakesRoute
+  '/tracks': typeof AuthenticatedTracksRoute
   '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
   '/api/public/bootstrap-admin': typeof ApiPublicBootstrapAdminRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/_authenticated/exam': typeof AuthenticatedExamRoute
   '/_authenticated/foundation': typeof AuthenticatedFoundationRouteWithChildren
   '/_authenticated/mistakes': typeof AuthenticatedMistakesRoute
+  '/_authenticated/tracks': typeof AuthenticatedTracksRoute
   '/_authenticated/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/_authenticated/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
   '/api/public/bootstrap-admin': typeof ApiPublicBootstrapAdminRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/exam'
     | '/foundation'
     | '/mistakes'
+    | '/tracks'
     | '/foundation/$categoryId'
     | '/report/$sessionId'
     | '/api/public/bootstrap-admin'
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/exam'
     | '/foundation'
     | '/mistakes'
+    | '/tracks'
     | '/foundation/$categoryId'
     | '/report/$sessionId'
     | '/api/public/bootstrap-admin'
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/_authenticated/exam'
     | '/_authenticated/foundation'
     | '/_authenticated/mistakes'
+    | '/_authenticated/tracks'
     | '/_authenticated/foundation/$categoryId'
     | '/_authenticated/report/$sessionId'
     | '/api/public/bootstrap-admin'
@@ -197,6 +209,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/tracks': {
+      id: '/_authenticated/tracks'
+      path: '/tracks'
+      fullPath: '/tracks'
+      preLoaderRoute: typeof AuthenticatedTracksRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/mistakes': {
       id: '/_authenticated/mistakes'
@@ -286,6 +305,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExamRoute: typeof AuthenticatedExamRoute
   AuthenticatedFoundationRoute: typeof AuthenticatedFoundationRouteWithChildren
   AuthenticatedMistakesRoute: typeof AuthenticatedMistakesRoute
+  AuthenticatedTracksRoute: typeof AuthenticatedTracksRoute
   AuthenticatedReportSessionIdRoute: typeof AuthenticatedReportSessionIdRoute
 }
 
@@ -296,6 +316,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExamRoute: AuthenticatedExamRoute,
   AuthenticatedFoundationRoute: AuthenticatedFoundationRouteWithChildren,
   AuthenticatedMistakesRoute: AuthenticatedMistakesRoute,
+  AuthenticatedTracksRoute: AuthenticatedTracksRoute,
   AuthenticatedReportSessionIdRoute: AuthenticatedReportSessionIdRoute,
 }
 
