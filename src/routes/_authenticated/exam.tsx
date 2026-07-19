@@ -164,7 +164,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
           <div className="text-3xl mb-3">📝</div>
           <h2 className="font-display font-bold text-lg text-foreground mb-2">لا توجد أسئلة في هذا القسم بعد</h2>
           <p className="text-sm text-muted-foreground mb-5">يمكن للمدرّب إضافة أسئلة القسم رقم {sectionNumber ?? 1} من مركز التحكم.</p>
-          <button onClick={() => navigate({ to: "/dashboard" })} className="rounded-xl bg-teal text-white px-5 py-2.5 text-sm font-bold hover:bg-teal-deep transition-colors">
+          <button onClick={() => navigate({ to: "/dashboard", search: { track } })} className="rounded-xl bg-teal text-white px-5 py-2.5 text-sm font-bold hover:bg-teal-deep transition-colors">
             العودة للأقسام
           </button>
         </div>
@@ -250,7 +250,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
           setRemaining(computeTimerSeconds(config!, questions.length));
           setWarned4(false);
         }}
-        onBack={() => navigate({ to: "/dashboard" })}
+        onBack={() => navigate({ to: "/dashboard", search: { track } })}
       />
     );
   }
