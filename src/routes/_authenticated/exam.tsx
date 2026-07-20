@@ -119,6 +119,8 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
   const [warned4, setWarned4] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [finished, setFinished] = useState(false);
+  const [correctByQid, setCorrectByQid] = useState<Record<string, number>>({});
+  const [grading, setGrading] = useState(false);
 
   useEffect(() => {
     const n = sectionNumber ?? 1;
@@ -175,9 +177,6 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
   const solved = Object.keys(answers).length;
   const unsolved = questions.length - solved;
   const active = questions[current];
-
-  const [correctByQid, setCorrectByQid] = useState<Record<string, number>>({});
-  const [grading, setGrading] = useState(false);
 
   async function finish() {
     if (!isPractice && unsolved > 0) {
