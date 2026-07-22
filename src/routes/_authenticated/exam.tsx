@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { BlockMath, InlineMath } from "react-katex";
@@ -16,8 +17,8 @@ function sanitizeHtml(html: string): string {
 }
 
 // Render text that may contain $...$ (inline) or $$...$$ (block) KaTeX segments
-function MathText({ text }: { text: string }) {
-  const parts = text.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
+function MathText({ text }: { text?: string | null }) {
+  const parts = String(text ?? "").split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
   return (
     <>
       {parts.map((part, i) => {
@@ -105,6 +106,7 @@ function ExamOrPicker({ session }: { session: Session }) {
 
 function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exam" | "practice"; track: TrackId }) {
   const navigate = useNavigate();
+  const gradeAttempt = useServerFn(gradeSectionAttempt);
   const { section: sectionNumber } = Route.useSearch();
   const isPractice = mode === "practice";
   const [config, setConfig] = useState<SectionConfig | null>(null);
@@ -196,7 +198,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
         const a = answers[q.id];
         if (typeof a === "number") answersByQid[q.id] = a;
       }
-      const graded = await gradeSectionAttempt({
+      const graded = await gradeAttempt({
         data: { section_number: serverSectionNumber(track, sectionNumber ?? 1), answers: answersByQid },
       });
       const correctMap: Record<string, number> = {};
@@ -509,10 +511,12 @@ function ResultsView({
   onBack: () => void;
 }) {
   const letters = ["أ", "ب", "ج", "د"];
-  const correctCount = questions.reduce((n, q) => n + (answers[q.id] === correctByQid[q.id] ? 1 : 0), 0);
+  const isCorrect = (q: Question) =>
+    typeof correctByQid[q.id] === "number" && answers[q.id] === correctByQid[q.id];
+  const correctCount = questions.reduce((n, q) => n + (isCorrect(q) ? 1 : 0), 0);
   const total = questions.length;
   const pct = Math.round((correctCount / Math.max(1, total)) * 100);
-  const wrongs = questions.filter((q) => answers[q.id] !== correctByQid[q.id]);
+  const wrongs = questions.filter((q) => !isCorrect(q));
 
   return (
     <div dir="rtl" className="min-h-screen bg-surface-1">
@@ -556,6 +560,8 @@ function ResultsView({
             <div className="space-y-4">
               {wrongs.map((q) => {
                 const chosen = answers[q.id];
+                const correctIndex = correctByQid[q.id];
+                const hasCorrectAnswer = typeof correctIndex === "number" && correctIndex >= 0 && correctIndex < q.choices.length;
                 return (
                   <div key={q.id} className="rounded-xl border border-red-200 bg-red-50/40 p-4">
                     <div className="text-sm text-foreground mb-3 leading-7"><MathText text={q.prompt} /></div>
@@ -564,7 +570,14 @@ function ResultsView({
                       : q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />}
                     <div className="grid gap-1.5 text-xs">
                       <div className="text-red-700"><span className="font-bold">إجابتك:</span> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : "لم تُجَب"}</div>
-                      <div className="text-teal-deep"><span className="font-bold">الإجابة الصحيحة:</span> {letters[correctByQid[q.id]]} — <MathText text={q.choices[correctByQid[q.id]]} /></div>
+                      <div className="text-teal-deep">
+                        <span className="font-bold">الإجابة الصحيحة:</span>{" "}
+                        {hasCorrectAnswer ? (
+                          <>{letters[correctIndex]} — <MathText text={q.choices[correctIndex]} /></>
+                        ) : (
+                          <span className="text-muted-foreground">تعذّر تحميلها، أعد المحاولة.</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -578,7 +591,7 @@ function ResultsView({
           <h2 className="font-display font-bold text-lg text-foreground mb-4">مراجعة كاملة</h2>
           <div className="grid grid-cols-10 gap-1.5">
             {questions.map((q, i) => {
-              const ok = answers[q.id] === correctByQid[q.id];
+              const ok = isCorrect(q);
               return (
                 <div key={q.id} title={`سؤال ${toArabic(i + 1)} — ${ok ? "صحيح" : "خطأ"}`}
                   className={"h-9 rounded-lg grid place-items-center text-xs font-bold border " +
