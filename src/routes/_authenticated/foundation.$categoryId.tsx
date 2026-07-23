@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { readSession } from "@/lib/session";
 import { FOUNDATION_CATEGORIES, loadFoundationAssets, type FoundationAsset, type FoundationCategoryId } from "@/lib/platform-config";
+import { getSectionVideoSignedUrl } from "@/lib/section-videos.functions";
 
 export const Route = createFileRoute("/_authenticated/foundation/$categoryId")({
   ssr: false,
@@ -23,9 +24,24 @@ function CategoryPage() {
   const { categoryId } = Route.useParams();
   const meta = FOUNDATION_CATEGORIES.find((c) => c.id === (categoryId as FoundationCategoryId));
   const [asset, setAsset] = useState<FoundationAsset | null>(null);
+  const [videoSrc, setVideoSrc] = useState<string | null>(null);
   useEffect(() => {
+    let cancelled = false;
     const all = loadFoundationAssets();
-    setAsset(all[categoryId as FoundationCategoryId] ?? null);
+    const a = all[categoryId as FoundationCategoryId] ?? null;
+    setAsset(a);
+    setVideoSrc(null);
+    const v = a?.videoUrl?.trim();
+    if (!v) return;
+    // Legacy: blob: or absolute URLs → use as-is. New: storage path → sign.
+    if (/^(https?:|blob:|data:)/i.test(v)) {
+      setVideoSrc(v);
+    } else {
+      getSectionVideoSignedUrl({ data: { path: v } })
+        .then((r) => { if (!cancelled) setVideoSrc(r.url); })
+        .catch(() => { if (!cancelled) setVideoSrc(null); });
+    }
+    return () => { cancelled = true; };
   }, [categoryId]);
 
   if (!meta) {
@@ -48,8 +64,12 @@ function CategoryPage() {
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 luxury-card p-4">
           <div className="text-xs font-semibold text-muted-foreground mb-3">فيديو الشرح</div>
-          {asset?.videoUrl ? (
-            <video src={asset.videoUrl} controls className="w-full rounded-xl bg-black aspect-video" />
+          {videoSrc ? (
+            <video src={videoSrc} controls className="w-full rounded-xl bg-black aspect-video" />
+          ) : asset?.videoUrl ? (
+            <div className="aspect-video rounded-xl bg-surface-2 border border-dashed border-border grid place-items-center text-muted-foreground text-sm">
+              جارٍ تحضير الفيديو…
+            </div>
           ) : (
             <div className="aspect-video rounded-xl bg-surface-2 border border-dashed border-border grid place-items-center text-muted-foreground text-sm">
               لم يتم رفع فيديو لهذا المحور بعد.
