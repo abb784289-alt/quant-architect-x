@@ -7,6 +7,8 @@ import DOMPurify from "dompurify";
 import { readSession, loadSession, type Session } from "@/lib/session";
 import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, hydrateQuestionBankFromServer, serverSectionNumber, resultsKey, TRACKS, isTrackId, type SectionConfig, type Question, type TrackId } from "@/lib/platform-config";
 import { gradeSectionAttempt } from "@/lib/question-bank.functions";
+import { loadSections } from "@/lib/platform-config";
+import { getSectionVideoSignedUrl } from "@/lib/section-videos.functions";
 
 const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
 function sanitizeSvg(html: string): string {
@@ -70,6 +72,31 @@ function ExamOrPicker({ session }: { session: Session }) {
   const { mode, section, track } = Route.useSearch();
   const activeTrack: TrackId = isTrackId(track) ? track : "quantitative";
   const navigate = useNavigate();
+  const fetchSignedUrl = useServerFn(getSectionVideoSignedUrl);
+  const [videoModal, setVideoModal] = useState<null | { loading: boolean; url: string | null; error: string | null }>(null);
+
+  async function openVideo() {
+    const list = loadSections(activeTrack);
+    const sec = list.find((s) => s.number === (section ?? 1));
+    const path = sec?.videoUrl?.trim();
+    if (!path) {
+      setVideoModal({ loading: false, url: null, error: "لم يتم رفع فيديو لهذا القسم بعد." });
+      return;
+    }
+    if (/^https?:\/\//i.test(path)) {
+      setVideoModal({ loading: false, url: path, error: null });
+      return;
+    }
+    setVideoModal({ loading: true, url: null, error: null });
+    try {
+      const res = await fetchSignedUrl({ data: { path } });
+      if (!res?.url) throw new Error("تعذّر تحضير رابط الفيديو.");
+      setVideoModal({ loading: false, url: res.url, error: null });
+    } catch (e: any) {
+      setVideoModal({ loading: false, url: null, error: e?.message || "تعذّر تحضير الفيديو." });
+    }
+  }
+
   if (!mode) {
     return (
       <div dir="rtl" className="min-h-[70vh] grid place-items-center px-6 py-10">
@@ -79,7 +106,7 @@ function ExamOrPicker({ session }: { session: Session }) {
           </div>
           <h1 className="font-display font-bold text-2xl text-foreground mb-2">اختر طريقة الدخول</h1>
           <p className="text-sm text-muted-foreground mb-6">تقدر تحلّ القسم كاختبار بوقت محدّد، أو كتدريب بدون وقت وبراحتك.</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               onClick={() => navigate({ to: "/exam", search: { section, mode: "exam", track: activeTrack } })}
               className="group rounded-2xl border-2 border-teal/40 bg-gradient-to-br from-teal-soft to-white p-6 text-right hover:border-teal hover:shadow-lg transition-all"
@@ -96,8 +123,43 @@ function ExamOrPicker({ session }: { session: Session }) {
               <div className="font-display font-bold text-lg text-foreground mb-1">تدريب بدون وقت</div>
               <div className="text-xs text-muted-foreground leading-6">بلا مؤقّت — خُذ راحتك — النتيجة تظهر بعد الإنهاء برضو.</div>
             </button>
+            <button
+              onClick={openVideo}
+              className="group rounded-2xl border-2 border-teal/40 bg-gradient-to-br from-white to-teal-soft/60 p-6 text-right hover:border-teal-deep hover:shadow-lg transition-all"
+            >
+              <div className="text-3xl mb-2">🎬</div>
+              <div className="font-display font-bold text-lg text-teal-deep mb-1">مشاهدة فيديو شرح القسم</div>
+              <div className="text-xs text-muted-foreground leading-6">شاهد شرح القسم قبل الحل — يفتح في نافذة داخل نفس الصفحة.</div>
+            </button>
           </div>
         </div>
+
+        {videoModal && (
+          <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/50 p-4" onClick={() => setVideoModal(null)}>
+            <div className="luxury-card p-6 max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-display font-bold text-lg text-foreground">
+                  فيديو شرح القسم {toArabic(section ?? 1)}
+                </h3>
+                <button onClick={() => setVideoModal(null)} className="text-muted-foreground hover:text-foreground text-xl leading-none">×</button>
+              </div>
+              {videoModal.loading && (
+                <div className="py-10 text-center text-sm text-muted-foreground">جارٍ تحضير الفيديو...</div>
+              )}
+              {!videoModal.loading && videoModal.error && (
+                <div className="py-8 text-center text-sm text-destructive font-semibold">{videoModal.error}</div>
+              )}
+              {!videoModal.loading && videoModal.url && (
+                <video src={videoModal.url} controls autoPlay className="w-full rounded-xl bg-black aspect-video" />
+              )}
+              <div className="mt-4 text-left">
+                <button onClick={() => setVideoModal(null)} className="rounded-xl bg-teal text-white px-5 py-2 text-sm font-bold hover:bg-teal-deep transition-colors">
+                  إغلاق
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
