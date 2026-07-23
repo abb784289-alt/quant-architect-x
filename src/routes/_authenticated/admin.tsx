@@ -91,7 +91,7 @@ function AdminControlCenter() {
       {tab === "timers" && <TimerController />}
 
       <p className="text-[11px] text-muted-foreground mt-8">
-        ملاحظة تقنية: التخزين الحالي محلي على متصفحك (localStorage / Object URL). لرفع فيديوهات ذات حجم كبير للطلاب من أي جهاز، يلزم تفعيل التخزين السحابي في مرحلة لاحقة.
+        الفيديوهات تُرفع الآن إلى التخزين السحابي (Supabase Storage – bucket: <code className="font-mono">section-videos</code>) بمسار دائم يعمل من أي جهاز.
       </p>
     </main>
   );
@@ -119,30 +119,61 @@ function VideoUploader() {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [dragOver, setDragOver] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
   function pick(f: File | null) {
     if (!f) return;
+    if (!f.type.startsWith("video/")) { setError("اختر ملف فيديو صالح."); return; }
+    if (f.size > 500 * 1024 * 1024) { setError("حجم الفيديو أكبر من 500MB."); return; }
+    setError(null);
+    setMessage(null);
+    setProgress(0);
     if (preview) URL.revokeObjectURL(preview);
     const url = URL.createObjectURL(f);
     setFile(f);
     setPreview(url);
-    setMessage(null);
   }
 
-  function assign() {
-    if (!preview) { setMessage("اختر فيديو أولاً."); return; }
-    if (kind === "foundation") {
-      const all = loadFoundationAssets();
-      all[foundationId] = { ...all[foundationId], videoUrl: preview };
-      saveFoundationAssets(all);
-      setMessage(`تم ربط الفيديو بمحور التأسيس: ${FOUNDATION_CATEGORIES.find((c) => c.id === foundationId)?.title}`);
-    } else {
-      const list = loadSections();
-      const idx = list.findIndex((s) => s.number === sectionNumber);
-      if (idx >= 0) { list[idx] = { ...list[idx], videoUrl: preview }; saveSections(list); }
-      setMessage(`تم ربط الفيديو بالقسم رقم ${sectionNumber}.`);
+  async function assign() {
+    setError(null);
+    setMessage(null);
+    if (!file) { setError("اختر فيديو أولاً."); return; }
+    setUploading(true);
+    setProgress(5);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id;
+      if (!uid) throw new Error("انتهت الجلسة، سجّل الدخول مجدداً.");
+      const ext = (file.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 6) || "mp4";
+      const folder = kind === "foundation" ? `foundation/${foundationId}` : `sections/${sectionNumber}`;
+      const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+      setProgress(15);
+      const { error: upErr } = await supabase.storage
+        .from("section-videos")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw new Error(upErr.message);
+      setProgress(90);
+      if (kind === "foundation") {
+        const all = loadFoundationAssets();
+        all[foundationId] = { ...all[foundationId], videoUrl: path };
+        saveFoundationAssets(all);
+        setMessage(`تم رفع الفيديو وربطه بمحور التأسيس: ${FOUNDATION_CATEGORIES.find((c) => c.id === foundationId)?.title}`);
+      } else {
+        const list = loadSections();
+        const idx = list.findIndex((s) => s.number === sectionNumber);
+        if (idx >= 0) { list[idx] = { ...list[idx], videoUrl: path }; saveSections(list); }
+        setMessage(`تم رفع الفيديو وربطه بالقسم رقم ${sectionNumber}.`);
+      }
+      setProgress(100);
+    } catch (e: any) {
+      setError(e?.message || "تعذّر رفع الفيديو، حاول مجدداً.");
+      setProgress(0);
+    } finally {
+      setUploading(false);
     }
   }
 
@@ -197,9 +228,16 @@ function VideoUploader() {
           </label>
         )}
 
-        <button type="button" onClick={assign} className="w-full rounded-xl bg-gradient-to-l from-teal to-teal-deep text-white py-3 font-bold hover:opacity-95 transition-opacity shadow-md">
-          حفظ الربط
+        <button type="button" onClick={assign} disabled={uploading || !file}
+          className="w-full rounded-xl bg-gradient-to-l from-teal to-teal-deep text-white py-3 font-bold hover:opacity-95 transition-opacity shadow-md disabled:opacity-60">
+          {uploading ? `جارٍ الرفع… ${progress}%` : "رفع وحفظ الربط"}
         </button>
+        {uploading && (
+          <div className="h-2 w-full rounded-full bg-surface-2 overflow-hidden">
+            <div className="h-full bg-teal transition-all" style={{ width: `${progress}%` }} />
+          </div>
+        )}
+        {error && <div className="text-sm rounded-xl bg-red-50 border border-red-200 text-red-700 px-3 py-2">{error}</div>}
         {message && <div className="text-sm rounded-xl bg-teal-soft border border-teal/30 text-teal-deep px-3 py-2">{message}</div>}
       </div>
     </section>
