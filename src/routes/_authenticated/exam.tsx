@@ -9,6 +9,7 @@ import { getSection, formatTimer, getQuestions, computeTimerSeconds, toArabic, h
 import { gradeSectionAttempt } from "@/lib/question-bank.functions";
 import { loadSections } from "@/lib/platform-config";
 import { getSectionVideoSignedUrl } from "@/lib/section-videos.functions";
+import { getMediaAsset } from "@/lib/media-assets.functions";
 
 const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
 function sanitizeSvg(html: string): string {
@@ -73,22 +74,28 @@ function ExamOrPicker({ session }: { session: Session }) {
   const activeTrack: TrackId = isTrackId(track) ? track : "quantitative";
   const navigate = useNavigate();
   const fetchSignedUrl = useServerFn(getSectionVideoSignedUrl);
+  const fetchMediaAsset = useServerFn(getMediaAsset);
   const [videoModal, setVideoModal] = useState<null | { loading: boolean; url: string | null; error: string | null }>(null);
 
   async function openVideo() {
-    const list = loadSections(activeTrack);
-    const sec = list.find((s) => s.number === (section ?? 1));
-    const path = sec?.videoUrl?.trim();
-    if (!path) {
-      setVideoModal({ loading: false, url: null, error: "لم يتم رفع فيديو لهذا القسم بعد." });
-      return;
-    }
-    if (/^https?:\/\//i.test(path)) {
-      setVideoModal({ loading: false, url: path, error: null });
-      return;
-    }
     setVideoModal({ loading: true, url: null, error: null });
     try {
+      const asset = await fetchMediaAsset({ data: { scope: "section", track: activeTrack, key: String(section ?? 1) } });
+      let path = asset?.video_path?.trim() || "";
+      if (!path) {
+        // Legacy fallback: check localStorage from older admin uploads
+        const list = loadSections(activeTrack);
+        const sec = list.find((s) => s.number === (section ?? 1));
+        path = sec?.videoUrl?.trim() || "";
+      }
+      if (!path) {
+        setVideoModal({ loading: false, url: null, error: "لم يتم رفع فيديو لهذا القسم بعد." });
+        return;
+      }
+      if (/^https?:\/\//i.test(path)) {
+        setVideoModal({ loading: false, url: path, error: null });
+        return;
+      }
       const res = await fetchSignedUrl({ data: { path } });
       if (!res?.url) throw new Error("تعذّر تحضير رابط الفيديو.");
       setVideoModal({ loading: false, url: res.url, error: null });

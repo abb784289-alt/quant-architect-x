@@ -67,6 +67,33 @@ export type Database = {
           },
         ]
       }
+      media_assets: {
+        Row: {
+          id: string
+          key: string
+          scope: string
+          track: string
+          updated_at: string
+          video_path: string
+        }
+        Insert: {
+          id?: string
+          key: string
+          scope: string
+          track?: string
+          updated_at?: string
+          video_path: string
+        }
+        Update: {
+          id?: string
+          key?: string
+          scope?: string
+          track?: string
+          updated_at?: string
+          video_path?: string
+        }
+        Relationships: []
+      }
       question_bank: {
         Row: {
           questions: Json

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { readSession } from "@/lib/session";
 import { FOUNDATION_CATEGORIES, loadFoundationAssets, type FoundationAsset, type FoundationCategoryId } from "@/lib/platform-config";
 import { getSectionVideoSignedUrl } from "@/lib/section-videos.functions";
+import { getMediaAsset } from "@/lib/media-assets.functions";
 
 export const Route = createFileRoute("/_authenticated/foundation/$categoryId")({
   ssr: false,
@@ -31,16 +32,20 @@ function CategoryPage() {
     const a = all[categoryId as FoundationCategoryId] ?? null;
     setAsset(a);
     setVideoSrc(null);
-    const v = a?.videoUrl?.trim();
-    if (!v) return;
-    // Legacy: blob: or absolute URLs → use as-is. New: storage path → sign.
-    if (/^(https?:|blob:|data:)/i.test(v)) {
-      setVideoSrc(v);
-    } else {
-      getSectionVideoSignedUrl({ data: { path: v } })
-        .then((r) => { if (!cancelled) setVideoSrc(r.url); })
-        .catch(() => { if (!cancelled) setVideoSrc(null); });
-    }
+    (async () => {
+      let v = a?.videoUrl?.trim() || "";
+      try {
+        const asset = await getMediaAsset({ data: { scope: "foundation", track: "quantitative", key: categoryId } });
+        if (asset?.video_path) v = asset.video_path;
+      } catch { /* fall back to local */ }
+      if (cancelled) return;
+      if (!v) { setVideoSrc(null); return; }
+      if (/^(https?:|blob:|data:)/i.test(v)) { setVideoSrc(v); return; }
+      try {
+        const r = await getSectionVideoSignedUrl({ data: { path: v } });
+        if (!cancelled) setVideoSrc(r.url);
+      } catch { if (!cancelled) setVideoSrc(null); }
+    })();
     return () => { cancelled = true; };
   }, [categoryId]);
 
