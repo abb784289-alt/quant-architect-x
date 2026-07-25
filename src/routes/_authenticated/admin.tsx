@@ -10,6 +10,7 @@ import {
   getMediaSignedUrl,
 } from "@/lib/questions.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { upsertMediaAsset } from "@/lib/media-assets.functions";
 
 const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
 function sanitizeSvg(html: string): string {
@@ -158,11 +159,13 @@ function VideoUploader() {
       if (upErr) throw new Error(upErr.message);
       setProgress(90);
       if (kind === "foundation") {
+        await upsertMediaAsset({ data: { scope: "foundation", track: "quantitative", key: foundationId, video_path: path } });
         const all = loadFoundationAssets();
         all[foundationId] = { ...all[foundationId], videoUrl: path };
         saveFoundationAssets(all);
         setMessage(`تم رفع الفيديو وربطه بمحور التأسيس: ${FOUNDATION_CATEGORIES.find((c) => c.id === foundationId)?.title}`);
       } else {
+        await upsertMediaAsset({ data: { scope: "section", track: "quantitative", key: String(sectionNumber), video_path: path } });
         const list = loadSections();
         const idx = list.findIndex((s) => s.number === sectionNumber);
         if (idx >= 0) { list[idx] = { ...list[idx], videoUrl: path }; saveSections(list); }
