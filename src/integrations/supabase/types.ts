@@ -14,6 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          disabled: boolean
+          expires_at: string | null
+          note: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          disabled?: boolean
+          expires_at?: string | null
+          note?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          disabled?: boolean
+          expires_at?: string | null
+          note?: string | null
+        }
+        Relationships: []
+      }
+      code_redemptions: {
+        Row: {
+          code: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          code: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          code?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "code_redemptions_code_fkey"
+            columns: ["code"]
+            isOneToOne: false
+            referencedRelation: "access_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       exam_sessions: {
         Row: {
           ai_report: Json | null
@@ -289,7 +342,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      redeem_access_code: { Args: { _code: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "user"
