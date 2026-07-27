@@ -11,6 +11,12 @@ import {
 } from "@/lib/questions.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { upsertMediaAsset } from "@/lib/media-assets.functions";
+import {
+  listAccessCodes,
+  createAccessCode,
+  setCodeDisabled,
+  deleteAccessCode,
+} from "@/lib/access-codes.functions";
 
 const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
 function sanitizeSvg(html: string): string {
@@ -62,7 +68,7 @@ function AdminGate() {
   return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ التحقق...</div>;
 }
 
-type Tab = "questions" | "student-questions" | "uploader" | "organizer" | "timers";
+type Tab = "questions" | "student-questions" | "uploader" | "organizer" | "timers" | "codes";
 
 function AdminControlCenter() {
   const [tab, setTab] = useState<Tab>("questions");
@@ -83,6 +89,7 @@ function AdminControlCenter() {
         <TabBtn active={tab === "uploader"} onClick={() => setTab("uploader")}>رفع الفيديوهات</TabBtn>
         <TabBtn active={tab === "organizer"} onClick={() => setTab("organizer")}>منظّم الأقسام (CSV)</TabBtn>
         <TabBtn active={tab === "timers"} onClick={() => setTab("timers")}>ضابط المؤقتات</TabBtn>
+        <TabBtn active={tab === "codes"} onClick={() => setTab("codes")}>أكواد التفعيل</TabBtn>
       </div>
 
       {tab === "questions" && <QuestionsBank />}
@@ -90,6 +97,7 @@ function AdminControlCenter() {
       {tab === "uploader" && <VideoUploader />}
       {tab === "organizer" && <SectionOrganizer />}
       {tab === "timers" && <TimerController />}
+      {tab === "codes" && <AccessCodesPanel />}
 
       <p className="text-[11px] text-muted-foreground mt-8">
         الفيديوهات تُرفع الآن إلى التخزين السحابي (Supabase Storage – bucket: <code className="font-mono">section-videos</code>) بمسار دائم يعمل من أي جهاز.
