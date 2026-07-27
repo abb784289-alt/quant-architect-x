@@ -11,6 +11,12 @@ import {
 } from "@/lib/questions.functions";
 import { supabase } from "@/integrations/supabase/client";
 import { upsertMediaAsset } from "@/lib/media-assets.functions";
+import {
+  listAccessCodes,
+  createAccessCode,
+  setCodeDisabled,
+  deleteAccessCode,
+} from "@/lib/access-codes.functions";
 
 const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
 function sanitizeSvg(html: string): string {
@@ -62,7 +68,7 @@ function AdminGate() {
   return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ التحقق...</div>;
 }
 
-type Tab = "questions" | "student-questions" | "uploader" | "organizer" | "timers";
+type Tab = "questions" | "student-questions" | "uploader" | "organizer" | "timers" | "codes";
 
 function AdminControlCenter() {
   const [tab, setTab] = useState<Tab>("questions");
@@ -83,6 +89,7 @@ function AdminControlCenter() {
         <TabBtn active={tab === "uploader"} onClick={() => setTab("uploader")}>رفع الفيديوهات</TabBtn>
         <TabBtn active={tab === "organizer"} onClick={() => setTab("organizer")}>منظّم الأقسام (CSV)</TabBtn>
         <TabBtn active={tab === "timers"} onClick={() => setTab("timers")}>ضابط المؤقتات</TabBtn>
+        <TabBtn active={tab === "codes"} onClick={() => setTab("codes")}>أكواد التفعيل</TabBtn>
       </div>
 
       {tab === "questions" && <QuestionsBank />}
@@ -90,6 +97,7 @@ function AdminControlCenter() {
       {tab === "uploader" && <VideoUploader />}
       {tab === "organizer" && <SectionOrganizer />}
       {tab === "timers" && <TimerController />}
+      {tab === "codes" && <AccessCodesPanel />}
 
       <p className="text-[11px] text-muted-foreground mt-8">
         الفيديوهات تُرفع الآن إلى التخزين السحابي (Supabase Storage – bucket: <code className="font-mono">section-videos</code>) بمسار دائم يعمل من أي جهاز.
@@ -107,6 +115,151 @@ function TabBtn({ active, onClick, children }: { active: boolean; onClick: () =>
     >
       {children}
     </button>
+  );
+}
+
+// ────────────── Access Codes Panel ──────────────
+type AccessCodeRow = {
+  code: string;
+  expires_at: string | null;
+  disabled: boolean;
+  note: string | null;
+  created_at: string;
+  redemptions: number;
+};
+
+function AccessCodesPanel() {
+  const [rows, setRows] = useState<AccessCodeRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [count, setCount] = useState(1);
+  const [expires, setExpires] = useState<string>("");
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  async function refresh() {
+    setLoading(true);
+    try { setRows((await listAccessCodes()) as AccessCodeRow[]); }
+    catch (e: any) { setMsg(e?.message ?? "تعذّر تحميل الأكواد."); }
+    finally { setLoading(false); }
+  }
+  useEffect(() => { void refresh(); }, []);
+
+  async function onCreate(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setMsg(null);
+    try {
+      const expires_at = expires ? new Date(expires).toISOString() : null;
+      const created = await createAccessCode({ data: { count, expires_at, note: note.trim() || null } });
+      setMsg(`تم إنشاء ${created.length} كود.`);
+      setNote("");
+      await refresh();
+    } catch (e: any) { setMsg(e?.message ?? "تعذّر إنشاء الأكواد."); }
+    finally { setBusy(false); }
+  }
+
+  async function toggle(code: string, disabled: boolean) {
+    await setCodeDisabled({ data: { code, disabled: !disabled } });
+    await refresh();
+  }
+  async function remove(code: string) {
+    if (!confirm(`حذف الكود ${code}؟ سيتم أيضاً حذف سجل استخدامه.`)) return;
+    await deleteAccessCode({ data: { code } });
+    await refresh();
+  }
+  async function copy(code: string) {
+    try { await navigator.clipboard.writeText(code); setMsg(`تم نسخ ${code}`); } catch { /* ignore */ }
+  }
+
+  return (
+    <div className="space-y-6">
+      <form onSubmit={onCreate} className="luxury-card p-6 grid gap-4 md:grid-cols-4">
+        <label className="block">
+          <span className="block text-xs font-semibold mb-1.5">عدد الأكواد</span>
+          <input type="number" min={1} max={50} value={count}
+            onChange={(e) => setCount(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+            className="w-full rounded-xl bg-surface-1 border border-border px-3 py-2.5 outline-none focus:border-teal" />
+        </label>
+        <label className="block">
+          <span className="block text-xs font-semibold mb-1.5">تاريخ الانتهاء (اختياري)</span>
+          <input type="datetime-local" value={expires} onChange={(e) => setExpires(e.target.value)}
+            className="w-full rounded-xl bg-surface-1 border border-border px-3 py-2.5 outline-none focus:border-teal" />
+        </label>
+        <label className="block md:col-span-2">
+          <span className="block text-xs font-semibold mb-1.5">ملاحظة (اختياري)</span>
+          <input type="text" value={note} onChange={(e) => setNote(e.target.value)} maxLength={200}
+            placeholder="مثال: مجموعة سبتمبر"
+            className="w-full rounded-xl bg-surface-1 border border-border px-3 py-2.5 outline-none focus:border-teal" />
+        </label>
+        <div className="md:col-span-4 flex items-center gap-3">
+          <button type="submit" disabled={busy}
+            className="px-5 py-2.5 rounded-xl font-bold text-white bg-gradient-to-l from-teal to-teal-deep hover:opacity-95 shadow-md disabled:opacity-60">
+            {busy ? "جارٍ الإنشاء..." : "إنشاء أكواد جديدة"}
+          </button>
+          {msg && <span className="text-sm text-muted-foreground">{msg}</span>}
+        </div>
+      </form>
+
+      <div className="luxury-card p-0 overflow-hidden">
+        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+          <h3 className="font-bold">الأكواد الحالية ({rows.length})</h3>
+          <button type="button" onClick={refresh} className="text-xs text-teal-deep hover:underline">تحديث</button>
+        </div>
+        {loading ? (
+          <div className="p-8 text-center text-muted-foreground">جارٍ التحميل...</div>
+        ) : rows.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground">لا توجد أكواد بعد.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-surface-2 text-xs text-muted-foreground">
+                <tr>
+                  <th className="px-4 py-3 text-right">الكود</th>
+                  <th className="px-4 py-3 text-right">الحالة</th>
+                  <th className="px-4 py-3 text-right">الاستخدام</th>
+                  <th className="px-4 py-3 text-right">ينتهي في</th>
+                  <th className="px-4 py-3 text-right">ملاحظة</th>
+                  <th className="px-4 py-3 text-right">إجراءات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {rows.map((r) => {
+                  const expired = r.expires_at && new Date(r.expires_at) < new Date();
+                  const used = r.redemptions > 0;
+                  return (
+                    <tr key={r.code} className="hover:bg-surface-1">
+                      <td className="px-4 py-3 font-mono font-bold tracking-widest" dir="ltr">{r.code}</td>
+                      <td className="px-4 py-3">
+                        {r.disabled ? <span className="text-red-600">موقوف</span>
+                          : expired ? <span className="text-amber-600">منتهي</span>
+                          : used ? <span className="text-muted-foreground">مُستخدم</span>
+                          : <span className="text-teal-deep font-semibold">نشط</span>}
+                      </td>
+                      <td className="px-4 py-3">{r.redemptions}</td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">
+                        {r.expires_at ? new Date(r.expires_at).toLocaleString("ar-EG") : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground">{r.note ?? "—"}</td>
+                      <td className="px-4 py-3 flex gap-2">
+                        <button type="button" onClick={() => copy(r.code)} className="text-xs px-2 py-1 rounded-lg bg-surface-2 hover:bg-surface-1 border border-border">نسخ</button>
+                        <button type="button" onClick={() => toggle(r.code, r.disabled)} className="text-xs px-2 py-1 rounded-lg bg-surface-2 hover:bg-surface-1 border border-border">
+                          {r.disabled ? "تفعيل" : "إيقاف"}
+                        </button>
+                        <button type="button" onClick={() => remove(r.code)} className="text-xs px-2 py-1 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-700">حذف</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <p className="text-[11px] text-muted-foreground">
+        كل طالب يستطيع تفعيل حسابه بكود واحد فقط، والكود يبقى مربوطاً بحسابه بشكل دائم. تعطيل أو حذف الكود لا يلغي التفعيل السابق للطلاب الذين استخدموه.
+      </p>
+    </div>
   );
 }
 
