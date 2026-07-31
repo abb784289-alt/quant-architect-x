@@ -342,7 +342,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      redeem_access_code: { Args: { _code: string }; Returns: Json }
+      redeem_access_code: {
+        Args: { _code: string; _uid: string }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
