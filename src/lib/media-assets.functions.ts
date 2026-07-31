@@ -53,8 +53,11 @@ export const getMediaAsset = createServerFn({ method: "POST" })
       key: z.string().min(1).max(100),
     }).parse(d),
   )
-  .handler(async ({ data, context }) => {
-    const { data: row, error } = await context.supabase
+  .handler(async ({ data }) => {
+    // media_assets is admin-read-only; students resolve their section video
+    // through this verified server function instead of direct table access.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = await supabaseAdmin
       .from("media_assets")
       .select("video_path")
       .eq("scope", data.scope).eq("track", data.track).eq("key", data.key)
