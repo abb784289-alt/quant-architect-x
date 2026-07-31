@@ -1,11 +1,17 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { loadSession, clearSession, type Session } from "@/lib/session";
+import { supabase } from "@/integrations/supabase/client";
 import { hydrateQuestionBankFromServer } from "@/lib/platform-config";
 import { hasRedeemedCode, redeemCode } from "@/lib/access-codes.functions";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
+  beforeLoad: async () => {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) throw redirect({ to: "/auth" });
+    return { user: data.user };
+  },
   component: RoleAwareShell,
 });
 
@@ -13,11 +19,23 @@ function RoleAwareShell() {
   const [session, setSession] = useState<Session | null>(null);
   const [gate, setGate] = useState<"checking" | "locked" | "open">("checking");
   useEffect(() => {
-    loadSession().then(setSession);
-    hydrateQuestionBankFromServer();
-    hasRedeemedCode()
-      .then((r) => setGate(r?.redeemed ? "open" : "locked"))
-      .catch(() => setGate("locked"));
+    let cancelled = false;
+    (async () => {
+      // Ensure a Supabase session exists before calling authenticated server
+      // functions, otherwise the bearer attacher sends no Authorization header.
+      const { data: { session: sbSession } } = await supabase.auth.getSession();
+      if (!sbSession) { window.location.replace("/auth"); return; }
+      if (cancelled) return;
+      loadSession().then((s) => { if (!cancelled) setSession(s); });
+      hydrateQuestionBankFromServer();
+      try {
+        const r = await hasRedeemedCode();
+        if (!cancelled) setGate(r?.redeemed ? "open" : "locked");
+      } catch {
+        if (!cancelled) setGate("locked");
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
   const isAdmin = session?.role === "admin";
 
