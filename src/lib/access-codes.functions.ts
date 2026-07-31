@@ -34,7 +34,11 @@ export const redeemCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => z.object({ code: z.string().min(3).max(64) }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: res, error } = await context.supabase.rpc("redeem_access_code", { _code: data.code });
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: res, error } = await supabaseAdmin.rpc("redeem_access_code", {
+      _uid: context.userId,
+      _code: data.code,
+    });
     if (error) throw new Error(error.message);
     return res as { ok: boolean; error?: string; already?: boolean };
   });
