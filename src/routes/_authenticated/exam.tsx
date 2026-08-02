@@ -435,6 +435,14 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
             </div>
 
             <div style={{ fontSize: `${fontScale * 1.12}rem` }}>
+              {active.passage && (
+                <div className="rounded-xl border-2 border-teal/40 bg-teal-soft/40 p-4 mb-4 max-h-72 overflow-y-auto">
+                  <div className="text-[11px] font-bold text-teal-deep mb-2">
+                    {active.passageTitle ?? "قطعة استيعاب المقروء — اقرأ النص ثم أجب"}
+                  </div>
+                  <p className="text-foreground leading-8 whitespace-pre-line text-[0.95em]">{active.passage}</p>
+                </div>
+              )}
               <p className="text-foreground mb-4 leading-8"><MathText text={active.prompt} /></p>
               {active.tableHtml && (
                 <div className="rounded-xl bg-white border border-border p-4 mb-4 overflow-x-auto"
@@ -633,6 +641,11 @@ function ResultsView({
                 const hasCorrectAnswer = typeof correctIndex === "number" && correctIndex >= 0 && correctIndex < q.choices.length;
                 return (
                   <div key={q.id} className="rounded-xl border border-red-200 bg-red-50/40 p-4">
+                    {q.passage && (
+                      <div className="rounded-lg border border-teal/30 bg-white p-3 mb-3 max-h-40 overflow-y-auto text-xs leading-6 whitespace-pre-line text-muted-foreground">
+                        {q.passage}
+                      </div>
+                    )}
                     <div className="text-sm text-foreground mb-3 leading-7"><MathText text={q.prompt} /></div>
                     {q.tableHtml
                       ? <div className="rounded-lg bg-white border border-border p-3 mb-3 overflow-x-auto" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.tableHtml) }} />
