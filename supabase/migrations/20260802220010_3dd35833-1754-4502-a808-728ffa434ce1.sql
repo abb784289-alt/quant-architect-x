@@ -1,0 +1,2 @@
+ALTER TABLE public.question_bank DROP CONSTRAINT IF EXISTS question_bank_section_number_check;
+ALTER TABLE public.question_bank ADD CONSTRAINT question_bank_section_number_check CHECK (section_number >= 1 AND section_number <= 3000);
