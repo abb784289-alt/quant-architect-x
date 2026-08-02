@@ -704,6 +704,13 @@ function QuestionsBank() {
               </div>
 
               <label className="block mb-3">
+                <span className="text-[11px] font-semibold text-foreground">قطعة استيعاب المقروء (اختياري — تظهر فوق السؤال)</span>
+                <textarea value={q.passage ?? ""} onChange={(e) => updateAt(i, { passage: e.target.value })}
+                  rows={4} placeholder="الصق نص القطعة هنا…"
+                  className="mt-1 w-full rounded-xl border border-border bg-white px-3 py-2 text-sm focus:border-teal focus:ring-2 focus:ring-teal/30 outline-none resize-y" />
+              </label>
+
+              <label className="block mb-3">
                 <span className="text-[11px] font-semibold text-foreground">نص السؤال</span>
                 <textarea value={q.prompt} onChange={(e) => updateAt(i, { prompt: e.target.value })}
                   rows={2}

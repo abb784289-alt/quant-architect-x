@@ -159,6 +159,8 @@ export function formatTimer(totalSeconds: number): string {
 export type Question = {
   id: string;
   prompt: string;
+  passage?: string; // نص قطعة استيعاب المقروء (يظهر فوق السؤال)
+  passageTitle?: string;
   latex?: string;
   imageUrl?: string;
   svg?: string; // raw SVG markup for geometric shapes
