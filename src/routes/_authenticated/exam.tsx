@@ -639,8 +639,10 @@ function ResultsView({
                 const chosen = answers[q.id];
                 const correctIndex = correctByQid[q.id];
                 const hasCorrectAnswer = typeof correctIndex === "number" && correctIndex >= 0 && correctIndex < q.choices.length;
+                const qNumber = questions.findIndex((x) => x.id === q.id) + 1;
                 return (
                   <div key={q.id} className="rounded-xl border border-red-200 bg-red-50/40 p-4">
+                    <div className="text-[11px] font-bold text-red-700 mb-2">سؤال {toArabic(qNumber)}</div>
                     {q.passage && (
                       <div className="rounded-lg border border-teal/30 bg-white p-3 mb-3 max-h-40 overflow-y-auto text-xs leading-6 whitespace-pre-line text-muted-foreground">
                         {q.passage}
@@ -650,6 +652,32 @@ function ResultsView({
                     {q.tableHtml
                       ? <div className="rounded-lg bg-white border border-border p-3 mb-3 overflow-x-auto" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.tableHtml) }} />
                       : q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />}
+                    {q.imageUrl && (
+                      <div className="rounded-lg bg-white border border-border p-3 mb-3 text-center">
+                        <img src={q.imageUrl} alt={`صورة السؤال ${toArabic(qNumber)}`} loading="lazy" className="max-h-72 mx-auto rounded-lg" />
+                      </div>
+                    )}
+                    {q.latex && (
+                      <div className="rounded-lg bg-white border border-border p-3 mb-3 text-center">
+                        <BlockMath math={q.latex} />
+                      </div>
+                    )}
+                    <div className="space-y-1.5 mb-3">
+                      {q.choices.map((choice, ci) => {
+                        const isChosen = chosen === ci;
+                        const isRight = hasCorrectAnswer && correctIndex === ci;
+                        return (
+                          <div key={ci} className={"flex items-center gap-2 rounded-lg border p-2 text-xs " +
+                            (isRight ? "border-teal bg-teal-soft/60" : isChosen ? "border-red-400 bg-red-100/70" : "border-border bg-white")}>
+                            <span className={"h-6 w-6 shrink-0 rounded-md grid place-items-center font-bold " +
+                              (isRight ? "bg-teal text-white" : isChosen ? "bg-red-500 text-white" : "bg-surface-2 text-foreground")}>{letters[ci]}</span>
+                            <span className="text-foreground leading-6"><MathText text={choice} /></span>
+                            {isRight && <span className="ms-auto text-teal-deep font-bold">✓</span>}
+                            {isChosen && !isRight && <span className="ms-auto text-red-600 font-bold">✕</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
                     <div className="grid gap-1.5 text-xs">
                       <div className="text-red-700"><span className="font-bold">إجابتك:</span> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : "لم تُجَب"}</div>
                       <div className="text-teal-deep">
