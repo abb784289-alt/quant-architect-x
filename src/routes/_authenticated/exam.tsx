@@ -356,7 +356,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
 
       <div className="mx-auto max-w-[1400px] grid grid-cols-12 gap-4 px-5 py-5">
         {/* Sidebar (right in RTL) */}
-        <aside className="col-span-12 lg:col-span-3 space-y-3 order-1">
+        <aside className="col-span-12 lg:col-span-2 space-y-3 order-1">
           <div className="luxury-card p-3">
             <div className="text-[10px] font-semibold text-muted-foreground mb-1.5">هوية الطالب</div>
             <div className="flex items-center gap-2">
@@ -518,7 +518,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
         </section>
 
         {/* Scratchpad (left in RTL) */}
-        <aside className="col-span-12 lg:col-span-3 order-3">
+        <aside className="col-span-12 lg:col-span-4 order-3">
           <Scratchpad questionId={active.id} />
         </aside>
       </div>
@@ -726,86 +726,161 @@ function Scratchpad({ questionId }: { questionId: string }) {
   const [color, setColor] = useState("#0F766E");
   const [size, setSize] = useState(3);
   const cacheRef = useRef<Map<string, Stroke[]>>(new Map());
-  const [strokes, setStrokes] = useState<Stroke[]>([]);
-  const [redo, setRedo] = useState<Stroke[]>([]);
-  const [, forceTick] = useState(0);
+  const strokesRef = useRef<Stroke[]>([]);
+  const redoRef = useRef<Stroke[]>([]);
   const drawing = useRef(false);
   const current = useRef<Stroke | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const dprRef = useRef(1);
+  const toolRef = useRef(tool); toolRef.current = tool;
+  const colorRef = useRef(color); colorRef.current = color;
+  const sizeRef = useRef(size); sizeRef.current = size;
 
-  // Swap in cached strokes when question changes
-  useEffect(() => {
-    cacheRef.current.set(questionId, strokes);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [strokes]);
-
-  useEffect(() => {
-    const cached = cacheRef.current.get(questionId) ?? [];
-    setStrokes(cached);
-    setRedo([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [questionId]);
+  const paintStroke = useCallback((ctx: CanvasRenderingContext2D, s: Stroke) => {
+    const pts = s.points;
+    if (pts.length === 0) return;
+    ctx.strokeStyle = s.erase ? "#FFFFFF" : s.color;
+    ctx.lineWidth = s.size;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    if (pts.length === 1) {
+      ctx.arc(pts[0].x, pts[0].y, s.size / 2, 0, Math.PI * 2);
+      ctx.fillStyle = s.erase ? "#FFFFFF" : s.color;
+      ctx.fill();
+      return;
+    }
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length - 1; i++) {
+      const mx = (pts[i].x + pts[i + 1].x) / 2;
+      const my = (pts[i].y + pts[i + 1].y) / 2;
+      ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+    }
+    ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+    ctx.stroke();
+  }, []);
 
   const redraw = useCallback(() => {
     const c = canvasRef.current; if (!c) return;
     const ctx = c.getContext("2d"); if (!ctx) return;
-    ctx.clearRect(0, 0, c.width, c.height);
-    // grid
-    ctx.strokeStyle = "#E2E8F0"; ctx.lineWidth = 1;
-    for (let x = 0; x < c.width; x += 20) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, c.height); ctx.stroke(); }
-    for (let y = 0; y < c.height; y += 20) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(c.width, y); ctx.stroke(); }
-    // strokes
-    for (const s of strokes) {
-      ctx.strokeStyle = s.erase ? "#FFFFFF" : s.color;
-      ctx.lineWidth = s.size;
-      ctx.lineCap = "round"; ctx.lineJoin = "round";
-      ctx.beginPath();
-      s.points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
-      ctx.stroke();
-    }
-  }, [strokes]);
+    const w = c.width / dprRef.current;
+    const h = c.height / dprRef.current;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = "#E9EEF4"; ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = 0; x <= w; x += 24) { ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, h); }
+    for (let y = 0; y <= h; y += 24) { ctx.moveTo(0, y + 0.5); ctx.lineTo(w, y + 0.5); }
+    ctx.stroke();
+    for (const s of strokesRef.current) paintStroke(ctx, s);
+    if (current.current) paintStroke(ctx, current.current);
+  }, [paintStroke]);
 
-  useEffect(() => { redraw(); }, [redraw]);
+  const schedule = useCallback(() => {
+    if (rafRef.current != null) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      redraw();
+    });
+  }, [redraw]);
 
-  function pos(e: React.PointerEvent<HTMLCanvasElement>) {
-    const rect = e.currentTarget.getBoundingClientRect();
+  // High-DPI sizing + resize handling
+  useEffect(() => {
+    const c = canvasRef.current; if (!c) return;
+    const fit = () => {
+      const rect = c.getBoundingClientRect();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dprRef.current = dpr;
+      c.width = Math.round(rect.width * dpr);
+      c.height = Math.round(rect.height * dpr);
+      const ctx = c.getContext("2d");
+      if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      redraw();
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(c);
+    return () => { ro.disconnect(); if (rafRef.current != null) cancelAnimationFrame(rafRef.current); };
+  }, [redraw]);
+
+  // Swap cached strokes when the question changes
+  useEffect(() => {
+    const prevId = questionId;
+    strokesRef.current = cacheRef.current.get(questionId) ?? [];
+    redoRef.current = [];
+    redraw();
+    return () => { cacheRef.current.set(prevId, strokesRef.current); };
+  }, [questionId, redraw]);
+
+  function pos(e: PointerEvent | React.PointerEvent<HTMLCanvasElement>, rect: DOMRect) {
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
   }
 
   function down(e: React.PointerEvent<HTMLCanvasElement>) {
+    const c = e.currentTarget;
+    c.setPointerCapture(e.pointerId);
     drawing.current = true;
-    const s: Stroke = { color, size: tool === "eraser" ? size * 4 : size, points: [pos(e)], erase: tool === "eraser" };
-    current.current = s;
-    setStrokes((prev) => [...prev, s]);
+    const erase = toolRef.current === "eraser";
+    current.current = {
+      color: colorRef.current,
+      size: erase ? sizeRef.current * 5 : sizeRef.current,
+      points: [pos(e, c.getBoundingClientRect())],
+      erase,
+    };
+    schedule();
   }
+
   function move(e: React.PointerEvent<HTMLCanvasElement>) {
     if (!drawing.current || !current.current) return;
-    current.current.points.push(pos(e));
-    forceTick((n) => n + 1);
+    const rect = e.currentTarget.getBoundingClientRect();
+    const native = e.nativeEvent as PointerEvent & { getCoalescedEvents?: () => PointerEvent[] };
+    const events = native.getCoalescedEvents ? native.getCoalescedEvents() : [native];
+    const pts = current.current.points;
+    for (const ev of events.length ? events : [native]) {
+      const p = pos(ev, rect);
+      const last = pts[pts.length - 1];
+      if (last && Math.abs(last.x - p.x) < 0.6 && Math.abs(last.y - p.y) < 0.6) continue;
+      pts.push(p);
+    }
+    schedule();
   }
-  function up() {
+
+  function up(e: React.PointerEvent<HTMLCanvasElement>) {
     if (!drawing.current) return;
-    setRedo([]);
     drawing.current = false;
-    current.current = null;
+    if (current.current) {
+      strokesRef.current = [...strokesRef.current, current.current];
+      cacheRef.current.set(questionId, strokesRef.current);
+      current.current = null;
+    }
+    redoRef.current = [];
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* noop */ }
+    schedule();
   }
 
   function undo() {
-    setStrokes((prev) => {
-      if (prev.length === 0) return prev;
-      const last = prev[prev.length - 1];
-      setRedo((r) => [...r, last]);
-      return prev.slice(0, -1);
-    });
+    if (strokesRef.current.length === 0) return;
+    const last = strokesRef.current[strokesRef.current.length - 1];
+    strokesRef.current = strokesRef.current.slice(0, -1);
+    redoRef.current = [...redoRef.current, last];
+    cacheRef.current.set(questionId, strokesRef.current);
+    schedule();
   }
   function redoStroke() {
-    setRedo((r) => {
-      if (r.length === 0) return r;
-      const last = r[r.length - 1];
-      setStrokes((prev) => [...prev, last]);
-      return r.slice(0, -1);
-    });
+    if (redoRef.current.length === 0) return;
+    const last = redoRef.current[redoRef.current.length - 1];
+    redoRef.current = redoRef.current.slice(0, -1);
+    strokesRef.current = [...strokesRef.current, last];
+    cacheRef.current.set(questionId, strokesRef.current);
+    schedule();
   }
-  function clear() { setStrokes([]); setRedo([]); }
+  function clear() {
+    strokesRef.current = [];
+    redoRef.current = [];
+    cacheRef.current.set(questionId, []);
+    schedule();
+  }
 
   const colors = ["#0F766E", "#F59E0B", "#DC2626", "#2563EB", "#16A34A", "#111827"];
 
@@ -834,13 +909,12 @@ function Scratchpad({ questionId }: { questionId: string }) {
       </div>
       <canvas
         ref={canvasRef}
-        width={520}
-        height={520}
         onPointerDown={down}
         onPointerMove={move}
         onPointerUp={up}
-        onPointerLeave={up}
-        className="w-full h-[520px] rounded-xl bg-white border border-border touch-none cursor-crosshair"
+        onPointerCancel={up}
+        style={{ touchAction: "none" }}
+        className="w-full h-[640px] rounded-xl bg-white border border-border touch-none cursor-crosshair select-none"
       />
     </div>
   );
