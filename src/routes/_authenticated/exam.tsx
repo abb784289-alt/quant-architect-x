@@ -903,12 +903,14 @@ function Scratchpad({ questionId }: { questionId: string }) {
           ))}
         </div>
         <input type="range" min={1} max={12} value={size} onChange={(e) => setSize(Number(e.target.value))} className="w-20 accent-teal" />
-        <button onClick={undo} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↺</button>
-        <button onClick={redoStroke} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↻</button>
-        <button onClick={clear} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold text-red-600 hover:border-red-400">مسح</button>
+        <button onClick={undo} aria-label="تراجع عن آخر رسمة" title="تراجع" className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↺</button>
+        <button onClick={redoStroke} aria-label="إعادة الرسمة الملغاة" title="إعادة" className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↻</button>
+        <button onClick={clear} aria-label="مسح السبورة بالكامل" className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold text-red-600 hover:border-red-400">مسح</button>
       </div>
       <canvas
         ref={canvasRef}
+        role="img"
+        aria-label="السبورة الذكية: مساحة رسم لحل المسائل بالقلم أو الماوس"
         onPointerDown={down}
         onPointerMove={move}
         onPointerUp={up}
