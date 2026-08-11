@@ -4,6 +4,62 @@ import { useEffect, useRef } from "react";
 import professorHero from "@/assets/professor-hero.jpg";
 
 export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "منصة المِقْيَاس الذكية | تدريب القدرات الكمي واللفظي" },
+      {
+        name: "description",
+        content:
+          "تدرّب على القسم الكمي واللفظي من اختبار القدرات العامة مع أ. أسامة فتح الدين: أقسام مسلسلة، محاكي نمر التفاعلي، سبورة ذكية، ودفتر أخطاء ذكي.",
+      },
+      { property: "og:title", content: "منصة المِقْيَاس الذكية | تدريب القدرات الكمي واللفظي" },
+      {
+        property: "og:description",
+        content:
+          "أقسام مسلسلة، محاكي نمر التفاعلي، سبورة ذكية، ودفتر أخطاء ذكي للتفوق في اختبار القدرات العامة.",
+      },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://miqyas.info/" },
+    ],
+    links: [{ rel: "canonical", href: "https://miqyas.info/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "EducationalOrganization",
+              "@id": "https://miqyas.info/#organization",
+              name: "أكاديمية المِقْيَاس",
+              alternateName: "Al-Miqyas Academy",
+              url: "https://miqyas.info/",
+              logo: "https://miqyas.info/favicon.ico",
+              areaServed: "SA",
+              description:
+                "أكاديمية رقمية لتدريب طلاب اختبار القدرات العامة على القسمين الكمي واللفظي.",
+            },
+            {
+              "@type": "WebSite",
+              "@id": "https://miqyas.info/#website",
+              url: "https://miqyas.info/",
+              name: "منصة المِقْيَاس الذكية",
+              inLanguage: "ar",
+              publisher: { "@id": "https://miqyas.info/#organization" },
+            },
+            {
+              "@type": "Course",
+              name: "تدريب القسم الكمي — اختبار القدرات العامة",
+              description:
+                "١٥٠ قسماً كمياً مع محاكي نمر التفاعلي، سبورة ذكية، ودفتر أخطاء ذكي.",
+              inLanguage: "ar",
+              provider: { "@id": "https://miqyas.info/#organization" },
+            },
+          ],
+        }),
+      },
+    ],
+  }),
   component: Index,
 });
 

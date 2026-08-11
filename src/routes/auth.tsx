@@ -8,7 +8,12 @@ export const Route = createFileRoute("/auth")({
     meta: [
       { title: "بوابة الدخول — منصة المِقْيَاس الذكية" },
       { name: "description", content: "تسجيل الدخول وإنشاء حساب في منصة المِقْيَاس الذكية للأستاذ أسامة فتح الدين." },
+      { property: "og:title", content: "بوابة الدخول — منصة المِقْيَاس الذكية" },
+      { property: "og:description", content: "سجّل دخولك أو أنشئ حساباً للوصول إلى أقسام القدرات ومحاكي نمر التفاعلي." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://miqyas.info/auth" },
     ],
+    links: [{ rel: "canonical", href: "https://miqyas.info/auth" }],
   }),
   component: LightAuthPage,
 });
