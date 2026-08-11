@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -31,6 +32,20 @@ function LightAuthPage() {
   const [regPassword, setRegPassword] = useState("");
   const [regMobile, setRegMobile] = useState("");
   const [busy, setBusy] = useState(false);
+
+  async function handleGoogle() {
+    setBusy(true);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setBusy(false);
+      setBanner({ kind: "error", text: "تعذّر تسجيل الدخول عبر جوجل. حاول مجدداً." });
+      return;
+    }
+    if (result.redirected) return;
+    window.location.href = "/tracks";
+  }
 
   // Sweep any legacy plaintext credentials/session left by the old client-side auth.
   useEffect(() => {
@@ -138,6 +153,27 @@ function LightAuthPage() {
         <p className="text-[11px] text-muted-foreground mt-6 text-center">
           الدخول محمي عبر بروتوكولات آمنة — كلمة المرور لا تُخزَّن على جهازك.
         </p>
+
+        <div className="my-6 flex items-center gap-3">
+          <span className="h-px flex-1 bg-border" />
+          <span className="text-[11px] text-muted-foreground">أو</span>
+          <span className="h-px flex-1 bg-border" />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogle}
+          disabled={busy}
+          className="w-full flex items-center justify-center gap-3 py-3.5 rounded-xl font-bold border border-border bg-surface-1 text-foreground hover:bg-surface-2 transition-all disabled:opacity-60"
+        >
+          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.3 17.7 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.6-9.6 6.6-16.9z"/>
+            <path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C1 16.3 0 20 0 24s1 7.7 2.6 10.8l7.9-6.1z"/>
+            <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.6 2.1-8.8 2.1-6.3 0-11.6-3.8-13.5-9.1l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/>
+          </svg>
+          المتابعة باستخدام جوجل
+        </button>
       </div>
     </div>
   );
