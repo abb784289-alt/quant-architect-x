@@ -11,6 +11,10 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
     meta: [
       { title: "الأقسام — منصة المِقْيَاس" },
       { name: "description", content: "لوحة تحكم الطالب: أقسام مسلسلة مع بحث فوري لبدء اختبار نمر التفاعلي." },
+      { property: "og:title", content: "لوحة تحكم الأقسام — منصة المِقْيَاس الذكية" },
+      { property: "og:description", content: "تصفّح أقسام التدريب الكمي واللفظي وابدأ اختبار نمر التفاعلي من لوحة الطالب." },
+      { property: "og:type", content: "website" },
+      { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: DashboardGate,
@@ -74,6 +78,7 @@ function SectionsDashboard({ track }: { track: TrackId }) {
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-8 md:py-12" dir="rtl">
+      <h1 className="sr-only">أقسام {trackMeta.label} — لوحة تحكم الطالب</h1>
       {/* Track badge + switch */}
       <div className="flex items-center justify-between mb-4">
         <div className={"inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-bold border " +
@@ -97,6 +102,8 @@ function SectionsDashboard({ track }: { track: TrackId }) {
           <div className="relative flex-1">
             <input
               ref={inputRef}
+              type="search"
+              aria-label="ابحث عن قسم برقمه أو اسمه"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={`ابحث برقم القسم أو اسمه… (١-${toArabic(trackMeta.total)})`}
