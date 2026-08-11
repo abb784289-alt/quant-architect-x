@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -31,6 +32,20 @@ function LightAuthPage() {
   const [regPassword, setRegPassword] = useState("");
   const [regMobile, setRegMobile] = useState("");
   const [busy, setBusy] = useState(false);
+
+  async function handleGoogle() {
+    setBusy(true);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setBusy(false);
+      setBanner({ kind: "error", text: "تعذّر تسجيل الدخول عبر جوجل. حاول مجدداً." });
+      return;
+    }
+    if (result.redirected) return;
+    window.location.href = "/tracks";
+  }
 
   // Sweep any legacy plaintext credentials/session left by the old client-side auth.
   useEffect(() => {
