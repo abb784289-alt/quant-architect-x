@@ -10,6 +10,7 @@ import { gradeSectionAttempt } from "@/lib/question-bank.functions";
 import { loadSections } from "@/lib/platform-config";
 import { getSectionVideoSignedUrl } from "@/lib/section-videos.functions";
 import { getMediaAsset } from "@/lib/media-assets.functions";
+import { useI18n } from "@/lib/i18n";
 
 const SVG_PURIFY_CONFIG = { USE_PROFILES: { svg: true, svgFilters: true } } as const;
 function sanitizeSvg(html: string): string {
@@ -55,6 +56,7 @@ export const Route = createFileRoute("/_authenticated/exam")({
 });
 
 function ExamGate() {
+  const { t, dir } = useI18n();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   useEffect(() => {
@@ -64,13 +66,14 @@ function ExamGate() {
     });
   }, []);
   if (!ready || !session) {
-    return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ تحميل محرك الاختبار...</div>;
+    return <div dir={dir} className="min-h-[60vh] grid place-items-center text-muted-foreground">{t("exam.loadingEngine")}</div>;
   }
   return <ExamOrPicker session={session} />;
 }
 
 function ExamOrPicker({ session }: { session: Session }) {
   const { mode, section, track } = Route.useSearch();
+  const { t, n: num, dir } = useI18n();
   const activeTrack: TrackId = isTrackId(track) ? track : "quantitative";
   const navigate = useNavigate();
   const fetchSignedUrl = useServerFn(getSectionVideoSignedUrl);
@@ -89,7 +92,7 @@ function ExamOrPicker({ session }: { session: Session }) {
         path = sec?.videoUrl?.trim() || "";
       }
       if (!path) {
-        setVideoModal({ loading: false, url: null, error: "لم يتم رفع فيديو لهذا القسم بعد." });
+        setVideoModal({ loading: false, url: null, error: t("exam.videoNone") });
         return;
       }
       if (/^https?:\/\//i.test(path)) {
@@ -97,46 +100,46 @@ function ExamOrPicker({ session }: { session: Session }) {
         return;
       }
       const res = await fetchSignedUrl({ data: { path } });
-      if (!res?.url) throw new Error("تعذّر تحضير رابط الفيديو.");
+      if (!res?.url) throw new Error(t("exam.videoFailed"));
       setVideoModal({ loading: false, url: res.url, error: null });
     } catch (e: any) {
-      setVideoModal({ loading: false, url: null, error: e?.message || "تعذّر تحضير الفيديو." });
+      setVideoModal({ loading: false, url: null, error: e?.message || t("exam.videoFailed") });
     }
   }
 
   if (!mode) {
     return (
-      <div dir="rtl" className="min-h-[70vh] grid place-items-center px-6 py-10">
+      <div dir={dir} className="min-h-[70vh] grid place-items-center px-6 py-10">
         <div className="luxury-card p-8 max-w-2xl w-full text-center">
           <div className="text-xs font-semibold text-teal-deep mb-2">
-            {TRACKS[activeTrack].label} — القسم {toArabic(section ?? 1)}
+            {t(`track.${activeTrack}.label`)} — {t("common.section")} {num(section ?? 1)}
           </div>
-          <h1 className="font-display font-bold text-2xl text-foreground mb-2">اختر طريقة الدخول</h1>
-          <p className="text-sm text-muted-foreground mb-6">تقدر تحلّ القسم كاختبار بوقت محدّد، أو كتدريب بدون وقت وبراحتك.</p>
+          <h1 className="font-display font-bold text-2xl text-foreground mb-2">{t("exam.pickTitle")}</h1>
+          <p className="text-sm text-muted-foreground mb-6">{t("exam.pickLead")}</p>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <button
               onClick={() => navigate({ to: "/exam", search: { section, mode: "exam", track: activeTrack } })}
-              className="group rounded-2xl border-2 border-teal/40 bg-gradient-to-br from-teal-soft to-white p-6 text-right hover:border-teal hover:shadow-lg transition-all"
+              className="group rounded-2xl border-2 border-teal/40 bg-gradient-to-br from-teal-soft to-white p-6 text-start hover:border-teal hover:shadow-lg transition-all"
             >
               <div className="text-3xl mb-2">⏱</div>
-              <div className="font-display font-bold text-lg text-teal-deep mb-1">اختبار بوقت</div>
-              <div className="text-xs text-muted-foreground leading-6">مؤقّت رسمي — تنبيه قبل انتهاء الوقت — النتيجة تظهر في النهاية.</div>
+              <div className="font-display font-bold text-lg text-teal-deep mb-1">{t("exam.timedTitle")}</div>
+              <div className="text-xs text-muted-foreground leading-6">{t("exam.timedDesc")}</div>
             </button>
             <button
               onClick={() => navigate({ to: "/exam", search: { section, mode: "practice", track: activeTrack } })}
-              className="group rounded-2xl border-2 border-gold/40 bg-gradient-to-br from-gold-soft to-white p-6 text-right hover:border-gold hover:shadow-lg transition-all"
+              className="group rounded-2xl border-2 border-gold/40 bg-gradient-to-br from-gold-soft to-white p-6 text-start hover:border-gold hover:shadow-lg transition-all"
             >
               <div className="text-3xl mb-2">🧘</div>
-              <div className="font-display font-bold text-lg text-foreground mb-1">تدريب بدون وقت</div>
-              <div className="text-xs text-muted-foreground leading-6">بلا مؤقّت — خُذ راحتك — النتيجة تظهر بعد الإنهاء برضو.</div>
+              <div className="font-display font-bold text-lg text-foreground mb-1">{t("exam.practiceTitle")}</div>
+              <div className="text-xs text-muted-foreground leading-6">{t("exam.practiceDesc")}</div>
             </button>
             <button
               onClick={openVideo}
-              className="group rounded-2xl border-2 border-teal/40 bg-gradient-to-br from-white to-teal-soft/60 p-6 text-right hover:border-teal-deep hover:shadow-lg transition-all"
+              className="group rounded-2xl border-2 border-teal/40 bg-gradient-to-br from-white to-teal-soft/60 p-6 text-start hover:border-teal-deep hover:shadow-lg transition-all"
             >
               <div className="text-3xl mb-2">🎬</div>
-              <div className="font-display font-bold text-lg text-teal-deep mb-1">مشاهدة فيديو شرح القسم</div>
-              <div className="text-xs text-muted-foreground leading-6">شاهد شرح القسم قبل الحل — يفتح في نافذة داخل نفس الصفحة.</div>
+              <div className="font-display font-bold text-lg text-teal-deep mb-1">{t("exam.videoTitle")}</div>
+              <div className="text-xs text-muted-foreground leading-6">{t("exam.videoDesc")}</div>
             </button>
           </div>
         </div>
@@ -146,12 +149,12 @@ function ExamOrPicker({ session }: { session: Session }) {
             <div className="luxury-card p-6 max-w-3xl w-full" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-display font-bold text-lg text-foreground">
-                  فيديو شرح القسم {toArabic(section ?? 1)}
+                  {t("exam.videoModalTitle", { n: num(section ?? 1) })}
                 </h3>
                 <button onClick={() => setVideoModal(null)} className="text-muted-foreground hover:text-foreground text-xl leading-none">×</button>
               </div>
               {videoModal.loading && (
-                <div className="py-10 text-center text-sm text-muted-foreground">جارٍ تحضير الفيديو...</div>
+                <div className="py-10 text-center text-sm text-muted-foreground">{t("exam.videoPreparing")}</div>
               )}
               {!videoModal.loading && videoModal.error && (
                 <div className="py-8 text-center text-sm text-destructive font-semibold">{videoModal.error}</div>
@@ -159,9 +162,9 @@ function ExamOrPicker({ session }: { session: Session }) {
               {!videoModal.loading && videoModal.url && (
                 <video src={videoModal.url} controls autoPlay className="w-full rounded-xl bg-black aspect-video" />
               )}
-              <div className="mt-4 text-left">
+              <div className="mt-4 text-end">
                 <button onClick={() => setVideoModal(null)} className="rounded-xl bg-teal text-white px-5 py-2 text-sm font-bold hover:bg-teal-deep transition-colors">
-                  إغلاق
+                  {t("common.close")}
                 </button>
               </div>
             </div>
