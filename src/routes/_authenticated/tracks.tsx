@@ -14,15 +14,15 @@ export const Route = createFileRoute("/_authenticated/tracks")({
 });
 
 function TracksPicker() {
-  const { t, dir, lang } = useI18n();
+  const { t: tr, dir, lang } = useI18n();
   return (
     <main dir={dir} className="mx-auto max-w-5xl px-6 py-14">
       <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 rounded-full bg-teal-soft text-teal-deep px-3 py-1 text-[11px] font-semibold border border-teal/30 mb-3">
-          {t("tracks.kicker")}
+          {tr("tracks.kicker")}
         </div>
-        <h1 className="font-display font-bold text-3xl md:text-4xl text-foreground mb-2">{t("tracks.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("tracks.lead")}</p>
+        <h1 className="font-display font-bold text-3xl md:text-4xl text-foreground mb-2">{tr("tracks.title")}</h1>
+        <p className="text-sm text-muted-foreground">{tr("tracks.lead")}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -63,7 +63,7 @@ function TracksPicker() {
       </div>
 
       <div className="mt-10 text-center text-xs text-muted-foreground">
-        {t("tracks.hint")}
+        {tr("tracks.hint")}
       </div>
     </main>
   );
