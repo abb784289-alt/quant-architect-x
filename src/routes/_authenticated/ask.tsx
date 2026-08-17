@@ -6,6 +6,7 @@ import {
   listMyQuestions,
   getMediaSignedUrl,
 } from "@/lib/questions.functions";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/ask")({
   ssr: false,
@@ -33,6 +34,7 @@ type QuestionRow = {
 };
 
 function AskPage() {
+  const { t, dir } = useI18n();
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -49,7 +51,7 @@ function AskPage() {
       const rows = await listMyQuestions();
       setItems(rows as QuestionRow[]);
     } catch (e: any) {
-      setError(e?.message || "تعذّر تحميل الأسئلة");
+      setError(e?.message || t("ask.errLoad"));
     } finally {
       setLoading(false);
     }
@@ -62,11 +64,11 @@ function AskPage() {
   function pick(f: File | null) {
     if (!f) return;
     if (!f.type.startsWith("image/")) {
-      setError("اختر ملف صورة فقط");
+      setError(t("ask.errImageOnly"));
       return;
     }
     if (f.size > 10 * 1024 * 1024) {
-      setError("حجم الصورة أكبر من 10MB");
+      setError(t("ask.errSize"));
       return;
     }
     setError(null);
@@ -86,9 +88,9 @@ function AskPage() {
     e.preventDefault();
     setError(null);
     setOk(null);
-    const t = text.trim();
-    if (!t && !file) {
-      setError("اكتب سؤالك أو ارفع صورة");
+    const body = text.trim();
+    if (!body && !file) {
+      setError(t("ask.errEmpty"));
       return;
     }
     setSubmitting(true);
@@ -97,7 +99,7 @@ function AskPage() {
       if (file) {
         const { data: userData } = await supabase.auth.getUser();
         const uid = userData.user?.id;
-        if (!uid) throw new Error("انتهت الجلسة، سجّل الدخول من جديد");
+        if (!uid) throw new Error(t("ask.errSession"));
         const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
         const path = `${uid}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage
@@ -108,53 +110,53 @@ function AskPage() {
       }
       await submitQuestion({
         data: {
-          question_text: t || null,
+          question_text: body || null,
           question_image_path: imagePath,
         },
       });
       setText("");
       clearImage();
-      setOk("تم إرسال سؤالك للأستاذ أسامة. سيصلك الرد قريباً.");
+      setOk(t("ask.ok"));
       await refresh();
     } catch (e: any) {
-      setError(e?.message || "تعذّر إرسال السؤال");
+      setError(e?.message || t("ask.errSend"));
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-8 md:py-12" dir="rtl">
+    <main className="mx-auto max-w-3xl px-6 py-8 md:py-12" dir={dir}>
       <header className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <Link to="/dashboard" className="text-sm text-teal-deep hover:underline">
-            ← العودة للأقسام
+            {t("ask.back")}
           </Link>
           <div className="inline-flex items-center gap-2 rounded-full bg-gold-soft border border-gold/40 px-3 py-1 text-[11px] font-semibold">
-            تواصل مباشر
+            {t("ask.badge")}
           </div>
         </div>
-        <h1 className="text-3xl font-bold text-foreground">اسأل الأستاذ أسامة</h1>
+        <h1 className="text-3xl font-bold text-foreground">{t("ask.title")}</h1>
         <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed">
-          اكتب سؤالك أو ارفع صورة للمسألة اللي محتاج فيها مساعدة، وهيوصلك الرد بفيديو أو رسالة من الأستاذ.
+          {t("ask.lead")}
         </p>
       </header>
 
       <form onSubmit={onSubmit} className="luxury-card p-5 md:p-6 mb-8 space-y-4">
         <label className="block">
-          <span className="text-xs font-semibold text-foreground">اكتب سؤالك</span>
+          <span className="text-xs font-semibold text-foreground">{t("ask.writeLabel")}</span>
           <textarea
             value={text}
             onChange={(e) => setText(e.target.value)}
             rows={4}
             maxLength={4000}
-            placeholder="اكتب المسألة أو الاستفسار هنا…"
+            placeholder={t("ask.placeholder")}
             className="mt-1.5 w-full rounded-xl border border-border bg-white px-4 py-3 text-sm focus:border-teal focus:ring-2 focus:ring-teal/30 outline-none resize-y"
           />
         </label>
 
         <div>
-          <span className="text-xs font-semibold text-foreground">أو ارفع صورة للمسألة</span>
+          <span className="text-xs font-semibold text-foreground">{t("ask.uploadLabel")}</span>
           <div className="mt-1.5 flex items-center gap-3">
             <input
               ref={fileInput}
@@ -168,7 +170,7 @@ function AskPage() {
               onClick={() => fileInput.current?.click()}
               className="rounded-xl border border-border bg-surface-2 px-4 py-2 text-sm font-semibold hover:border-teal transition-colors"
             >
-              اختر صورة
+              {t("ask.pickImage")}
             </button>
             {file && (
               <button
@@ -176,7 +178,7 @@ function AskPage() {
                 onClick={clearImage}
                 className="text-xs text-red-600 hover:underline"
               >
-                إزالة
+                {t("ask.remove")}
               </button>
             )}
             {file && (
@@ -210,17 +212,17 @@ function AskPage() {
           disabled={submitting}
           className="w-full rounded-xl bg-gradient-to-l from-teal to-teal-deep text-white py-3 font-bold hover:opacity-95 transition-opacity shadow-md disabled:opacity-60"
         >
-          {submitting ? "جارٍ الإرسال…" : "إرسال السؤال"}
+          {submitting ? t("ask.sending") : t("ask.send")}
         </button>
       </form>
 
       <section>
-        <h2 className="text-lg font-bold text-foreground mb-3">أسئلتي السابقة</h2>
+        <h2 className="text-lg font-bold text-foreground mb-3">{t("ask.prev")}</h2>
         {loading ? (
-          <div className="text-sm text-muted-foreground">جارٍ التحميل…</div>
+          <div className="text-sm text-muted-foreground">{t("ask.loading")}</div>
         ) : items.length === 0 ? (
           <div className="luxury-card p-6 text-center text-sm text-muted-foreground">
-            لم ترسل أي سؤال بعد.
+            {t("ask.none")}
           </div>
         ) : (
           <div className="space-y-3">
@@ -235,6 +237,7 @@ function AskPage() {
 }
 
 function QuestionCard({ row }: { row: QuestionRow }) {
+  const { t, lang } = useI18n();
   const [imgUrl, setImgUrl] = useState<string | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
 
@@ -261,15 +264,15 @@ function QuestionCard({ row }: { row: QuestionRow }) {
     <article className="luxury-card p-5">
       <div className="flex items-center justify-between mb-3">
         <span className="text-[11px] text-muted-foreground">
-          {new Date(row.created_at).toLocaleString("ar-EG")}
+          {new Date(row.created_at).toLocaleString(lang === "ar" ? "ar-EG" : "en-GB")}
         </span>
         {hasReply ? (
           <span className="text-[11px] rounded-full bg-teal-soft text-teal-deep border border-teal/30 px-2.5 py-0.5 font-bold">
-            تم الرد
+            {t("ask.replied")}
           </span>
         ) : (
           <span className="text-[11px] rounded-full bg-gold-soft text-foreground border border-gold/40 px-2.5 py-0.5 font-semibold">
-            في انتظار الرد
+            {t("ask.waiting")}
           </span>
         )}
       </div>
@@ -281,13 +284,13 @@ function QuestionCard({ row }: { row: QuestionRow }) {
       {imgUrl && (
         <img
           src={imgUrl}
-          alt="سؤال"
+          alt={t("common.question")}
           className="mt-3 max-h-80 rounded-xl border border-border object-contain bg-black/5"
         />
       )}
       {hasReply && (
         <div className="mt-4 pt-4 border-t border-border">
-          <div className="text-xs font-bold text-teal-deep mb-2">رد الأستاذ أسامة</div>
+          <div className="text-xs font-bold text-teal-deep mb-2">{t("ask.reply")}</div>
           {row.reply_text && (
             <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
               {row.reply_text}

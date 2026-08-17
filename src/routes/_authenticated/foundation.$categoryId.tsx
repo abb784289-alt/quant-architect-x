@@ -4,6 +4,7 @@ import { readSession } from "@/lib/session";
 import { FOUNDATION_CATEGORIES, loadFoundationAssets, type FoundationAsset, type FoundationCategoryId } from "@/lib/platform-config";
 import { getSectionVideoSignedUrl } from "@/lib/section-videos.functions";
 import { getMediaAsset } from "@/lib/media-assets.functions";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/foundation/$categoryId")({
   ssr: false,
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/_authenticated/foundation/$categoryId")({
 });
 
 function CategoryGate() {
+  const { t, dir } = useI18n();
   const [ok, setOk] = useState<boolean | null>(null);
   useEffect(() => {
     const s = readSession();
@@ -18,11 +20,12 @@ function CategoryGate() {
     setOk(true);
   }, []);
   if (ok) return <CategoryPage />;
-  return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ التحميل...</div>;
+  return <div dir={dir} className="min-h-[60vh] grid place-items-center text-muted-foreground">{t("common.loading")}</div>;
 }
 
 function CategoryPage() {
   const { categoryId } = Route.useParams();
+  const { t, dir } = useI18n();
   const meta = FOUNDATION_CATEGORIES.find((c) => c.id === (categoryId as FoundationCategoryId));
   const [asset, setAsset] = useState<FoundationAsset | null>(null);
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
@@ -51,42 +54,42 @@ function CategoryPage() {
 
   if (!meta) {
     return (
-      <main className="mx-auto max-w-3xl px-6 py-16 text-center" dir="rtl">
-        <p className="text-muted-foreground mb-4">المحور غير موجود.</p>
-        <Link to="/foundation" className="text-teal-deep font-semibold">← عودة إلى قسم التأسيس</Link>
+      <main className="mx-auto max-w-3xl px-6 py-16 text-center" dir={dir}>
+        <p className="text-muted-foreground mb-4">{t("found.notFound")}</p>
+        <Link to="/foundation" className="text-teal-deep font-semibold">{t("found.backLink")}</Link>
       </main>
     );
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10" dir="rtl">
+    <main className="mx-auto max-w-5xl px-6 py-10" dir={dir}>
       <div className="mb-6">
-        <Link to="/foundation" className="text-xs text-muted-foreground hover:text-teal-deep transition-colors">← قسم التأسيس</Link>
+        <Link to="/foundation" className="text-xs text-muted-foreground hover:text-teal-deep transition-colors">{t("found.back")}</Link>
         <h1 className="mt-3 text-3xl font-bold text-foreground">{meta.title}</h1>
         <p className="text-sm text-muted-foreground">{meta.subtitle}</p>
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 luxury-card p-4">
-          <div className="text-xs font-semibold text-muted-foreground mb-3">فيديو الشرح</div>
+          <div className="text-xs font-semibold text-muted-foreground mb-3">{t("found.video")}</div>
           {videoSrc ? (
             <video src={videoSrc} controls className="w-full rounded-xl bg-black aspect-video" />
           ) : asset?.videoUrl ? (
             <div className="aspect-video rounded-xl bg-surface-2 border border-dashed border-border grid place-items-center text-muted-foreground text-sm">
-              جارٍ تحضير الفيديو…
+              {t("found.videoPreparing")}
             </div>
           ) : (
             <div className="aspect-video rounded-xl bg-surface-2 border border-dashed border-border grid place-items-center text-muted-foreground text-sm">
-              لم يتم رفع فيديو لهذا المحور بعد.
+              {t("found.videoNone")}
             </div>
           )}
         </div>
         <div className="luxury-card p-5">
-          <div className="text-xs font-semibold text-muted-foreground mb-3">القوانين والملخصات</div>
+          <div className="text-xs font-semibold text-muted-foreground mb-3">{t("found.formulas")}</div>
           {asset?.formulas ? (
             <pre className="whitespace-pre-wrap text-sm text-foreground leading-7 font-sans">{asset.formulas}</pre>
           ) : (
-            <p className="text-sm text-muted-foreground">لا توجد قوانين مضافة بعد.</p>
+            <p className="text-sm text-muted-foreground">{t("found.noFormulas")}</p>
           )}
         </div>
       </div>
