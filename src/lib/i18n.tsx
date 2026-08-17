@@ -288,6 +288,10 @@ const ar: Dict = {
   "rep.m60": "جيد",
   "rep.m40": "يحتاج تدريبًا",
   "rep.m0": "يحتاج مراجعة شاملة",
+  "track.quantitative.label": "القسم الكمي",
+  "track.quantitative.short": "كمي",
+  "track.verbal.label": "القسم اللفظي",
+  "track.verbal.short": "لفظي",
 };
 
 const en: Dict = {
@@ -573,12 +577,41 @@ const en: Dict = {
   "rep.m60": "Good",
   "rep.m40": "Needs practice",
   "rep.m0": "Needs full review",
+  "track.quantitative.label": "Quantitative section",
+  "track.quantitative.short": "Quantitative",
+  "track.verbal.label": "Verbal section",
+  "track.verbal.short": "Verbal",
 };
 
 const DICTS: Record<Lang, Dict> = { ar, en };
 
-type Ctx = { lang: Lang; dir: "rtl" | "ltr"; setLang: (l: Lang) => void; t: (k: string) => string };
-const I18nContext = createContext<Ctx>({ lang: "ar", dir: "rtl", setLang: () => {}, t: (k) => ar[k] ?? k });
+type Ctx = {
+  lang: Lang;
+  dir: "rtl" | "ltr";
+  setLang: (l: Lang) => void;
+  t: (k: string, params?: Record<string, string | number>) => string;
+  n: (v: string | number) => string;
+};
+
+const AR_DIGITS = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
+function toArabicDigits(v: string | number) {
+  return String(v).replace(/[0-9]/g, (d) => AR_DIGITS[Number(d)]);
+}
+function toLatinDigits(v: string | number) {
+  return String(v).replace(/[٠-٩]/g, (d) => String(AR_DIGITS.indexOf(d)));
+}
+function interpolate(s: string, params?: Record<string, string | number>) {
+  if (!params) return s;
+  return s.replace(/\{(\w+)\}/g, (_, k) => String(params[k] ?? `{${k}}`));
+}
+
+const I18nContext = createContext<Ctx>({
+  lang: "ar",
+  dir: "rtl",
+  setLang: () => {},
+  t: (k, p) => interpolate(ar[k] ?? k, p),
+  n: (v) => toArabicDigits(v),
+});
 
 export function I18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("ar");
@@ -603,7 +636,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       setLangState(l);
       try { window.localStorage.setItem(STORAGE_KEY, l); } catch { /* ignore */ }
     },
-    t: (k: string) => DICTS[lang][k] ?? DICTS.ar[k] ?? k,
+    t: (k: string, params?: Record<string, string | number>) => {
+      const raw = DICTS[lang][k] ?? DICTS.ar[k] ?? k;
+      const out = interpolate(raw, params);
+      return lang === "ar" ? out : toLatinDigits(out);
+    },
+    n: (v: string | number) => (lang === "ar" ? toArabicDigits(v) : toLatinDigits(v)),
   }), [lang]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
