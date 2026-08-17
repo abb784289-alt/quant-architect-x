@@ -178,6 +178,7 @@ function ExamOrPicker({ session }: { session: Session }) {
 
 function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exam" | "practice"; track: TrackId }) {
   const navigate = useNavigate();
+  const { t, n: num, dir } = useI18n();
   const gradeAttempt = useServerFn(gradeSectionAttempt);
   const { section: sectionNumber } = Route.useSearch();
   const isPractice = mode === "practice";
@@ -228,20 +229,20 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
     if (!config || isPractice) return;
     if (!warned4 && remaining > 0 && remaining <= 240) {
       setWarned4(true);
-      setToast("⏰ تنبيه: تبقّى أقل من ٤ دقائق على انتهاء الاختبار — راجع إجاباتك.");
+      setToast(t("exam.warn4"));
       setTimeout(() => setToast(null), 8000);
     }
   }, [remaining, warned4, config, isPractice]);
 
   if (questions.length === 0) {
     return (
-      <div dir="rtl" className="min-h-[60vh] grid place-items-center px-6">
+      <div dir={dir} className="min-h-[60vh] grid place-items-center px-6">
         <div className="luxury-card p-8 max-w-md text-center">
           <div className="text-3xl mb-3">📝</div>
-          <h2 className="font-display font-bold text-lg text-foreground mb-2">لا توجد أسئلة في هذا القسم بعد</h2>
-          <p className="text-sm text-muted-foreground mb-5">يمكن للمدرّب إضافة أسئلة القسم رقم {sectionNumber ?? 1} من مركز التحكم.</p>
+          <h2 className="font-display font-bold text-lg text-foreground mb-2">{t("exam.noQuestions")}</h2>
+          <p className="text-sm text-muted-foreground mb-5">{t("exam.noQuestionsBody", { n: num(sectionNumber ?? 1) })}</p>
           <button onClick={() => navigate({ to: "/dashboard", search: { track } })} className="rounded-xl bg-teal text-white px-5 py-2.5 text-sm font-bold hover:bg-teal-deep transition-colors">
-            العودة للأقسام
+            {t("common.backToSections")}
           </button>
         </div>
       </div>
@@ -254,13 +255,13 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
 
   async function finish() {
     if (!isPractice && unsolved > 0) {
-      setToast(`⚠️ لا يمكن إنهاء الاختبار قبل حلّ جميع الأسئلة. متبقّي ${toArabic(unsolved)} سؤال.`);
+      setToast(t("exam.mustSolveAll", { n: num(unsolved) }));
       setTimeout(() => setToast(null), 5000);
       return;
     }
     const msg = isPractice
-      ? (unsolved > 0 ? `متبقّي ${toArabic(unsolved)} سؤال بدون إجابة. هل تريد إنهاء التدريب وعرض النتيجة؟` : "هل تريد إنهاء التدريب وعرض النتيجة؟")
-      : "هل أنت متأكد من إنهاء هذا القسم؟";
+      ? (unsolved > 0 ? t("exam.confirmPracticeLeft", { n: num(unsolved) }) : t("exam.confirmPractice"))
+      : t("exam.confirmExam");
     if (!confirm(msg)) return;
     // Grade server-side — answer keys never live in the browser bundle.
     setGrading(true);
@@ -299,7 +300,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
       } catch {}
       setFinished(true);
     } catch (e: any) {
-      setToast("تعذّر احتساب النتيجة: " + (e?.message ?? "خطأ غير معروف"));
+      setToast(t("exam.gradeFailed") + (e?.message ?? t("exam.unknownError")));
       setTimeout(() => setToast(null), 6000);
     } finally {
       setGrading(false);
@@ -329,29 +330,29 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
   }
 
   return (
-    <div dir="rtl" className="min-h-screen bg-surface-1 text-foreground">
+    <div dir={dir} className="min-h-screen bg-surface-1 text-foreground">
       {/* Top ribbon */}
       <div className="sticky top-0 z-30 border-b border-teal/20 bg-gradient-to-l from-teal-soft to-white">
         <div className="mx-auto max-w-[1400px] flex items-center justify-between gap-4 px-5 py-3">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 rounded-xl bg-white border border-teal/30 px-3 py-1.5 shadow-sm">
-              <span className="text-[10px] font-semibold text-muted-foreground">{isPractice ? "وضع" : "كود الاختبار"}</span>
-              <span className="font-bold text-teal-deep">{isPractice ? "تدريب" : "اختبار"} — قسم {config?.number ? toArabic(config.number) : "…"}</span>
+              <span className="text-[10px] font-semibold text-muted-foreground">{isPractice ? t("exam.modeLabel") : t("exam.codeLabel")}</span>
+              <span className="font-bold text-teal-deep">{isPractice ? t("exam.practice") : t("exam.exam")} — {t("common.section")} {config?.number ? num(config.number) : "…"}</span>
             </div>
-            <div className="text-xs text-muted-foreground">مجموع الأسئلة <span className="font-bold text-foreground">{toArabic(questions.length)}</span></div>
-            <div className="text-xs text-muted-foreground">تم الحلّ <span className="font-bold text-teal-deep">{toArabic(solved)}</span></div>
-            <div className="text-xs text-muted-foreground">متبقّي <span className="font-bold text-foreground">{toArabic(unsolved)}</span></div>
+            <div className="text-xs text-muted-foreground">{t("exam.totalQuestions")} <span className="font-bold text-foreground">{num(questions.length)}</span></div>
+            <div className="text-xs text-muted-foreground">{t("exam.solved")} <span className="font-bold text-teal-deep">{num(solved)}</span></div>
+            <div className="text-xs text-muted-foreground">{t("exam.remaining")} <span className="font-bold text-foreground">{num(unsolved)}</span></div>
           </div>
           {isPractice ? (
             <div className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold shadow-md border bg-gold-soft border-gold/40 text-foreground">
               <span>🧘</span>
-              <span>تدريب — بدون وقت</span>
+              <span>{t("exam.practiceNoTimer")}</span>
             </div>
           ) : (
             <div className={"flex items-center gap-2 rounded-xl px-4 py-2 font-mono text-lg font-bold shadow-md border " +
               (remaining < 60 ? "bg-red-50 border-red-300 text-red-700 animate-pulse" : "bg-white border-teal/40 text-teal-deep")}>
               <span className="text-xs font-sans font-semibold text-muted-foreground">⏱</span>
-              {toArabic(formatTimer(remaining))}
+              {num(formatTimer(remaining))}
             </div>
           )}
         </div>
@@ -361,20 +362,20 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
         {/* Sidebar (right in RTL) */}
         <aside className="col-span-12 lg:col-span-2 space-y-3 order-1">
           <div className="luxury-card p-3">
-            <div className="text-[10px] font-semibold text-muted-foreground mb-1.5">هوية الطالب</div>
+            <div className="text-[10px] font-semibold text-muted-foreground mb-1.5">{t("exam.studentId")}</div>
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-teal to-teal-deep text-white grid place-items-center font-bold text-xs">
                 {session.email.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="text-[11px] font-bold text-foreground truncate" dir="ltr">{session.email}</div>
-                <div className="text-[10px] text-muted-foreground">{session.role === "admin" ? "مدرّب" : "طالب"}</div>
+                <div className="text-[10px] text-muted-foreground">{session.role === "admin" ? t("exam.roleAdmin") : t("exam.roleStudent")}</div>
               </div>
             </div>
           </div>
 
           <div className="luxury-card p-3">
-            <div className="text-[10px] font-semibold text-muted-foreground mb-2">شبكة الأسئلة</div>
+            <div className="text-[10px] font-semibold text-muted-foreground mb-2">{t("exam.grid")}</div>
             <div className="grid grid-cols-5 gap-1">
               {questions.map((q, i) => {
                 const answered = answers[q.id] !== undefined;
@@ -392,25 +393,25 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
                           : isFlag
                             ? "bg-teal-soft text-teal-deep border-teal/40"
                             : "bg-surface-2 text-foreground border-border hover:bg-white")}
-                  >{toArabic(i + 1)}</button>
+                  >{num(i + 1)}</button>
                 );
               })}
             </div>
             <div className="mt-2 grid grid-cols-3 gap-1 text-[9px]">
-              <Legend color="bg-answered" label="مُجاب" />
-              <Legend color="bg-teal-soft border border-teal/40" label="مرجعي" />
-              <Legend color="bg-surface-2 border border-border" label="لم يُزَر" />
+              <Legend color="bg-answered" label={t("exam.legendAnswered")} />
+              <Legend color="bg-teal-soft border border-teal/40" label={t("exam.legendFlagged")} />
+              <Legend color="bg-surface-2 border border-border" label={t("exam.legendUnvisited")} />
             </div>
           </div>
 
           <div className="luxury-card p-2.5 space-y-1.5">
-            <UtilBtn onClick={() => setModal("section-inst")}>تعليمات القسم</UtilBtn>
-            <UtilBtn onClick={() => setModal("exam-inst")}>تعليمات الاختبار</UtilBtn>
-            <UtilBtn onClick={() => setModal("rules")}>القوانين</UtilBtn>
+            <UtilBtn onClick={() => setModal("section-inst")}>{t("exam.sectionInst")}</UtilBtn>
+            <UtilBtn onClick={() => setModal("exam-inst")}>{t("exam.examInst")}</UtilBtn>
+            <UtilBtn onClick={() => setModal("rules")}>{t("exam.rules")}</UtilBtn>
             <button
               onClick={finish}
               disabled={!isPractice && unsolved > 0}
-              title={!isPractice && unsolved > 0 ? `يجب حلّ جميع الأسئلة أولاً (متبقّي ${toArabic(unsolved)})` : (isPractice ? "إنهاء التدريب" : "إنهاء الاختبار")}
+              title={!isPractice && unsolved > 0 ? t("exam.mustSolveFirst", { n: num(unsolved) }) : (isPractice ? t("exam.finishPracticeTitle") : t("exam.finishExamTitle"))}
               className={
                 "w-full rounded-lg font-bold py-2.5 text-xs shadow-md transition-colors " +
                 (!isPractice && unsolved > 0
@@ -419,8 +420,8 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
               }
             >
               {isPractice
-                ? "إنهاء التدريب وعرض النتيجة"
-                : (unsolved > 0 ? `إنهاء القسم (متبقّي ${toArabic(unsolved)})` : "إنهاء القسم")}
+                ? t("exam.finishPractice")
+                : (unsolved > 0 ? t("exam.finishSectionLeft", { n: num(unsolved) }) : t("exam.finishSection"))}
             </button>
           </div>
         </aside>
@@ -429,7 +430,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
         <section className="col-span-12 lg:col-span-6 order-2">
           <div className="luxury-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="text-xs font-semibold text-teal-deep">سؤال {toArabic(current + 1)} / {toArabic(questions.length)}</div>
+              <div className="text-xs font-semibold text-teal-deep">{t("common.question")} {num(current + 1)} / {num(questions.length)}</div>
               <div className="flex items-center gap-1">
                 <button onClick={() => setFontScale((s) => Math.max(0.8, s - 0.1))} className="h-8 w-8 rounded-lg border border-border bg-white hover:border-teal transition-colors text-sm font-bold">A-</button>
                 <button onClick={() => setFontScale(1)} className="h-8 w-8 rounded-lg border border-border bg-white hover:border-teal transition-colors text-sm font-bold">A</button>
@@ -441,7 +442,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
               {active.passage && (
                 <div className="rounded-xl border-2 border-teal/40 bg-teal-soft/40 p-4 mb-4 max-h-72 overflow-y-auto">
                   <div className="text-[11px] font-bold text-teal-deep mb-2">
-                    {active.passageTitle ?? "قطعة استيعاب المقروء — اقرأ النص ثم أجب"}
+                    {active.passageTitle ?? t("exam.passageDefault")}
                   </div>
                   <p className="text-foreground leading-8 whitespace-pre-line text-[0.95em]">{active.passage}</p>
                 </div>
@@ -457,7 +458,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
               )}
               {active.imageUrl && (
                 <div className="rounded-xl bg-white border border-border p-3 mb-4 text-center">
-                  <img src={active.imageUrl} alt="رسم السؤال" className="max-h-72 mx-auto rounded-lg" />
+                  <img src={active.imageUrl} alt={t("exam.figureAlt")} className="max-h-72 mx-auto rounded-lg" />
                 </div>
               )}
               {active.latex && (
@@ -497,8 +498,8 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
             {/* Bottom nav */}
             <div className="mt-6 flex flex-wrap gap-2 justify-between border-t border-border pt-4">
               <div className="flex gap-2">
-                <button onClick={() => setCurrent((c) => Math.max(0, c - 1))} className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold hover:border-teal transition-colors">← السؤال السابق</button>
-                <button onClick={() => setCurrent((c) => Math.min(questions.length - 1, c + 1))} className="rounded-xl bg-teal text-white px-4 py-2 text-sm font-bold hover:bg-teal-deep transition-colors">التالي →</button>
+                <button onClick={() => setCurrent((c) => Math.max(0, c - 1))} className="rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold hover:border-teal transition-colors">{t("exam.prev")}</button>
+                <button onClick={() => setCurrent((c) => Math.min(questions.length - 1, c + 1))} className="rounded-xl bg-teal text-white px-4 py-2 text-sm font-bold hover:bg-teal-deep transition-colors">{t("exam.next")}</button>
               </div>
               <div className="flex gap-2">
                 <button
@@ -506,14 +507,14 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
                   className={"rounded-xl px-3 py-2 text-xs font-semibold border transition-colors " +
                     (bookmarks[active.id] ? "border-gold bg-gold-soft text-foreground" : "border-border bg-white text-foreground hover:border-gold")}
                 >
-                  ★ إضافة لمجلد
+                  {t("exam.bookmark")}
                 </button>
                 <button
                   onClick={() => setFlagged((f) => ({ ...f, [active.id]: !f[active.id] }))}
                   className={"rounded-xl px-3 py-2 text-xs font-semibold border transition-colors " +
                     (flagged[active.id] ? "border-teal bg-teal-soft text-teal-deep" : "border-border bg-white text-foreground hover:border-teal")}
                 >
-                  ⚑ علامة مرجعية
+                  {t("exam.flag")}
                 </button>
               </div>
             </div>
@@ -530,15 +531,15 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
         <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/40 p-4" onClick={() => setModal(null)}>
           <div className="luxury-card p-6 max-w-lg w-full" onClick={(e) => e.stopPropagation()}>
             <h3 className="font-display font-bold text-lg mb-3 text-foreground">
-              {modal === "section-inst" ? "تعليمات القسم" : modal === "exam-inst" ? "تعليمات الاختبار" : "القوانين"}
+              {modal === "section-inst" ? t("exam.sectionInst") : modal === "exam-inst" ? t("exam.examInst") : t("exam.rules")}
             </h3>
             <p className="text-sm text-muted-foreground leading-7">
-              {modal === "section-inst" && "اقرأ كل سؤال بعناية، استعن بالسبورة للحسابات، ثم اختر الإجابة الصحيحة من الخيارات الأربعة."}
-              {modal === "exam-inst" && "لن يمكنك تعديل إجاباتك بعد إنهاء القسم. راقب المؤقّت في الأعلى؛ سينتهي القسم تلقائياً عند صفر."}
-              {modal === "rules" && "لا يُسمح بأي مساعدة خارجية. أي محاولة غش تؤدي لإلغاء المحاولة."}
+              {modal === "section-inst" && t("exam.sectionInstBody")}
+              {modal === "exam-inst" && t("exam.examInstBody")}
+              {modal === "rules" && t("exam.rulesBody")}
             </p>
             <button onClick={() => setModal(null)} className="mt-5 rounded-xl bg-teal text-white px-5 py-2 text-sm font-bold hover:bg-teal-deep transition-colors">
-              فهمت
+              {t("common.understood")}
             </button>
           </div>
         </div>
