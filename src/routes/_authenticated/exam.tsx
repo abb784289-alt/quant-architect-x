@@ -726,6 +726,7 @@ function ResultsView({
 type Stroke = { color: string; size: number; points: { x: number; y: number }[]; erase: boolean };
 
 function Scratchpad({ questionId }: { questionId: string }) {
+  const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
   const [color, setColor] = useState("#0F766E");
@@ -892,13 +893,13 @@ function Scratchpad({ questionId }: { questionId: string }) {
   return (
     <div className="luxury-card p-3">
       <div className="flex items-center justify-between mb-2">
-        <div className="text-xs font-semibold text-teal-deep">السبورة التفاعلية</div>
-        <div className="text-[10px] text-muted-foreground">تُحفظ مع كل سؤال</div>
+        <div className="text-xs font-semibold text-teal-deep">{t("exam.boardTitle")}</div>
+        <div className="text-[10px] text-muted-foreground">{t("exam.boardHint")}</div>
       </div>
       <div className="flex flex-wrap gap-2 mb-2">
         <div className="flex rounded-lg border border-border overflow-hidden">
-          <button onClick={() => setTool("pen")} className={"px-3 py-1.5 text-xs font-semibold " + (tool === "pen" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>قلم</button>
-          <button onClick={() => setTool("eraser")} className={"px-3 py-1.5 text-xs font-semibold " + (tool === "eraser" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>ممحاة</button>
+          <button onClick={() => setTool("pen")} className={"px-3 py-1.5 text-xs font-semibold " + (tool === "pen" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>{t("exam.pen")}</button>
+          <button onClick={() => setTool("eraser")} className={"px-3 py-1.5 text-xs font-semibold " + (tool === "eraser" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>{t("exam.eraser")}</button>
         </div>
         <div className="flex gap-1 items-center">
           {colors.map((c) => (
@@ -908,14 +909,14 @@ function Scratchpad({ questionId }: { questionId: string }) {
           ))}
         </div>
         <input type="range" min={1} max={12} value={size} onChange={(e) => setSize(Number(e.target.value))} className="w-20 accent-teal" />
-        <button onClick={undo} aria-label="تراجع عن آخر رسمة" title="تراجع" className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↺</button>
-        <button onClick={redoStroke} aria-label="إعادة الرسمة الملغاة" title="إعادة" className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↻</button>
-        <button onClick={clear} aria-label="مسح السبورة بالكامل" className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold text-red-600 hover:border-red-400">مسح</button>
+        <button onClick={undo} aria-label={t("exam.undo")} title={t("exam.undo")} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↺</button>
+        <button onClick={redoStroke} aria-label={t("exam.redo")} title={t("exam.redo")} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↻</button>
+        <button onClick={clear} aria-label={t("exam.clear")} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold text-red-600 hover:border-red-400">{t("exam.clear")}</button>
       </div>
       <canvas
         ref={canvasRef}
         role="img"
-        aria-label="السبورة الذكية: مساحة رسم لحل المسائل بالقلم أو الماوس"
+        aria-label={t("exam.boardAria")}
         onPointerDown={down}
         onPointerMove={move}
         onPointerUp={up}
