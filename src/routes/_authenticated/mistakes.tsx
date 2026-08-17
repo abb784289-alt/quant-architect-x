@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 import { BlockMath, InlineMath } from "react-katex";
 import { loadAllQuestions, SEED_QUESTIONS, toArabic, resultsKey, TRACKS, isTrackId, type Question, type TrackId } from "@/lib/platform-config";
+import { useI18n } from "@/lib/i18n";
 
 function MathText({ text }: { text: string }) {
   const parts = text.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
@@ -37,9 +38,11 @@ export const Route = createFileRoute("/_authenticated/mistakes")({
 
 function MistakesPage() {
   const navigate = useNavigate();
+  const { t, n: num, dir, lang } = useI18n();
   const { track } = Route.useSearch();
   const activeTrack: TrackId = isTrackId(track) ? track : "quantitative";
-  const meta = TRACKS[activeTrack];
+  const trackLabel = t(`track.${activeTrack}.label`);
+  const trackShort = t(`track.${activeTrack}.short`);
   const [attempts, setAttempts] = useState<Attempt[]>([]);
   const [bank, setBank] = useState<Record<string, Question>>({});
 
@@ -65,44 +68,44 @@ function MistakesPage() {
   const letters = ["أ", "ب", "ج", "د"];
 
   function clearAll() {
-    if (confirm("مسح كل السجل؟")) { localStorage.removeItem(resultsKey(activeTrack)); setAttempts([]); }
+    if (confirm(t("mis.confirmClear"))) { localStorage.removeItem(resultsKey(activeTrack)); setAttempts([]); }
   }
 
   return (
-    <main dir="rtl" className="mx-auto max-w-4xl px-5 py-8 space-y-6">
+    <main dir={dir} className="mx-auto max-w-4xl px-5 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">مكان الأخطاء — {meta.shortLabel}</h1>
-          <p className="text-sm text-muted-foreground mt-1">مراجعة أخطاء مسار {meta.label} — مرتّبة حسب أحدث محاولة.</p>
+          <h1 className="text-2xl font-bold text-foreground">{t("mis.title", { track: trackShort })}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t("mis.lead", { track: trackLabel })}</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => navigate({ to: "/dashboard", search: { track: activeTrack } })} className="rounded-xl border border-border bg-white px-4 py-2 text-xs font-bold hover:border-teal">← الأقسام</button>
-          {attempts.length > 0 && <button onClick={clearAll} className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-2 text-xs font-bold hover:border-red-400">مسح السجل</button>}
+          <button onClick={() => navigate({ to: "/dashboard", search: { track: activeTrack } })} className="rounded-xl border border-border bg-white px-4 py-2 text-xs font-bold hover:border-teal">{t("mis.sections")}</button>
+          {attempts.length > 0 && <button onClick={clearAll} className="rounded-xl border border-red-200 bg-red-50 text-red-700 px-4 py-2 text-xs font-bold hover:border-red-400">{t("mis.clear")}</button>}
         </div>
       </div>
 
       <div className="grid grid-cols-4 gap-3">
-        <StatCard label="محاولات" value={toArabic(totals.sessions)} />
-        <StatCard label="أسئلة" value={toArabic(totals.total)} />
-        <StatCard label="صحيحة" value={toArabic(totals.correct)} tone="teal" />
-        <StatCard label="خاطئة" value={toArabic(totals.wrong)} tone="red" />
+        <StatCard label={t("mis.attempts")} value={num(totals.sessions)} />
+        <StatCard label={t("mis.questions")} value={num(totals.total)} />
+        <StatCard label={t("mis.correct")} value={num(totals.correct)} tone="teal" />
+        <StatCard label={t("mis.wrong")} value={num(totals.wrong)} tone="red" />
       </div>
 
       {attempts.length === 0 && (
-        <div className="luxury-card p-10 text-center text-muted-foreground">لا توجد محاولات محفوظة بعد.</div>
+        <div className="luxury-card p-10 text-center text-muted-foreground">{t("mis.empty")}</div>
       )}
 
       {[...attempts].reverse().map((a, idx) => (
         <div key={idx} className="luxury-card p-5">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <div className="text-xs text-muted-foreground">قسم {toArabic(a.section)} — {new Date(a.at).toLocaleString("ar-EG")}</div>
+              <div className="text-xs text-muted-foreground">{t("common.section")} {num(a.section)} — {new Date(a.at).toLocaleString(lang === "ar" ? "ar-EG" : "en-GB")}</div>
               <div className="font-display font-bold text-foreground">{a.sectionTitle}</div>
             </div>
-            <div className="text-sm font-bold text-teal-deep">{toArabic(a.correct)} / {toArabic(a.total)}</div>
+            <div className="text-sm font-bold text-teal-deep">{num(a.correct)} / {num(a.total)}</div>
           </div>
           {a.wrongIds.length === 0 ? (
-            <div className="text-teal-deep text-sm font-semibold">🎉 لا أخطاء في هذه المحاولة.</div>
+            <div className="text-teal-deep text-sm font-semibold">{t("mis.noneInAttempt")}</div>
           ) : (
             <div className="space-y-3">
               {a.wrongIds.map((qid) => {
@@ -112,9 +115,9 @@ function MistakesPage() {
                 return (
                   <div key={qid} className="rounded-xl border border-red-200 bg-red-50/40 p-3">
                     <div className="text-sm text-foreground mb-2 leading-7"><MathText text={q.prompt} /></div>
-                    <div className="text-xs text-red-700"><b>إجابتك:</b> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : "لم تُجَب"}</div>
+                    <div className="text-xs text-red-700"><b>{t("common.yourAnswer")}</b> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : t("common.notAnswered")}</div>
                     {typeof correctIdx === "number" && (
-                      <div className="text-xs text-teal-deep"><b>الصحيحة:</b> {letters[correctIdx]} — <MathText text={q.choices[correctIdx]} /></div>
+                      <div className="text-xs text-teal-deep"><b>{t("mis.correctShort")}</b> {letters[correctIdx]} — <MathText text={q.choices[correctIdx]} /></div>
                     )}
                   </div>
                 );
