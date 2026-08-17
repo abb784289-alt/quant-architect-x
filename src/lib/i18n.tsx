@@ -290,8 +290,10 @@ const ar: Dict = {
   "rep.m0": "يحتاج مراجعة شاملة",
   "track.quantitative.label": "القسم الكمي",
   "track.quantitative.short": "كمي",
+  "track.quantitative.subtitle": "الرياضيات — ٩٠ قسمًا",
   "track.verbal.label": "القسم اللفظي",
   "track.verbal.short": "لفظي",
+  "track.verbal.subtitle": "اللغة — ٢٦٠ قسمًا",
 };
 
 const en: Dict = {
@@ -579,8 +581,10 @@ const en: Dict = {
   "rep.m0": "Needs full review",
   "track.quantitative.label": "Quantitative section",
   "track.quantitative.short": "Quantitative",
+  "track.quantitative.subtitle": "Mathematics — 90 sections",
   "track.verbal.label": "Verbal section",
   "track.verbal.short": "Verbal",
+  "track.verbal.subtitle": "Language — 260 sections",
 };
 
 const DICTS: Record<Lang, Dict> = { ar, en };

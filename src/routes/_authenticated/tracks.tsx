@@ -34,7 +34,7 @@ function TracksPicker() {
               to="/dashboard"
               search={{ track: t.id } as any}
               className={
-                "group luxury-card p-8 text-right transition-all hover:-translate-y-1 hover:shadow-xl border-2 " +
+                "group luxury-card p-8 text-start transition-all hover:-translate-y-1 hover:shadow-xl border-2 " +
                 (isTeal ? "border-teal/30 hover:border-teal bg-gradient-to-br from-teal-soft/60 to-white"
                        : "border-gold/40 hover:border-gold bg-gradient-to-br from-gold-soft/60 to-white")
               }
@@ -50,9 +50,9 @@ function TracksPicker() {
                 </span>
               </div>
               <div className="font-display font-bold text-2xl text-foreground mb-1">
-                {lang === "ar" ? t.label : t.id === "quantitative" ? "Quantitative" : "Verbal"}
+                {tr(`track.${t.id}.label`)}
               </div>
-              <div className="text-sm text-muted-foreground mb-5">{t.subtitle}</div>
+              <div className="text-sm text-muted-foreground mb-5">{tr(`track.${t.id}.subtitle`)}</div>
               <div className={"inline-flex items-center gap-2 text-sm font-bold " +
                 (isTeal ? "text-teal-deep" : "text-foreground")}>
                 {tr("tracks.start")} <span className="group-hover:-translate-x-1 transition-transform">←</span>
