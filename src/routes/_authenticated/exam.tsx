@@ -565,7 +565,7 @@ function Legend({ color, label }: { color: string; label: string }) {
 
 function UtilBtn({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
   return (
-    <button onClick={onClick} className="w-full text-right rounded-xl border border-border bg-white px-3 py-2 text-xs font-semibold text-foreground hover:border-teal hover:bg-teal-soft transition-colors">
+    <button onClick={onClick} className="w-full text-start rounded-xl border border-border bg-white px-3 py-2 text-xs font-semibold text-foreground hover:border-teal hover:bg-teal-soft transition-colors">
       {children}
     </button>
   );
@@ -591,6 +591,7 @@ function ResultsView({
   onRestart: () => void;
   onBack: () => void;
 }) {
+  const { t, n: num, dir } = useI18n();
   const letters = ["أ", "ب", "ج", "د"];
   const isCorrect = (q: Question) =>
     typeof correctByQid[q.id] === "number" && answers[q.id] === correctByQid[q.id];
@@ -600,12 +601,12 @@ function ResultsView({
   const wrongs = questions.filter((q) => !isCorrect(q));
 
   return (
-    <div dir="rtl" className="min-h-screen bg-surface-1">
+    <div dir={dir} className="min-h-screen bg-surface-1">
       <div className="mx-auto max-w-4xl px-5 py-8 space-y-6">
         {/* Header */}
         <div className="luxury-card p-6 text-center">
           <div className="text-xs font-semibold text-teal-deep mb-2">
-            نتيجة {mode === "practice" ? "التدريب" : "الاختبار"} — القسم {toArabic(sectionNumber)}
+            {t("res.title", { mode: mode === "practice" ? t("res.practiceWord") : t("res.examWord"), n: num(sectionNumber) })}
           </div>
           <h1 className="font-display font-bold text-2xl text-foreground mb-1">{sectionTitle}</h1>
           <div className="mt-6 flex items-center justify-center gap-6">
@@ -613,30 +614,30 @@ function ResultsView({
               (pct >= 70 ? "border-teal bg-teal-soft text-teal-deep" :
                 pct >= 50 ? "border-gold bg-gold-soft text-foreground" : "border-red-300 bg-red-50 text-red-700")}>
               <div className="text-center">
-                <div className="text-3xl font-bold">{toArabic(correctCount)}</div>
-                <div className="text-xs">من {toArabic(total)}</div>
+                <div className="text-3xl font-bold">{num(correctCount)}</div>
+                <div className="text-xs">{t("common.of")} {num(total)}</div>
               </div>
             </div>
-            <div className="text-right space-y-2">
-              <div className="text-sm"><span className="text-muted-foreground">النسبة:</span> <span className="font-bold text-lg text-foreground">{toArabic(pct)}٪</span></div>
-              <div className="text-sm"><span className="text-muted-foreground">صحيحة:</span> <span className="font-bold text-teal-deep">{toArabic(correctCount)}</span></div>
-              <div className="text-sm"><span className="text-muted-foreground">خاطئة:</span> <span className="font-bold text-red-600">{toArabic(total - correctCount)}</span></div>
+            <div className="text-start space-y-2">
+              <div className="text-sm"><span className="text-muted-foreground">{t("res.percent")}</span> <span className="font-bold text-lg text-foreground">{num(pct)}%</span></div>
+              <div className="text-sm"><span className="text-muted-foreground">{t("res.correct")}</span> <span className="font-bold text-teal-deep">{num(correctCount)}</span></div>
+              <div className="text-sm"><span className="text-muted-foreground">{t("res.wrong")}</span> <span className="font-bold text-red-600">{num(total - correctCount)}</span></div>
             </div>
           </div>
           <div className="mt-6 flex flex-wrap gap-2 justify-center">
-            <button onClick={onRestart} className="rounded-xl bg-teal text-white px-5 py-2.5 text-sm font-bold hover:bg-teal-deep transition-colors">إعادة القسم</button>
-            <button onClick={onBack} className="rounded-xl border border-border bg-white px-5 py-2.5 text-sm font-bold hover:border-teal transition-colors">العودة للأقسام</button>
+            <button onClick={onRestart} className="rounded-xl bg-teal text-white px-5 py-2.5 text-sm font-bold hover:bg-teal-deep transition-colors">{t("res.retry")}</button>
+            <button onClick={onBack} className="rounded-xl border border-border bg-white px-5 py-2.5 text-sm font-bold hover:border-teal transition-colors">{t("common.backToSections")}</button>
           </div>
         </div>
 
         {/* Mistakes area */}
         <div className="luxury-card p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-display font-bold text-lg text-foreground">مكان الأخطاء</h2>
-            <span className="text-xs font-semibold rounded-full bg-red-50 text-red-700 px-3 py-1 border border-red-200">{toArabic(wrongs.length)} خطأ</span>
+            <h2 className="font-display font-bold text-lg text-foreground">{t("res.mistakes")}</h2>
+            <span className="text-xs font-semibold rounded-full bg-red-50 text-red-700 px-3 py-1 border border-red-200">{t("res.mistakeCount", { n: num(wrongs.length) })}</span>
           </div>
           {wrongs.length === 0 ? (
-            <div className="text-center py-8 text-teal-deep font-semibold">🎉 لا توجد أخطاء — درجة كاملة!</div>
+            <div className="text-center py-8 text-teal-deep font-semibold">{t("res.perfect")}</div>
           ) : (
             <div className="space-y-4">
               {wrongs.map((q) => {
@@ -646,7 +647,7 @@ function ResultsView({
                 const qNumber = questions.findIndex((x) => x.id === q.id) + 1;
                 return (
                   <div key={q.id} className="rounded-xl border border-red-200 bg-red-50/40 p-4">
-                    <div className="text-[11px] font-bold text-red-700 mb-2">سؤال {toArabic(qNumber)}</div>
+                    <div className="text-[11px] font-bold text-red-700 mb-2">{t("common.question")} {num(qNumber)}</div>
                     {q.passage && (
                       <div className="rounded-lg border border-teal/30 bg-white p-3 mb-3 max-h-40 overflow-y-auto text-xs leading-6 whitespace-pre-line text-muted-foreground">
                         {q.passage}
@@ -658,7 +659,7 @@ function ResultsView({
                       : q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />}
                     {q.imageUrl && (
                       <div className="rounded-lg bg-white border border-border p-3 mb-3 text-center">
-                        <img src={q.imageUrl} alt={`صورة السؤال ${toArabic(qNumber)}`} loading="lazy" className="max-h-72 mx-auto rounded-lg" />
+                        <img src={q.imageUrl} alt={`${t("common.question")} ${num(qNumber)}`} loading="lazy" className="max-h-72 mx-auto rounded-lg" />
                       </div>
                     )}
                     {q.latex && (
@@ -683,13 +684,13 @@ function ResultsView({
                       })}
                     </div>
                     <div className="grid gap-1.5 text-xs">
-                      <div className="text-red-700"><span className="font-bold">إجابتك:</span> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : "لم تُجَب"}</div>
+                      <div className="text-red-700"><span className="font-bold">{t("common.yourAnswer")}</span> {letters[chosen] ?? "—"} — {chosen !== undefined ? <MathText text={q.choices[chosen]} /> : t("common.notAnswered")}</div>
                       <div className="text-teal-deep">
-                        <span className="font-bold">الإجابة الصحيحة:</span>{" "}
+                        <span className="font-bold">{t("common.correctAnswer")}</span>{" "}
                         {hasCorrectAnswer ? (
                           <>{letters[correctIndex]} — <MathText text={q.choices[correctIndex]} /></>
                         ) : (
-                          <span className="text-muted-foreground">تعذّر تحميلها، أعد المحاولة.</span>
+                          <span className="text-muted-foreground">{t("res.loadFailed")}</span>
                         )}
                       </div>
                     </div>
@@ -702,15 +703,15 @@ function ResultsView({
 
         {/* Full review */}
         <div className="luxury-card p-6">
-          <h2 className="font-display font-bold text-lg text-foreground mb-4">مراجعة كاملة</h2>
+          <h2 className="font-display font-bold text-lg text-foreground mb-4">{t("res.fullReview")}</h2>
           <div className="grid grid-cols-10 gap-1.5">
             {questions.map((q, i) => {
               const ok = isCorrect(q);
               return (
-                <div key={q.id} title={`سؤال ${toArabic(i + 1)} — ${ok ? "صحيح" : "خطأ"}`}
+                <div key={q.id} title={`${t("common.question")} ${num(i + 1)} — ${ok ? t("common.correct") : t("common.wrong")}`}
                   className={"h-9 rounded-lg grid place-items-center text-xs font-bold border " +
                     (ok ? "bg-teal text-white border-transparent" : "bg-red-500 text-white border-transparent")}>
-                  {toArabic(i + 1)}
+                  {num(i + 1)}
                 </div>
               );
             })}
