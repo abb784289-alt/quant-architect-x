@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { TRACKS, toArabic } from "@/lib/platform-config";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/tracks")({
   ssr: false,
@@ -13,14 +14,15 @@ export const Route = createFileRoute("/_authenticated/tracks")({
 });
 
 function TracksPicker() {
+  const { t, dir, lang } = useI18n();
   return (
-    <main dir="rtl" className="mx-auto max-w-5xl px-6 py-14">
+    <main dir={dir} className="mx-auto max-w-5xl px-6 py-14">
       <div className="text-center mb-10">
         <div className="inline-flex items-center gap-2 rounded-full bg-teal-soft text-teal-deep px-3 py-1 text-[11px] font-semibold border border-teal/30 mb-3">
-          اختر المسار
+          {t("tracks.kicker")}
         </div>
-        <h1 className="font-display font-bold text-3xl md:text-4xl text-foreground mb-2">اختر المسار الذي تريد التدرّب عليه</h1>
-        <p className="text-sm text-muted-foreground">كل مسار مستقل تمامًا — أقسامه وأخطاؤه وتأسيسه.</p>
+        <h1 className="font-display font-bold text-3xl md:text-4xl text-foreground mb-2">{t("tracks.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("tracks.lead")}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -44,14 +46,16 @@ function TracksPicker() {
                 </div>
                 <span className={"text-[11px] rounded-full px-3 py-1 font-bold border " +
                   (isTeal ? "bg-white border-teal/40 text-teal-deep" : "bg-white border-gold/50 text-foreground")}>
-                  {toArabic(t.total)} قسم
+                  {lang === "ar" ? `${toArabic(t.total)} قسم` : `${t.total} sections`}
                 </span>
               </div>
-              <div className="font-display font-bold text-2xl text-foreground mb-1">{t.label}</div>
+              <div className="font-display font-bold text-2xl text-foreground mb-1">
+                {lang === "ar" ? t.label : t.id === "quantitative" ? "Quantitative" : "Verbal"}
+              </div>
               <div className="text-sm text-muted-foreground mb-5">{t.subtitle}</div>
               <div className={"inline-flex items-center gap-2 text-sm font-bold " +
                 (isTeal ? "text-teal-deep" : "text-foreground")}>
-                ابدأ التدرّب <span className="group-hover:-translate-x-1 transition-transform">←</span>
+                {tr("tracks.start")} <span className="group-hover:-translate-x-1 transition-transform">←</span>
               </div>
             </Link>
           );
@@ -59,7 +63,7 @@ function TracksPicker() {
       </div>
 
       <div className="mt-10 text-center text-xs text-muted-foreground">
-        يمكنك التنقل بين المسارَين في أي وقت من رأس الصفحة.
+        {t("tracks.hint")}
       </div>
     </main>
   );
