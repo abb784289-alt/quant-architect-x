@@ -2,6 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
+import { useI18n } from "@/lib/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -23,6 +25,7 @@ type Tab = "login" | "register";
 type Banner = { kind: "success" | "error" | "info"; text: string } | null;
 
 function LightAuthPage() {
+  const { t, dir } = useI18n();
   const [tab, setTab] = useState<Tab>("login");
   const [banner, setBanner] = useState<Banner>(null);
   const [loginEmail, setLoginEmail] = useState("");
@@ -40,7 +43,7 @@ function LightAuthPage() {
     });
     if (result.error) {
       setBusy(false);
-      setBanner({ kind: "error", text: "تعذّر تسجيل الدخول عبر جوجل. حاول مجدداً." });
+      setBanner({ kind: "error", text: t("auth.googleError") });
       return;
     }
     if (result.redirected) return;
@@ -66,11 +69,11 @@ function LightAuthPage() {
     e.preventDefault();
     const email = loginEmail.trim();
     const password = loginPassword;
-    if (!email || !password) { setBanner({ kind: "error", text: "من فضلك أدخل البريد وكلمة المرور." }); return; }
+    if (!email || !password) { setBanner({ kind: "error", text: t("auth.missingCreds") }); return; }
     setBusy(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (error) { setBanner({ kind: "error", text: "بيانات الدخول غير صحيحة." }); return; }
+    if (error) { setBanner({ kind: "error", text: t("auth.badCreds") }); return; }
     // Role (admin vs student) is resolved server-side via user_roles; go to dashboard,
     // admins can navigate to /admin from the header link.
     window.location.href = "/tracks";
@@ -82,9 +85,9 @@ function LightAuthPage() {
     const email = regEmail.trim();
     const password = regPassword;
     const mobile = regMobile.trim();
-    if (!fullName || !email || !password || !mobile) { setBanner({ kind: "error", text: "من فضلك أكمل جميع الحقول." }); return; }
-    if (!email.includes("@") || email.length < 5) { setBanner({ kind: "error", text: "صيغة البريد الإلكتروني غير صحيحة." }); return; }
-    if (password.length < 6) { setBanner({ kind: "error", text: "كلمة المرور يجب أن تكون 6 أحرف فأكثر." }); return; }
+    if (!fullName || !email || !password || !mobile) { setBanner({ kind: "error", text: t("auth.fillAll") }); return; }
+    if (!email.includes("@") || email.length < 5) { setBanner({ kind: "error", text: t("auth.badEmail") }); return; }
+    if (password.length < 6) { setBanner({ kind: "error", text: t("auth.shortPassword") }); return; }
     setBusy(true);
     const { error } = await supabase.auth.signUp({
       email,
@@ -96,30 +99,31 @@ function LightAuthPage() {
     });
     setBusy(false);
     if (error) {
-      setBanner({ kind: "error", text: error.message.includes("registered") ? "هذا البريد مسجل بالفعل." : "تعذّر إنشاء الحساب." });
+      setBanner({ kind: "error", text: error.message.includes("registered") ? t("auth.emailTaken") : t("auth.signupFailed") });
       return;
     }
-    setBanner({ kind: "success", text: "تم إنشاء الحساب. تحقّق من بريدك لتأكيد الحساب ثم سجّل الدخول." });
+    setBanner({ kind: "success", text: t("auth.signupOk") });
     setTab("login");
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6" dir="rtl">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6" dir={dir}>
+      <div className="mb-4"><LanguageToggle /></div>
       <div className="luxury-card w-full max-w-md p-8">
         <div className="text-center mb-6">
           <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-teal to-teal-deep text-white font-display text-2xl font-bold shadow-lg">م</div>
-          <h1 className="font-display text-2xl font-bold text-teal-gradient mb-1">منصة المِقْيَاس الذكية</h1>
-          <p className="text-xs text-muted-foreground">بوابة الدخول الرسمية — أ. أسامة فتح الدين</p>
+          <h1 className="font-display text-2xl font-bold text-teal-gradient mb-1">{t("brand.full")}</h1>
+          <p className="text-xs text-muted-foreground">{t("auth.subtitle")}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-1 p-1 rounded-2xl bg-surface-2 border border-border mb-6">
           <button type="button" onClick={() => { setTab("login"); setBanner(null); }}
             className={"py-2.5 rounded-xl text-sm font-semibold transition-all " + (tab === "login" ? "bg-white text-teal-deep shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-            تسجيل الدخول
+            {t("auth.login")}
           </button>
           <button type="button" onClick={() => { setTab("register"); setBanner(null); }}
             className={"py-2.5 rounded-xl text-sm font-semibold transition-all " + (tab === "register" ? "bg-white text-teal-deep shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-            إنشاء حساب
+            {t("auth.register")}
           </button>
         </div>
 
@@ -132,31 +136,31 @@ function LightAuthPage() {
 
         {tab === "login" ? (
           <form onSubmit={handleLogin} className="space-y-4" noValidate>
-            <Field label="البريد الإلكتروني" type="email" value={loginEmail} onChange={setLoginEmail} placeholder="name@example.com" autoComplete="email" />
-            <Field label="كلمة المرور" type="password" value={loginPassword} onChange={setLoginPassword} placeholder="••••••••" autoComplete="current-password" />
+            <Field label={t("auth.email")} type="email" value={loginEmail} onChange={setLoginEmail} placeholder="name@example.com" autoComplete="email" />
+            <Field label={t("auth.password")} type="password" value={loginPassword} onChange={setLoginPassword} placeholder="••••••••" autoComplete="current-password" />
             <button type="submit" disabled={busy} className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-l from-teal to-teal-deep hover:opacity-95 transition-all shadow-md hover:shadow-lg disabled:opacity-60">
-              {busy ? "جارٍ الدخول..." : "دخول"}
+              {busy ? t("auth.signingIn") : t("auth.enter")}
             </button>
           </form>
         ) : (
           <form onSubmit={handleRegister} className="space-y-4" noValidate>
-            <Field label="الاسم بالكامل" type="text" value={regName} onChange={setRegName} placeholder="محمد أحمد" autoComplete="name" />
-            <Field label="البريد الإلكتروني" type="email" value={regEmail} onChange={setRegEmail} placeholder="name@example.com" autoComplete="email" />
-            <Field label="كلمة المرور" type="password" value={regPassword} onChange={setRegPassword} placeholder="6 أحرف فأكثر" autoComplete="new-password" />
-            <Field label="رقم الجوال" type="tel" value={regMobile} onChange={setRegMobile} placeholder="05xxxxxxxx" autoComplete="tel" />
+            <Field label={t("auth.fullName")} type="text" value={regName} onChange={setRegName} placeholder={t("auth.namePlaceholder")} autoComplete="name" />
+            <Field label={t("auth.email")} type="email" value={regEmail} onChange={setRegEmail} placeholder="name@example.com" autoComplete="email" />
+            <Field label={t("auth.password")} type="password" value={regPassword} onChange={setRegPassword} placeholder={t("auth.passwordHint")} autoComplete="new-password" />
+            <Field label={t("auth.mobile")} type="tel" value={regMobile} onChange={setRegMobile} placeholder="05xxxxxxxx" autoComplete="tel" />
             <button type="submit" disabled={busy} className="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-l from-teal to-teal-deep hover:opacity-95 transition-all shadow-md hover:shadow-lg disabled:opacity-60">
-              {busy ? "جارٍ الإنشاء..." : "إنشاء الحساب"}
+              {busy ? t("auth.creating") : t("auth.createAccount")}
             </button>
           </form>
         )}
 
         <p className="text-[11px] text-muted-foreground mt-6 text-center">
-          الدخول محمي عبر بروتوكولات آمنة — كلمة المرور لا تُخزَّن على جهازك.
+          {t("auth.secureNote")}
         </p>
 
         <div className="my-6 flex items-center gap-3">
           <span className="h-px flex-1 bg-border" />
-          <span className="text-[11px] text-muted-foreground">أو</span>
+          <span className="text-[11px] text-muted-foreground">{t("auth.or")}</span>
           <span className="h-px flex-1 bg-border" />
         </div>
 
@@ -172,7 +176,7 @@ function LightAuthPage() {
             <path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C1 16.3 0 20 0 24s1 7.7 2.6 10.8l7.9-6.1z"/>
             <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.3-4.6 2.1-8.8 2.1-6.3 0-11.6-3.8-13.5-9.1l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/>
           </svg>
-          المتابعة باستخدام جوجل
+          {t("auth.google")}
         </button>
       </div>
     </div>
@@ -187,7 +191,7 @@ function Field({ label, type, value, onChange, placeholder, autoComplete }: {
       <span className="block text-xs font-semibold text-foreground mb-1.5">{label}</span>
       <input
         type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} autoComplete={autoComplete}
-        dir={type === "email" || type === "tel" ? "ltr" : "rtl"}
+        dir={type === "email" || type === "tel" ? "ltr" : undefined}
         className="w-full rounded-xl bg-surface-1 border border-border focus:border-teal focus:ring-2 focus:ring-teal/30 outline-none px-4 py-3 text-foreground placeholder:text-muted-foreground/60 transition-all"
       />
     </label>
