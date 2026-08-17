@@ -88,9 +88,9 @@ function AskPage() {
     e.preventDefault();
     setError(null);
     setOk(null);
-    const t = text.trim();
-    if (!t && !file) {
-      setError(tr("ask.errEmpty"));
+    const body = text.trim();
+    if (!body && !file) {
+      setError(t("ask.errEmpty"));
       return;
     }
     setSubmitting(true);
@@ -99,7 +99,7 @@ function AskPage() {
       if (file) {
         const { data: userData } = await supabase.auth.getUser();
         const uid = userData.user?.id;
-        if (!uid) throw new Error(tr("ask.errSession"));
+        if (!uid) throw new Error(t("ask.errSession"));
         const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
         const path = `${uid}/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage
@@ -110,16 +110,16 @@ function AskPage() {
       }
       await submitQuestion({
         data: {
-          question_text: t || null,
+          question_text: body || null,
           question_image_path: imagePath,
         },
       });
       setText("");
       clearImage();
-      setOk(tr("ask.ok"));
+      setOk(t("ask.ok"));
       await refresh();
     } catch (e: any) {
-      setError(e?.message || tr("ask.errSend"));
+      setError(e?.message || t("ask.errSend"));
     } finally {
       setSubmitting(false);
     }
