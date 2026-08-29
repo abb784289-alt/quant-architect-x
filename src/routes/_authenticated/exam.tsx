@@ -711,7 +711,7 @@ function ResultsView({
         {/* Full review */}
         <div className="luxury-card p-6">
           <h2 className="font-display font-bold text-lg text-foreground mb-4">{t("res.fullReview")}</h2>
-          <div className="grid grid-cols-10 gap-1.5">
+          <div className="grid grid-cols-6 sm:grid-cols-10 gap-1.5">
             {questions.map((q, i) => {
               const ok = isCorrect(q);
               return (
