@@ -333,16 +333,17 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
     <div dir={dir} className="min-h-screen bg-surface-1 text-foreground">
       {/* Top ribbon */}
       <div className="sticky top-0 z-30 border-b border-teal/20 bg-gradient-to-l from-teal-soft to-white">
-        <div className="mx-auto max-w-[1400px] flex items-center justify-between gap-4 px-5 py-3">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 rounded-xl bg-white border border-teal/30 px-3 py-1.5 shadow-sm">
-              <span className="text-[10px] font-semibold text-muted-foreground">{isPractice ? t("exam.modeLabel") : t("exam.codeLabel")}</span>
-              <span className="font-bold text-teal-deep">{isPractice ? t("exam.practice") : t("exam.exam")} — {t("common.section")} {config?.number ? num(config.number) : "…"}</span>
+        <div className="mx-auto max-w-[1400px] flex flex-wrap items-center justify-between gap-2 sm:gap-4 px-3 sm:px-5 py-2 sm:py-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
+            <div className="flex items-center gap-2 rounded-xl bg-white border border-teal/30 px-2.5 sm:px-3 py-1.5 shadow-sm min-w-0">
+              <span className="hidden sm:inline text-[10px] font-semibold text-muted-foreground">{isPractice ? t("exam.modeLabel") : t("exam.codeLabel")}</span>
+              <span className="font-bold text-teal-deep text-xs sm:text-base truncate">{isPractice ? t("exam.practice") : t("exam.exam")} — {t("common.section")} {config?.number ? num(config.number) : "…"}</span>
             </div>
-            <div className="text-xs text-muted-foreground">{t("exam.totalQuestions")} <span className="font-bold text-foreground">{num(questions.length)}</span></div>
-            <div className="text-xs text-muted-foreground">{t("exam.solved")} <span className="font-bold text-teal-deep">{num(solved)}</span></div>
-            <div className="text-xs text-muted-foreground">{t("exam.remaining")} <span className="font-bold text-foreground">{num(unsolved)}</span></div>
+            <div className="text-[11px] sm:text-xs text-muted-foreground">{t("exam.totalQuestions")} <span className="font-bold text-foreground">{num(questions.length)}</span></div>
+            <div className="text-[11px] sm:text-xs text-muted-foreground">{t("exam.solved")} <span className="font-bold text-teal-deep">{num(solved)}</span></div>
+            <div className="text-[11px] sm:text-xs text-muted-foreground">{t("exam.remaining")} <span className="font-bold text-foreground">{num(unsolved)}</span></div>
           </div>
+
           {isPractice ? (
             <div className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold shadow-md border bg-gold-soft border-gold/40 text-foreground">
               <span>🧘</span>
@@ -358,9 +359,10 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1400px] grid grid-cols-12 gap-4 px-5 py-5">
+      <div className="mx-auto max-w-[1400px] grid grid-cols-12 gap-3 sm:gap-4 px-3 sm:px-5 py-4 sm:py-5">
         {/* Sidebar (right in RTL) */}
-        <aside className="col-span-12 lg:col-span-2 space-y-3 order-1">
+        <aside className="col-span-12 lg:col-span-2 space-y-3 order-2 lg:order-1">
+
           <div className="luxury-card p-3">
             <div className="text-[10px] font-semibold text-muted-foreground mb-1.5">{t("exam.studentId")}</div>
             <div className="flex items-center gap-2">
@@ -376,7 +378,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
 
           <div className="luxury-card p-3">
             <div className="text-[10px] font-semibold text-muted-foreground mb-2">{t("exam.grid")}</div>
-            <div className="grid grid-cols-5 gap-1">
+            <div className="grid grid-cols-8 sm:grid-cols-10 lg:grid-cols-5 gap-1">
               {questions.map((q, i) => {
                 const answered = answers[q.id] !== undefined;
                 const isActive = i === current;
@@ -385,7 +387,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
                   <button
                     key={q.id}
                     onClick={() => setCurrent(i)}
-                    className={"h-7 rounded-md text-[10px] font-bold transition-all border " +
+                    className={"h-9 lg:h-7 rounded-md text-[11px] lg:text-[10px] font-bold transition-all border " +
                       (isActive
                         ? "gold-ring bg-white text-teal-deep border-transparent"
                         : answered
@@ -427,8 +429,9 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
         </aside>
 
         {/* Question + choices (middle, larger) */}
-        <section className="col-span-12 lg:col-span-6 order-2">
-          <div className="luxury-card p-6">
+        <section className="col-span-12 lg:col-span-6 order-1 lg:order-2">
+          <div className="luxury-card p-4 sm:p-6">
+
             <div className="flex items-center justify-between mb-4">
               <div className="text-xs font-semibold text-teal-deep">{t("common.question")} {num(current + 1)} / {num(questions.length)}</div>
               <div className="flex items-center gap-1">
@@ -449,23 +452,25 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
               )}
               <p className="text-foreground mb-4 leading-8"><MathText text={active.prompt} /></p>
               {active.tableHtml && (
-                <div className="rounded-xl bg-white border border-border p-4 mb-4 overflow-x-auto"
+                <div className="rounded-xl bg-white border border-border p-2 sm:p-4 mb-4 overflow-x-auto [&_table]:min-w-[18rem] [&_table]:text-[0.85em] sm:[&_table]:text-[1em]"
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml(active.tableHtml) }} />
               )}
               {!active.tableHtml && active.svg && (
-                <div className="rounded-xl bg-white border border-border p-4 mb-4 flex justify-center [&_svg]:max-h-64 [&_svg]:w-auto"
+                <div className="rounded-xl bg-white border border-border p-2 sm:p-4 mb-4 flex justify-center overflow-x-auto [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:max-h-56 sm:[&_svg]:max-h-64"
                   dangerouslySetInnerHTML={{ __html: sanitizeSvg(active.svg) }} />
               )}
               {active.imageUrl && (
-                <div className="rounded-xl bg-white border border-border p-3 mb-4 text-center">
-                  <img src={active.imageUrl} alt={t("exam.figureAlt")} className="max-h-72 mx-auto rounded-lg" />
+                <div className="rounded-xl bg-white border border-border p-2 sm:p-3 mb-4 text-center">
+                  <img src={active.imageUrl} alt={t("exam.figureAlt")} loading="lazy" className="w-full max-w-full h-auto max-h-[45vh] sm:max-h-72 object-contain mx-auto rounded-lg" />
                 </div>
               )}
+
               {active.latex && (
-                <div className="rounded-xl bg-surface-1 border border-border p-4 mb-6 text-center">
+                <div className="rounded-xl bg-surface-1 border border-border p-3 sm:p-4 mb-6 text-center overflow-x-auto">
                   <BlockMath math={active.latex} />
                 </div>
               )}
+
 
               <div className="space-y-2.5">
                 {active.choices.map((choice, idx) => {
@@ -655,13 +660,15 @@ function ResultsView({
                     )}
                     <div className="text-sm text-foreground mb-3 leading-7"><MathText text={q.prompt} /></div>
                     {q.tableHtml
-                      ? <div className="rounded-lg bg-white border border-border p-3 mb-3 overflow-x-auto" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.tableHtml) }} />
-                      : q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />}
+                      ? <div className="rounded-lg bg-white border border-border p-2 sm:p-3 mb-3 overflow-x-auto [&_table]:min-w-[18rem] [&_table]:text-[0.85em] sm:[&_table]:text-[1em]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.tableHtml) }} />
+                      : q.svg && <div className="rounded-lg bg-white border border-border p-2 sm:p-3 mb-3 flex justify-center overflow-x-auto [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:max-h-48" dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />}
+
                     {q.imageUrl && (
-                      <div className="rounded-lg bg-white border border-border p-3 mb-3 text-center">
-                        <img src={q.imageUrl} alt={`${t("common.question")} ${num(qNumber)}`} loading="lazy" className="max-h-72 mx-auto rounded-lg" />
+                      <div className="rounded-lg bg-white border border-border p-2 sm:p-3 mb-3 text-center">
+                        <img src={q.imageUrl} alt={`${t("common.question")} ${num(qNumber)}`} loading="lazy" className="w-full h-auto max-h-[45vh] sm:max-h-72 object-contain mx-auto rounded-lg" />
                       </div>
                     )}
+
                     {q.latex && (
                       <div className="rounded-lg bg-white border border-border p-3 mb-3 text-center">
                         <BlockMath math={q.latex} />
@@ -704,7 +711,7 @@ function ResultsView({
         {/* Full review */}
         <div className="luxury-card p-6">
           <h2 className="font-display font-bold text-lg text-foreground mb-4">{t("res.fullReview")}</h2>
-          <div className="grid grid-cols-10 gap-1.5">
+          <div className="grid grid-cols-6 sm:grid-cols-10 gap-1.5">
             {questions.map((q, i) => {
               const ok = isCorrect(q);
               return (
@@ -729,7 +736,9 @@ function Scratchpad({ questionId }: { questionId: string }) {
   const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
+  const [full, setFull] = useState(false);
   const [color, setColor] = useState("#0F766E");
+
   const [size, setSize] = useState(3);
   const cacheRef = useRef<Map<string, Stroke[]>>(new Map());
   const strokesRef = useRef<Stroke[]>([]);
@@ -891,27 +900,36 @@ function Scratchpad({ questionId }: { questionId: string }) {
   const colors = ["#0F766E", "#F59E0B", "#DC2626", "#2563EB", "#16A34A", "#111827"];
 
   return (
-    <div className="luxury-card p-3">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-xs font-semibold text-teal-deep">{t("exam.boardTitle")}</div>
-        <div className="text-[10px] text-muted-foreground">{t("exam.boardHint")}</div>
-      </div>
-      <div className="flex flex-wrap gap-2 mb-2">
-        <div className="flex rounded-lg border border-border overflow-hidden">
-          <button onClick={() => setTool("pen")} className={"px-3 py-1.5 text-xs font-semibold " + (tool === "pen" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>{t("exam.pen")}</button>
-          <button onClick={() => setTool("eraser")} className={"px-3 py-1.5 text-xs font-semibold " + (tool === "eraser" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>{t("exam.eraser")}</button>
+    <div className={full
+      ? "fixed inset-0 z-[60] bg-white p-3 flex flex-col"
+      : "luxury-card p-3"}>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="text-xs font-semibold text-teal-deep truncate">{t("exam.boardTitle")}</div>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="hidden sm:block text-[10px] text-muted-foreground">{t("exam.boardHint")}</div>
+          <button
+            onClick={() => setFull((f) => !f)}
+            aria-label={full ? "تصغير السبورة" : "تكبير السبورة"}
+            className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal"
+          >{full ? "⤡" : "⤢"}</button>
         </div>
-        <div className="flex gap-1 items-center">
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
+        <div className="flex rounded-lg border border-border overflow-hidden">
+          <button onClick={() => setTool("pen")} className={"px-3 py-2 sm:py-1.5 text-xs font-semibold " + (tool === "pen" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>{t("exam.pen")}</button>
+          <button onClick={() => setTool("eraser")} className={"px-3 py-2 sm:py-1.5 text-xs font-semibold " + (tool === "eraser" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>{t("exam.eraser")}</button>
+        </div>
+        <div className="flex gap-1.5 items-center">
           {colors.map((c) => (
             <button key={c} onClick={() => { setColor(c); setTool("pen"); }} aria-label={`color ${c}`}
-              className={"h-6 w-6 rounded-full border-2 transition-transform " + (color === c ? "border-foreground scale-110" : "border-white")}
+              className={"h-7 w-7 sm:h-6 sm:w-6 rounded-full border-2 transition-transform " + (color === c ? "border-foreground scale-110" : "border-white")}
               style={{ backgroundColor: c }} />
           ))}
         </div>
-        <input type="range" min={1} max={12} value={size} onChange={(e) => setSize(Number(e.target.value))} className="w-20 accent-teal" />
-        <button onClick={undo} aria-label={t("exam.undo")} title={t("exam.undo")} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↺</button>
-        <button onClick={redoStroke} aria-label={t("exam.redo")} title={t("exam.redo")} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↻</button>
-        <button onClick={clear} aria-label={t("exam.clear")} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold text-red-600 hover:border-red-400">{t("exam.clear")}</button>
+        <input type="range" min={1} max={12} value={size} onChange={(e) => setSize(Number(e.target.value))} className="w-16 sm:w-20 accent-teal" />
+        <button onClick={undo} aria-label={t("exam.undo")} title={t("exam.undo")} className="rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-semibold hover:border-teal">↺</button>
+        <button onClick={redoStroke} aria-label={t("exam.redo")} title={t("exam.redo")} className="rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-semibold hover:border-teal">↻</button>
+        <button onClick={clear} aria-label={t("exam.clear")} className="rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:border-red-400">{t("exam.clear")}</button>
       </div>
       <canvas
         ref={canvasRef}
@@ -922,7 +940,8 @@ function Scratchpad({ questionId }: { questionId: string }) {
         onPointerUp={up}
         onPointerCancel={up}
         style={{ touchAction: "none" }}
-        className="w-full h-[640px] rounded-xl bg-white border border-border touch-none cursor-crosshair select-none"
+        className={"w-full rounded-xl bg-white border border-border touch-none cursor-crosshair select-none " +
+          (full ? "flex-1 min-h-0" : "h-[55vh] min-h-[320px] sm:h-[520px] lg:h-[640px]")}
       />
     </div>
   );

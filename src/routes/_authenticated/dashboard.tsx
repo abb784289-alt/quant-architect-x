@@ -81,7 +81,7 @@ function SectionsDashboard({ track }: { track: TrackId }) {
   const isTeal = trackMeta.accent === "teal";
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-8 md:py-12" dir={dir}>
+    <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6 md:py-12" dir={dir}>
       <h1 className="sr-only">{t("dash.h1", { track: trackLabel })}</h1>
       {/* Track badge + switch */}
       <div className="flex items-center justify-between mb-4">
@@ -101,7 +101,7 @@ function SectionsDashboard({ track }: { track: TrackId }) {
       </div>
 
       {/* Sticky compact search — الأقسام أول حاجة */}
-      <div className="sticky top-0 z-20 -mx-6 px-6 pt-2 pb-4 mb-8 bg-surface/85 backdrop-blur-md">
+      <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2 pb-4 mb-6 sm:mb-8 bg-surface/85 backdrop-blur-md">
         <form onSubmit={onSubmit} className="flex items-center gap-3">
           <div className="relative flex-1">
             <input
