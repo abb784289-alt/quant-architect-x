@@ -429,8 +429,9 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
         </aside>
 
         {/* Question + choices (middle, larger) */}
-        <section className="col-span-12 lg:col-span-6 order-2">
-          <div className="luxury-card p-6">
+        <section className="col-span-12 lg:col-span-6 order-1 lg:order-2">
+          <div className="luxury-card p-4 sm:p-6">
+
             <div className="flex items-center justify-between mb-4">
               <div className="text-xs font-semibold text-teal-deep">{t("common.question")} {num(current + 1)} / {num(questions.length)}</div>
               <div className="flex items-center gap-1">
