@@ -333,16 +333,17 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
     <div dir={dir} className="min-h-screen bg-surface-1 text-foreground">
       {/* Top ribbon */}
       <div className="sticky top-0 z-30 border-b border-teal/20 bg-gradient-to-l from-teal-soft to-white">
-        <div className="mx-auto max-w-[1400px] flex items-center justify-between gap-4 px-5 py-3">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 rounded-xl bg-white border border-teal/30 px-3 py-1.5 shadow-sm">
-              <span className="text-[10px] font-semibold text-muted-foreground">{isPractice ? t("exam.modeLabel") : t("exam.codeLabel")}</span>
-              <span className="font-bold text-teal-deep">{isPractice ? t("exam.practice") : t("exam.exam")} — {t("common.section")} {config?.number ? num(config.number) : "…"}</span>
+        <div className="mx-auto max-w-[1400px] flex flex-wrap items-center justify-between gap-2 sm:gap-4 px-3 sm:px-5 py-2 sm:py-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 min-w-0">
+            <div className="flex items-center gap-2 rounded-xl bg-white border border-teal/30 px-2.5 sm:px-3 py-1.5 shadow-sm min-w-0">
+              <span className="hidden sm:inline text-[10px] font-semibold text-muted-foreground">{isPractice ? t("exam.modeLabel") : t("exam.codeLabel")}</span>
+              <span className="font-bold text-teal-deep text-xs sm:text-base truncate">{isPractice ? t("exam.practice") : t("exam.exam")} — {t("common.section")} {config?.number ? num(config.number) : "…"}</span>
             </div>
-            <div className="text-xs text-muted-foreground">{t("exam.totalQuestions")} <span className="font-bold text-foreground">{num(questions.length)}</span></div>
-            <div className="text-xs text-muted-foreground">{t("exam.solved")} <span className="font-bold text-teal-deep">{num(solved)}</span></div>
-            <div className="text-xs text-muted-foreground">{t("exam.remaining")} <span className="font-bold text-foreground">{num(unsolved)}</span></div>
+            <div className="text-[11px] sm:text-xs text-muted-foreground">{t("exam.totalQuestions")} <span className="font-bold text-foreground">{num(questions.length)}</span></div>
+            <div className="text-[11px] sm:text-xs text-muted-foreground">{t("exam.solved")} <span className="font-bold text-teal-deep">{num(solved)}</span></div>
+            <div className="text-[11px] sm:text-xs text-muted-foreground">{t("exam.remaining")} <span className="font-bold text-foreground">{num(unsolved)}</span></div>
           </div>
+
           {isPractice ? (
             <div className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-bold shadow-md border bg-gold-soft border-gold/40 text-foreground">
               <span>🧘</span>
