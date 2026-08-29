@@ -660,8 +660,9 @@ function ResultsView({
                     )}
                     <div className="text-sm text-foreground mb-3 leading-7"><MathText text={q.prompt} /></div>
                     {q.tableHtml
-                      ? <div className="rounded-lg bg-white border border-border p-3 mb-3 overflow-x-auto" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.tableHtml) }} />
-                      : q.svg && <div className="rounded-lg bg-white border border-border p-3 mb-3 flex justify-center [&_svg]:max-h-48 [&_svg]:w-auto" dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />}
+                      ? <div className="rounded-lg bg-white border border-border p-2 sm:p-3 mb-3 overflow-x-auto [&_table]:min-w-[18rem] [&_table]:text-[0.85em] sm:[&_table]:text-[1em]" dangerouslySetInnerHTML={{ __html: sanitizeHtml(q.tableHtml) }} />
+                      : q.svg && <div className="rounded-lg bg-white border border-border p-2 sm:p-3 mb-3 flex justify-center overflow-x-auto [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:max-h-48" dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />}
+
                     {q.imageUrl && (
                       <div className="rounded-lg bg-white border border-border p-3 mb-3 text-center">
                         <img src={q.imageUrl} alt={`${t("common.question")} ${num(qNumber)}`} loading="lazy" className="max-h-72 mx-auto rounded-lg" />
