@@ -109,6 +109,45 @@
   --sidebar-ring: var(--teal);
 }
 
+.dark {
+  --teal: oklch(0.70 0.11 190);
+  --teal-deep: oklch(0.80 0.09 190);
+  --teal-soft: oklch(0.34 0.05 190);
+  --gold: oklch(0.80 0.13 75);
+  --gold-soft: oklch(0.36 0.06 80);
+  --surface-1: oklch(0.24 0.015 240);
+  --surface-2: oklch(0.28 0.018 240);
+  --answered: oklch(0.74 0.14 55);
+
+  --background: oklch(0.18 0.015 240);
+  --foreground: oklch(0.95 0.008 240);
+  --card: oklch(0.22 0.016 240);
+  --card-foreground: oklch(0.95 0.008 240);
+  --popover: oklch(0.22 0.016 240);
+  --popover-foreground: oklch(0.95 0.008 240);
+  --primary: var(--teal);
+  --primary-foreground: oklch(0.16 0.02 240);
+  --secondary: var(--surface-2);
+  --secondary-foreground: oklch(0.92 0.01 240);
+  --muted: var(--surface-1);
+  --muted-foreground: oklch(0.72 0.015 240);
+  --accent: var(--teal-soft);
+  --accent-foreground: oklch(0.92 0.03 190);
+  --destructive: oklch(0.58 0.20 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.34 0.015 240);
+  --input: oklch(0.34 0.015 240);
+  --ring: var(--teal);
+  --sidebar: oklch(0.21 0.016 240);
+  --sidebar-foreground: oklch(0.95 0.008 240);
+  --sidebar-primary: var(--teal);
+  --sidebar-primary-foreground: oklch(0.16 0.02 240);
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: oklch(0.92 0.03 190);
+  --sidebar-border: oklch(0.34 0.015 240);
+  --sidebar-ring: var(--teal);
+}
+
 @layer base {
   * { border-color: var(--color-border); }
   body {
@@ -145,8 +184,8 @@
 }
 
 @utility luxury-card {
-  background: #FFFFFF;
-  border: 1px solid oklch(0.90 0.01 240);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 1rem;
   box-shadow: 0 1px 2px oklch(0.20 0.03 240 / 0.04), 0 8px 24px -12px oklch(0.20 0.03 240 / 0.08);
 }
@@ -203,3 +242,25 @@
 .q-table tbody tr:nth-child(even) td {
   background: oklch(0.985 0.005 240);
 }
+.dark body {
+  background-image:
+    radial-gradient(ellipse 70% 50% at 50% -10%, oklch(0.70 0.11 190 / 0.10), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 100% 110%, oklch(0.80 0.13 75 / 0.08), transparent 60%);
+}
+.dark .text-teal-gradient {
+  background: linear-gradient(135deg, oklch(0.80 0.09 190), oklch(0.68 0.11 190));
+}
+.dark .q-table {
+  color: var(--foreground);
+  background: var(--card);
+  border-color: var(--border);
+}
+.dark .q-table caption {
+  color: oklch(0.86 0.07 190);
+  background: oklch(0.28 0.04 190);
+  border-bottom-color: var(--border);
+}
+.dark .q-table th, .dark .q-table td { border-color: var(--border); }
+.dark .q-table thead th { background: oklch(0.30 0.045 190); color: oklch(0.90 0.05 190); }
+.dark .q-table tbody th { background: oklch(0.26 0.015 240); }
+.dark .q-table tbody tr:nth-child(even) td { background: oklch(0.24 0.012 240); }
