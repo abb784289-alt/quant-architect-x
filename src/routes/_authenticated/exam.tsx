@@ -734,7 +734,9 @@ function Scratchpad({ questionId }: { questionId: string }) {
   const { t } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tool, setTool] = useState<"pen" | "eraser">("pen");
+  const [full, setFull] = useState(false);
   const [color, setColor] = useState("#0F766E");
+
   const [size, setSize] = useState(3);
   const cacheRef = useRef<Map<string, Stroke[]>>(new Map());
   const strokesRef = useRef<Stroke[]>([]);
