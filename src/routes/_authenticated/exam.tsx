@@ -664,10 +664,11 @@ function ResultsView({
                       : q.svg && <div className="rounded-lg bg-white border border-border p-2 sm:p-3 mb-3 flex justify-center overflow-x-auto [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:max-h-48" dangerouslySetInnerHTML={{ __html: sanitizeSvg(q.svg) }} />}
 
                     {q.imageUrl && (
-                      <div className="rounded-lg bg-white border border-border p-3 mb-3 text-center">
-                        <img src={q.imageUrl} alt={`${t("common.question")} ${num(qNumber)}`} loading="lazy" className="max-h-72 mx-auto rounded-lg" />
+                      <div className="rounded-lg bg-white border border-border p-2 sm:p-3 mb-3 text-center">
+                        <img src={q.imageUrl} alt={`${t("common.question")} ${num(qNumber)}`} loading="lazy" className="w-full h-auto max-h-[45vh] sm:max-h-72 object-contain mx-auto rounded-lg" />
                       </div>
                     )}
+
                     {q.latex && (
                       <div className="rounded-lg bg-white border border-border p-3 mb-3 text-center">
                         <BlockMath math={q.latex} />
