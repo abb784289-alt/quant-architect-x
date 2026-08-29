@@ -378,7 +378,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
 
           <div className="luxury-card p-3">
             <div className="text-[10px] font-semibold text-muted-foreground mb-2">{t("exam.grid")}</div>
-            <div className="grid grid-cols-5 gap-1">
+            <div className="grid grid-cols-8 sm:grid-cols-10 lg:grid-cols-5 gap-1">
               {questions.map((q, i) => {
                 const answered = answers[q.id] !== undefined;
                 const isActive = i === current;
