@@ -359,9 +359,10 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
         </div>
       </div>
 
-      <div className="mx-auto max-w-[1400px] grid grid-cols-12 gap-4 px-5 py-5">
+      <div className="mx-auto max-w-[1400px] grid grid-cols-12 gap-3 sm:gap-4 px-3 sm:px-5 py-4 sm:py-5">
         {/* Sidebar (right in RTL) */}
-        <aside className="col-span-12 lg:col-span-2 space-y-3 order-1">
+        <aside className="col-span-12 lg:col-span-2 space-y-3 order-2 lg:order-1">
+
           <div className="luxury-card p-3">
             <div className="text-[10px] font-semibold text-muted-foreground mb-1.5">{t("exam.studentId")}</div>
             <div className="flex items-center gap-2">
