@@ -387,7 +387,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
                   <button
                     key={q.id}
                     onClick={() => setCurrent(i)}
-                    className={"h-7 rounded-md text-[10px] font-bold transition-all border " +
+                    className={"h-9 lg:h-7 rounded-md text-[11px] lg:text-[10px] font-bold transition-all border " +
                       (isActive
                         ? "gold-ring bg-white text-teal-deep border-transparent"
                         : answered
