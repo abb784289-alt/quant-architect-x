@@ -896,27 +896,36 @@ function Scratchpad({ questionId }: { questionId: string }) {
   const colors = ["#0F766E", "#F59E0B", "#DC2626", "#2563EB", "#16A34A", "#111827"];
 
   return (
-    <div className="luxury-card p-3">
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-xs font-semibold text-teal-deep">{t("exam.boardTitle")}</div>
-        <div className="text-[10px] text-muted-foreground">{t("exam.boardHint")}</div>
-      </div>
-      <div className="flex flex-wrap gap-2 mb-2">
-        <div className="flex rounded-lg border border-border overflow-hidden">
-          <button onClick={() => setTool("pen")} className={"px-3 py-1.5 text-xs font-semibold " + (tool === "pen" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>{t("exam.pen")}</button>
-          <button onClick={() => setTool("eraser")} className={"px-3 py-1.5 text-xs font-semibold " + (tool === "eraser" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>{t("exam.eraser")}</button>
+    <div className={full
+      ? "fixed inset-0 z-[60] bg-white p-3 flex flex-col"
+      : "luxury-card p-3"}>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="text-xs font-semibold text-teal-deep truncate">{t("exam.boardTitle")}</div>
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="hidden sm:block text-[10px] text-muted-foreground">{t("exam.boardHint")}</div>
+          <button
+            onClick={() => setFull((f) => !f)}
+            aria-label={full ? "تصغير السبورة" : "تكبير السبورة"}
+            className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal"
+          >{full ? "⤡" : "⤢"}</button>
         </div>
-        <div className="flex gap-1 items-center">
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2">
+        <div className="flex rounded-lg border border-border overflow-hidden">
+          <button onClick={() => setTool("pen")} className={"px-3 py-2 sm:py-1.5 text-xs font-semibold " + (tool === "pen" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>{t("exam.pen")}</button>
+          <button onClick={() => setTool("eraser")} className={"px-3 py-2 sm:py-1.5 text-xs font-semibold " + (tool === "eraser" ? "bg-teal text-white" : "bg-white text-foreground hover:bg-surface-2")}>{t("exam.eraser")}</button>
+        </div>
+        <div className="flex gap-1.5 items-center">
           {colors.map((c) => (
             <button key={c} onClick={() => { setColor(c); setTool("pen"); }} aria-label={`color ${c}`}
-              className={"h-6 w-6 rounded-full border-2 transition-transform " + (color === c ? "border-foreground scale-110" : "border-white")}
+              className={"h-7 w-7 sm:h-6 sm:w-6 rounded-full border-2 transition-transform " + (color === c ? "border-foreground scale-110" : "border-white")}
               style={{ backgroundColor: c }} />
           ))}
         </div>
-        <input type="range" min={1} max={12} value={size} onChange={(e) => setSize(Number(e.target.value))} className="w-20 accent-teal" />
-        <button onClick={undo} aria-label={t("exam.undo")} title={t("exam.undo")} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↺</button>
-        <button onClick={redoStroke} aria-label={t("exam.redo")} title={t("exam.redo")} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold hover:border-teal">↻</button>
-        <button onClick={clear} aria-label={t("exam.clear")} className="rounded-lg border border-border bg-white px-2 py-1 text-xs font-semibold text-red-600 hover:border-red-400">{t("exam.clear")}</button>
+        <input type="range" min={1} max={12} value={size} onChange={(e) => setSize(Number(e.target.value))} className="w-16 sm:w-20 accent-teal" />
+        <button onClick={undo} aria-label={t("exam.undo")} title={t("exam.undo")} className="rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-semibold hover:border-teal">↺</button>
+        <button onClick={redoStroke} aria-label={t("exam.redo")} title={t("exam.redo")} className="rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-semibold hover:border-teal">↻</button>
+        <button onClick={clear} aria-label={t("exam.clear")} className="rounded-lg border border-border bg-white px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:border-red-400">{t("exam.clear")}</button>
       </div>
       <canvas
         ref={canvasRef}
@@ -927,7 +936,8 @@ function Scratchpad({ questionId }: { questionId: string }) {
         onPointerUp={up}
         onPointerCancel={up}
         style={{ touchAction: "none" }}
-        className="w-full h-[640px] rounded-xl bg-white border border-border touch-none cursor-crosshair select-none"
+        className={"w-full rounded-xl bg-white border border-border touch-none cursor-crosshair select-none " +
+          (full ? "flex-1 min-h-0" : "h-[55vh] min-h-[320px] sm:h-[520px] lg:h-[640px]")}
       />
     </div>
   );
