@@ -466,10 +466,11 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
               )}
 
               {active.latex && (
-                <div className="rounded-xl bg-surface-1 border border-border p-4 mb-6 text-center">
+                <div className="rounded-xl bg-surface-1 border border-border p-3 sm:p-4 mb-6 text-center overflow-x-auto">
                   <BlockMath math={active.latex} />
                 </div>
               )}
+
 
               <div className="space-y-2.5">
                 {active.choices.map((choice, idx) => {
