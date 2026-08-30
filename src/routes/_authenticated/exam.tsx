@@ -452,11 +452,11 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
               )}
               <p className="text-foreground mb-4 leading-8"><MathText text={active.prompt} /></p>
               {active.tableHtml && (
-                <div className="rounded-xl bg-white border border-border p-2 sm:p-4 mb-4 overflow-x-auto [&_table]:min-w-[18rem] [&_table]:text-[0.85em] sm:[&_table]:text-[1em]"
+                <div className="rounded-xl bg-white dark:bg-neutral-100 border border-border p-2 sm:p-4 mb-4 overflow-x-auto [&_table]:min-w-[18rem] [&_table]:text-[0.85em] sm:[&_table]:text-[1em]"
                   dangerouslySetInnerHTML={{ __html: sanitizeHtml(active.tableHtml) }} />
               )}
               {!active.tableHtml && active.svg && (
-                <div className="rounded-xl bg-white border border-border p-2 sm:p-4 mb-4 flex justify-center overflow-x-auto [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:max-h-56 sm:[&_svg]:max-h-64"
+                <div className="rounded-xl bg-white dark:bg-neutral-100 border border-border p-2 sm:p-4 mb-4 flex justify-center overflow-x-auto [&_svg]:max-w-full [&_svg]:h-auto [&_svg]:max-h-56 sm:[&_svg]:max-h-64"
                   dangerouslySetInnerHTML={{ __html: sanitizeSvg(active.svg) }} />
               )}
               {active.imageUrl && (

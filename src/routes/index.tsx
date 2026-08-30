@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import professorHero from "@/assets/professor-hero.jpg";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -127,6 +128,7 @@ function Index() {
         </nav>
         <div className="flex items-center gap-3">
           <LanguageToggle />
+          <ThemeToggle />
           <a href="/auth" className="rounded-full border border-gold/40 px-5 py-2 text-sm text-gold-soft transition hover:border-gold hover:bg-gold/10">
             {t("nav.studentLogin")}
           </a>
