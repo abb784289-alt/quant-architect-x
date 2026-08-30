@@ -6,6 +6,7 @@ import { hydrateQuestionBankFromServer } from "@/lib/platform-config";
 import { hasRedeemedCode, redeemCode } from "@/lib/access-codes.functions";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -55,6 +56,7 @@ function RoleAwareShell() {
           </Link>
           <nav className="flex items-center gap-1 text-sm">
             <LanguageToggle className="ms-1" />
+            <ThemeToggle />
             <Link to="/tracks" className="rounded-lg px-3 py-2 text-foreground/80 hover:bg-surface-2 hover:text-teal-deep transition-colors">
               {t("nav.tracks")}
             </Link>

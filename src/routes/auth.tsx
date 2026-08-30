@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -108,7 +109,7 @@ function LightAuthPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" dir={dir}>
-      <div className="mb-4"><LanguageToggle /></div>
+      <div className="mb-4 flex items-center gap-2"><LanguageToggle /><ThemeToggle /></div>
       <div className="luxury-card w-full max-w-md p-8">
         <div className="text-center mb-6">
           <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-teal to-teal-deep text-white font-display text-2xl font-bold shadow-lg">م</div>
