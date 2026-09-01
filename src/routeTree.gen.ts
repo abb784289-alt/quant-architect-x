@@ -14,13 +14,13 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTracksRouteImport } from './routes/_authenticated/tracks'
-import { Route as AuthenticatedSkillsRouteImport } from './routes/_authenticated/skills'
 import { Route as AuthenticatedMistakesRouteImport } from './routes/_authenticated/mistakes'
 import { Route as AuthenticatedFoundationRouteImport } from './routes/_authenticated/foundation'
 import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAskRouteImport } from './routes/_authenticated/ask'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedSkillsIndexRouteImport } from './routes/_authenticated/skills.index'
 import { Route as ApiPublicBootstrapAdminRouteImport } from './routes/api/public/bootstrap-admin'
 import { Route as AuthenticatedReportSessionIdRouteImport } from './routes/_authenticated/report.$sessionId'
 import { Route as AuthenticatedFoundationCategoryIdRouteImport } from './routes/_authenticated/foundation.$categoryId'
@@ -47,11 +47,6 @@ const IndexRoute = IndexRouteImport.update({
 const AuthenticatedTracksRoute = AuthenticatedTracksRouteImport.update({
   id: '/tracks',
   path: '/tracks',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedSkillsRoute = AuthenticatedSkillsRouteImport.update({
-  id: '/skills',
-  path: '/skills',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMistakesRoute = AuthenticatedMistakesRouteImport.update({
@@ -84,6 +79,12 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSkillsIndexRoute =
+  AuthenticatedSkillsIndexRouteImport.update({
+    id: '/skills/',
+    path: '/skills/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicBootstrapAdminRoute = ApiPublicBootstrapAdminRouteImport.update({
   id: '/api/public/bootstrap-admin',
   path: '/api/public/bootstrap-admin',
@@ -112,11 +113,11 @@ export interface FileRoutesByFullPath {
   '/exam': typeof AuthenticatedExamRoute
   '/foundation': typeof AuthenticatedFoundationRouteWithChildren
   '/mistakes': typeof AuthenticatedMistakesRoute
-  '/skills': typeof AuthenticatedSkillsRoute
   '/tracks': typeof AuthenticatedTracksRoute
   '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
   '/api/public/bootstrap-admin': typeof ApiPublicBootstrapAdminRoute
+  '/skills/': typeof AuthenticatedSkillsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -128,11 +129,11 @@ export interface FileRoutesByTo {
   '/exam': typeof AuthenticatedExamRoute
   '/foundation': typeof AuthenticatedFoundationRouteWithChildren
   '/mistakes': typeof AuthenticatedMistakesRoute
-  '/skills': typeof AuthenticatedSkillsRoute
   '/tracks': typeof AuthenticatedTracksRoute
   '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
   '/api/public/bootstrap-admin': typeof ApiPublicBootstrapAdminRoute
+  '/skills': typeof AuthenticatedSkillsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -146,11 +147,11 @@ export interface FileRoutesById {
   '/_authenticated/exam': typeof AuthenticatedExamRoute
   '/_authenticated/foundation': typeof AuthenticatedFoundationRouteWithChildren
   '/_authenticated/mistakes': typeof AuthenticatedMistakesRoute
-  '/_authenticated/skills': typeof AuthenticatedSkillsRoute
   '/_authenticated/tracks': typeof AuthenticatedTracksRoute
   '/_authenticated/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/_authenticated/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
   '/api/public/bootstrap-admin': typeof ApiPublicBootstrapAdminRoute
+  '/_authenticated/skills/': typeof AuthenticatedSkillsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -164,11 +165,11 @@ export interface FileRouteTypes {
     | '/exam'
     | '/foundation'
     | '/mistakes'
-    | '/skills'
     | '/tracks'
     | '/foundation/$categoryId'
     | '/report/$sessionId'
     | '/api/public/bootstrap-admin'
+    | '/skills/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -180,11 +181,11 @@ export interface FileRouteTypes {
     | '/exam'
     | '/foundation'
     | '/mistakes'
-    | '/skills'
     | '/tracks'
     | '/foundation/$categoryId'
     | '/report/$sessionId'
     | '/api/public/bootstrap-admin'
+    | '/skills'
   id:
     | '__root__'
     | '/'
@@ -197,11 +198,11 @@ export interface FileRouteTypes {
     | '/_authenticated/exam'
     | '/_authenticated/foundation'
     | '/_authenticated/mistakes'
-    | '/_authenticated/skills'
     | '/_authenticated/tracks'
     | '/_authenticated/foundation/$categoryId'
     | '/_authenticated/report/$sessionId'
     | '/api/public/bootstrap-admin'
+    | '/_authenticated/skills/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -249,13 +250,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTracksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/skills': {
-      id: '/_authenticated/skills'
-      path: '/skills'
-      fullPath: '/skills'
-      preLoaderRoute: typeof AuthenticatedSkillsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/mistakes': {
       id: '/_authenticated/mistakes'
       path: '/mistakes'
@@ -296,6 +290,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/skills/': {
+      id: '/_authenticated/skills/'
+      path: '/skills'
+      fullPath: '/skills/'
+      preLoaderRoute: typeof AuthenticatedSkillsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/bootstrap-admin': {
@@ -344,9 +345,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExamRoute: typeof AuthenticatedExamRoute
   AuthenticatedFoundationRoute: typeof AuthenticatedFoundationRouteWithChildren
   AuthenticatedMistakesRoute: typeof AuthenticatedMistakesRoute
-  AuthenticatedSkillsRoute: typeof AuthenticatedSkillsRoute
   AuthenticatedTracksRoute: typeof AuthenticatedTracksRoute
   AuthenticatedReportSessionIdRoute: typeof AuthenticatedReportSessionIdRoute
+  AuthenticatedSkillsIndexRoute: typeof AuthenticatedSkillsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -356,9 +357,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExamRoute: AuthenticatedExamRoute,
   AuthenticatedFoundationRoute: AuthenticatedFoundationRouteWithChildren,
   AuthenticatedMistakesRoute: AuthenticatedMistakesRoute,
-  AuthenticatedSkillsRoute: AuthenticatedSkillsRoute,
   AuthenticatedTracksRoute: AuthenticatedTracksRoute,
   AuthenticatedReportSessionIdRoute: AuthenticatedReportSessionIdRoute,
+  AuthenticatedSkillsIndexRoute: AuthenticatedSkillsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
