@@ -23,6 +23,7 @@ import { Route as AuthenticatedAskRouteImport } from './routes/_authenticated/as
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedSkillsIndexRouteImport } from './routes/_authenticated/skills.index'
 import { Route as ApiPublicBootstrapAdminRouteImport } from './routes/api/public/bootstrap-admin'
+import { Route as AuthenticatedSkillsSkillIdRouteImport } from './routes/_authenticated/skills.$skillId'
 import { Route as AuthenticatedReportSessionIdRouteImport } from './routes/_authenticated/report.$sessionId'
 import { Route as AuthenticatedFoundationCategoryIdRouteImport } from './routes/_authenticated/foundation.$categoryId'
 
@@ -96,6 +97,12 @@ const ApiPublicBootstrapAdminRoute = ApiPublicBootstrapAdminRouteImport.update({
   path: '/api/public/bootstrap-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedSkillsSkillIdRoute =
+  AuthenticatedSkillsSkillIdRouteImport.update({
+    id: '/$skillId',
+    path: '/$skillId',
+    getParentRoute: () => AuthenticatedSkillsRoute,
+  } as any)
 const AuthenticatedReportSessionIdRoute =
   AuthenticatedReportSessionIdRouteImport.update({
     id: '/report/$sessionId',
@@ -123,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/tracks': typeof AuthenticatedTracksRoute
   '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
+  '/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
   '/api/public/bootstrap-admin': typeof ApiPublicBootstrapAdminRoute
   '/skills/': typeof AuthenticatedSkillsIndexRoute
 }
@@ -139,6 +147,7 @@ export interface FileRoutesByTo {
   '/tracks': typeof AuthenticatedTracksRoute
   '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
+  '/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
   '/api/public/bootstrap-admin': typeof ApiPublicBootstrapAdminRoute
   '/skills': typeof AuthenticatedSkillsIndexRoute
 }
@@ -158,6 +167,7 @@ export interface FileRoutesById {
   '/_authenticated/tracks': typeof AuthenticatedTracksRoute
   '/_authenticated/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/_authenticated/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
+  '/_authenticated/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
   '/api/public/bootstrap-admin': typeof ApiPublicBootstrapAdminRoute
   '/_authenticated/skills/': typeof AuthenticatedSkillsIndexRoute
 }
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/tracks'
     | '/foundation/$categoryId'
     | '/report/$sessionId'
+    | '/skills/$skillId'
     | '/api/public/bootstrap-admin'
     | '/skills/'
   fileRoutesByTo: FileRoutesByTo
@@ -193,6 +204,7 @@ export interface FileRouteTypes {
     | '/tracks'
     | '/foundation/$categoryId'
     | '/report/$sessionId'
+    | '/skills/$skillId'
     | '/api/public/bootstrap-admin'
     | '/skills'
   id:
@@ -211,6 +223,7 @@ export interface FileRouteTypes {
     | '/_authenticated/tracks'
     | '/_authenticated/foundation/$categoryId'
     | '/_authenticated/report/$sessionId'
+    | '/_authenticated/skills/$skillId'
     | '/api/public/bootstrap-admin'
     | '/_authenticated/skills/'
   fileRoutesById: FileRoutesById
@@ -323,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBootstrapAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/skills/$skillId': {
+      id: '/_authenticated/skills/$skillId'
+      path: '/$skillId'
+      fullPath: '/skills/$skillId'
+      preLoaderRoute: typeof AuthenticatedSkillsSkillIdRouteImport
+      parentRoute: typeof AuthenticatedSkillsRoute
+    }
     '/_authenticated/report/$sessionId': {
       id: '/_authenticated/report/$sessionId'
       path: '/report/$sessionId'
@@ -356,10 +376,12 @@ const AuthenticatedFoundationRouteWithChildren =
   )
 
 interface AuthenticatedSkillsRouteChildren {
+  AuthenticatedSkillsSkillIdRoute: typeof AuthenticatedSkillsSkillIdRoute
   AuthenticatedSkillsIndexRoute: typeof AuthenticatedSkillsIndexRoute
 }
 
 const AuthenticatedSkillsRouteChildren: AuthenticatedSkillsRouteChildren = {
+  AuthenticatedSkillsSkillIdRoute: AuthenticatedSkillsSkillIdRoute,
   AuthenticatedSkillsIndexRoute: AuthenticatedSkillsIndexRoute,
 }
 

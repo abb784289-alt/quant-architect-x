@@ -140,8 +140,27 @@ function SectionsDashboard({ track }: { track: TrackId }) {
         )}
       </div>
 
+      {/* تأسيس المهارات — داخل القسم الكمي فقط */}
+      {track === "quantitative" && (
+        <button
+          type="button"
+          onClick={() => navigate({ to: "/skills" })}
+          className="w-full mb-6 md:mb-8 luxury-card p-5 md:p-6 text-start flex items-center justify-between gap-4 border-2 border-teal/30 hover:border-teal hover:-translate-y-0.5 hover:shadow-lg transition-all"
+        >
+          <div className="flex items-center gap-4">
+            <div className="h-12 w-12 rounded-2xl bg-teal text-white grid place-items-center text-2xl shadow-md">🧩</div>
+            <div>
+              <div className="font-display font-bold text-foreground text-lg">مهارات التأسيس الكمي</div>
+              <div className="text-xs text-muted-foreground">٣٠ مهارة منفصلة عن الأقسام — اختبار بوقت أو تدريب حر.</div>
+            </div>
+          </div>
+          <span className="text-teal-deep font-bold">←</span>
+        </button>
+      )}
+
       {/* الأقسام — أكبر وأوسع */}
       <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
+
         {filtered.map((s) => {
           const count = qCounts[s.number] ?? 0;
           const ready = count > 0;
