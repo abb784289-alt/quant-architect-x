@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { SKILLS } from "@/lib/skills-config";
 import { useI18n } from "@/lib/i18n";
 
-export const Route = createFileRoute("/_authenticated/skills")({
+export const Route = createFileRoute("/_authenticated/skills/")({
   ssr: false,
   head: () => ({
     meta: [
