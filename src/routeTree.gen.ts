@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTracksRouteImport } from './routes/_authenticated/tracks'
+import { Route as AuthenticatedSkillsRouteImport } from './routes/_authenticated/skills'
 import { Route as AuthenticatedMistakesRouteImport } from './routes/_authenticated/mistakes'
 import { Route as AuthenticatedFoundationRouteImport } from './routes/_authenticated/foundation'
 import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
@@ -49,6 +50,11 @@ const AuthenticatedTracksRoute = AuthenticatedTracksRouteImport.update({
   path: '/tracks',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSkillsRoute = AuthenticatedSkillsRouteImport.update({
+  id: '/skills',
+  path: '/skills',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMistakesRoute = AuthenticatedMistakesRouteImport.update({
   id: '/mistakes',
   path: '/mistakes',
@@ -81,9 +87,9 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
 } as any)
 const AuthenticatedSkillsIndexRoute =
   AuthenticatedSkillsIndexRouteImport.update({
-    id: '/skills/',
-    path: '/skills/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedSkillsRoute,
   } as any)
 const ApiPublicBootstrapAdminRoute = ApiPublicBootstrapAdminRouteImport.update({
   id: '/api/public/bootstrap-admin',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/exam': typeof AuthenticatedExamRoute
   '/foundation': typeof AuthenticatedFoundationRouteWithChildren
   '/mistakes': typeof AuthenticatedMistakesRoute
+  '/skills': typeof AuthenticatedSkillsRouteWithChildren
   '/tracks': typeof AuthenticatedTracksRoute
   '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
@@ -147,6 +154,7 @@ export interface FileRoutesById {
   '/_authenticated/exam': typeof AuthenticatedExamRoute
   '/_authenticated/foundation': typeof AuthenticatedFoundationRouteWithChildren
   '/_authenticated/mistakes': typeof AuthenticatedMistakesRoute
+  '/_authenticated/skills': typeof AuthenticatedSkillsRouteWithChildren
   '/_authenticated/tracks': typeof AuthenticatedTracksRoute
   '/_authenticated/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
   '/_authenticated/report/$sessionId': typeof AuthenticatedReportSessionIdRoute
@@ -165,6 +173,7 @@ export interface FileRouteTypes {
     | '/exam'
     | '/foundation'
     | '/mistakes'
+    | '/skills'
     | '/tracks'
     | '/foundation/$categoryId'
     | '/report/$sessionId'
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/_authenticated/exam'
     | '/_authenticated/foundation'
     | '/_authenticated/mistakes'
+    | '/_authenticated/skills'
     | '/_authenticated/tracks'
     | '/_authenticated/foundation/$categoryId'
     | '/_authenticated/report/$sessionId'
@@ -250,6 +260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTracksRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/skills': {
+      id: '/_authenticated/skills'
+      path: '/skills'
+      fullPath: '/skills'
+      preLoaderRoute: typeof AuthenticatedSkillsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/mistakes': {
       id: '/_authenticated/mistakes'
       path: '/mistakes'
@@ -294,10 +311,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/skills/': {
       id: '/_authenticated/skills/'
-      path: '/skills'
+      path: '/'
       fullPath: '/skills/'
       preLoaderRoute: typeof AuthenticatedSkillsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      parentRoute: typeof AuthenticatedSkillsRoute
     }
     '/api/public/bootstrap-admin': {
       id: '/api/public/bootstrap-admin'
@@ -338,6 +355,17 @@ const AuthenticatedFoundationRouteWithChildren =
     AuthenticatedFoundationRouteChildren,
   )
 
+interface AuthenticatedSkillsRouteChildren {
+  AuthenticatedSkillsIndexRoute: typeof AuthenticatedSkillsIndexRoute
+}
+
+const AuthenticatedSkillsRouteChildren: AuthenticatedSkillsRouteChildren = {
+  AuthenticatedSkillsIndexRoute: AuthenticatedSkillsIndexRoute,
+}
+
+const AuthenticatedSkillsRouteWithChildren =
+  AuthenticatedSkillsRoute._addFileChildren(AuthenticatedSkillsRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAskRoute: typeof AuthenticatedAskRoute
@@ -345,9 +373,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedExamRoute: typeof AuthenticatedExamRoute
   AuthenticatedFoundationRoute: typeof AuthenticatedFoundationRouteWithChildren
   AuthenticatedMistakesRoute: typeof AuthenticatedMistakesRoute
+  AuthenticatedSkillsRoute: typeof AuthenticatedSkillsRouteWithChildren
   AuthenticatedTracksRoute: typeof AuthenticatedTracksRoute
   AuthenticatedReportSessionIdRoute: typeof AuthenticatedReportSessionIdRoute
-  AuthenticatedSkillsIndexRoute: typeof AuthenticatedSkillsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -357,9 +385,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedExamRoute: AuthenticatedExamRoute,
   AuthenticatedFoundationRoute: AuthenticatedFoundationRouteWithChildren,
   AuthenticatedMistakesRoute: AuthenticatedMistakesRoute,
+  AuthenticatedSkillsRoute: AuthenticatedSkillsRouteWithChildren,
   AuthenticatedTracksRoute: AuthenticatedTracksRoute,
   AuthenticatedReportSessionIdRoute: AuthenticatedReportSessionIdRoute,
-  AuthenticatedSkillsIndexRoute: AuthenticatedSkillsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
