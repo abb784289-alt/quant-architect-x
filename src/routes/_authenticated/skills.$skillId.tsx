@@ -127,7 +127,11 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
             {wrong.map(({ x, i }) => (
               <div key={x.id} className="luxury-card p-4">
                 <div className="text-xs text-muted-foreground mb-2">سؤال {num(i + 1)}</div>
-                <img src={x.imageUrl} alt={`سؤال ${i + 1} من مهارة ${skill.title}`} loading="lazy" className="w-full max-w-full rounded-xl border border-border bg-white" />
+                {x.text ? (
+                  <p className="text-base font-semibold leading-loose text-foreground">{x.text}</p>
+                ) : (
+                  <img src={x.imageUrl} alt={`سؤال ${i + 1} من مهارة ${skill.title}`} loading="lazy" className="w-full max-w-full rounded-xl border border-border bg-white" />
+                )}
                 <div className="mt-3 text-sm">
                   <span className="text-red-600 font-bold">إجابتك: {answers[i] === null ? "—" : x.choices[answers[i] as number]}</span>
                   <span className="mx-3 text-muted-foreground">|</span>
@@ -159,7 +163,11 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
       </div>
 
       <div className="luxury-card p-4 md:p-6">
-        <img src={q.imageUrl} alt={`سؤال ${idx + 1} من مهارة ${skill.title}`} className="w-full max-w-full rounded-xl border border-border bg-white" />
+        {q.text ? (
+          <p className="text-lg md:text-xl font-semibold leading-loose text-foreground">{q.text}</p>
+        ) : (
+          <img src={q.imageUrl} alt={`سؤال ${idx + 1} من مهارة ${skill.title}`} className="w-full max-w-full rounded-xl border border-border bg-white" />
+        )}
         <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
           {q.choices.map((c, ci) => {
             const active = answers[idx] === ci;
