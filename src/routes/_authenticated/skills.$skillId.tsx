@@ -159,7 +159,11 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
       </div>
 
       <div className="luxury-card p-4 md:p-6">
-        <img src={q.imageUrl} alt={`سؤال ${idx + 1} من مهارة ${skill.title}`} className="w-full max-w-full rounded-xl border border-border bg-white" />
+        {q.text ? (
+          <p className="text-lg md:text-xl font-semibold leading-loose text-foreground">{q.text}</p>
+        ) : (
+          <img src={q.imageUrl} alt={`سؤال ${idx + 1} من مهارة ${skill.title}`} className="w-full max-w-full rounded-xl border border-border bg-white" />
+        )}
         <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
           {q.choices.map((c, ci) => {
             const active = answers[idx] === ci;
