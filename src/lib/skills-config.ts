@@ -144,7 +144,7 @@ export const SKILLS: Skill[] = [
   { id: 10, title: "المثلثات", questions: [
     { id: "sk10_q1", imageUrl: "/skills/sk10_p040_01.jpg", text: "مثلثات فيثاغورس المشهورة (مهمة جداً):\n- $(3 \\text{،} 4 \\text{،} 5)$ ومضاعفاتها $(6 \\text{،} 8 \\text{،} 10)$، $(9 \\text{،} 12 \\text{،} 15)$ وهكذا\n- المثلث الذي أضلاعه $(5 \\text{،} 12 \\text{،} 13)$ ومضاعفاته", choices: CH, correctIndex: null },
     { id: "sk10_q2", imageUrl: "/skills/sk10_p040_02.jpg", text: "الوتر هو أطول ضلع في المثلث القائم الزاوية.", choices: CH, correctIndex: null },
-    { id: "sk10_q3", imageUrl: "/skills/sk10_p040_03.jpg", text: "المثلث الثلاثيني الستيني ($30^\\circ$ ، $60^\\circ$):\n1. طول الضلع المقابل للزاوية $30^\\circ$ يساوي نصف الوتر.\n2. طول الضلع المقابل للزاوية $60^\\circ$ يساوي: $\\text{نصف الوتر} \\times \\sqrt{3}$\n\nالمثلث القائم متطابق الضلعين:\nهو مثلث قائم الزاوية ومتطابق الضلعين:\n- إذا عُلم الضلع ومطلوب الوتر نطبق القاعدة: طول الوتر يساوي $\\text{طول الضلع} \\times \\sqrt{2}$\n- إذا عُلم الوتر ومطلوب الضلع نطبق القاعدة: طول الضلع يساوي $\\dfrac{\\text{الوتر}}{2} \\times \\sqrt{2}$\n\nللتذكير: محيط المثلث يساوي مجموع أطوال أضلاعه", choices: CH, correctIndex: null },
+    { id: "sk10_q3", imageUrl: "/skills/sk10_p040_03.jpg", choices: CH, correctIndex: null },
     { id: "sk10_q4", imageUrl: "/skills/sk10_p041_01.jpg", text: "متباينة الأضلاع :\nمجموع أي ضلعين أكبر من طول الضلع الثالث.\nأ + ب > ج ، أ + ج > ب\nب + ج > أ", choices: CH, correctIndex: null },
     { id: "sk10_q5", imageUrl: "/skills/sk10_p041_02.jpg", text: "في الشكل المجاور؛ المحيط = ............", choices: CH, correctIndex: null },
     { id: "sk10_q6", imageUrl: "/skills/sk10_p042_01.jpg", text: "أوجد س =", choices: ["$160^\\circ$", "$80^\\circ$", "$120^\\circ$", "$20^\\circ$"], correctIndex: null },
@@ -161,7 +161,7 @@ export const SKILLS: Skill[] = [
     { id: "sk10_q17", imageUrl: "/skills/sk10_p044_04.jpg", text: "مثلث يزيد ارتفاعه عن قاعدته بمقدار $1$ سم و مساحته $21$ سم$^2$ فما طول ارتفاعه؟", choices: ["$4$ سم", "$5$ سم", "$6$ سم", "$7$ سم"], correctIndex: null },
   ] },
   { id: 11, title: "عدد المستطيلات والمربعات والمثلثات", questions: [
-    { id: "sk11_q1", imageUrl: "/skills/sk11_p045_01.jpg", text: "11- عدد المستطيلات والمربعات والمثلثات\n\nعد المستطيلات في المستطيل منتظم التقسيم\nعندما يكون المستطيل مُقسم بشكل منتظم لمستطيلات يمكن معرفة عدد كل المستطيلات:\nعدد المستطيلات = ( جمع ترقيم القطع التي انقسم إليها الطول ) × ( جمع ترقيم القطع التي انقسم لها العرض )\n\nمهارة عد المربعات في المربع منتظم التقسيم\nعندما يكون المربع مُقسم بشكل منتظم لمربعات يمكن معرفة عدد كل المربعات:\nعدد المربعات = ( جمع مربعات ترقيم القطع التي انقسم إليها طول ضلع المربع )\n\nمهارة عد المثلثات في المثلث منتظم التقسيم\nعندما يكون المثلث مُقسم بشكل منتظم للمثلثات يمكن معرفة عدد كل المثلثات:\nعدد المثلثات = ( جمع ترقيم القطع التي انقسمت إليها قاعدة المثلث )", choices: CH, correctIndex: null },
+    { id: "sk11_q1", imageUrl: "/skills/sk11_p045_01.jpg", choices: CH, correctIndex: null },
     { id: "sk11_q2", imageUrl: "/skills/sk11_p045_02.jpg", text: "مهارة عدد المشابك اللازمة لتعليق الملابس:\nالقانون: عدد المشابك اللازمة لتعليق ($\\text{ن}$) قطعة من الملابس = ($\\text{ن}$) + $1$", choices: CH, correctIndex: null },
     { id: "sk11_q3", imageUrl: "/skills/sk11_p047_01.jpg", text: "كم عدد المستطيلات في الشكل؟", choices: ["5", "10", "15", "30"], correctIndex: null },
     { id: "sk11_q4", imageUrl: "/skills/sk11_p047_02.jpg", text: "كم عدد المستطيلات في الشكل؟", choices: ["$25$", "$35$", "$45$", "$11$"], correctIndex: null },
