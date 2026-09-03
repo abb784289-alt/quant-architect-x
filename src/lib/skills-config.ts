@@ -2,8 +2,6 @@
 export type SkillQuestion = { id: string; imageUrl: string; text?: string; choices: string[]; correctIndex: number | null };
 export type Skill = { id: number; title: string; questions: SkillQuestion[] };
 
-const CH = ["أ", "ب", "ج", "د"];
-
 export const SKILLS: Skill[] = [
   { id: 1, title: "ترتيب العمليات الحسابية", questions: [
     { id: "sk1_q1", imageUrl: "/skills/sk01_p003_01.jpg", text: "$5(120 - 20) + 3 \\times 100 =$", choices: ["$700$", "$1500$", "$800$", "$400$"], correctIndex: null },
@@ -63,7 +61,6 @@ export const SKILLS: Skill[] = [
     { id: "sk4_q12", imageUrl: "/skills/sk04_p016_04.jpg", text: "إذا كان س = $7^{77}$ ، ما قيمة $7^{75}$؟", choices: ["$\\dfrac{\\text{س}}{7}$", "$\\dfrac{\\text{س}}{14}$", "$\\dfrac{\\text{س}}{49}$", "$\\dfrac{\\text{س}}{77}$"], correctIndex: null },
   ] },
   { id: 5, title: "أشكال فن والأعداد المحصورة", questions: [
-    { id: "sk5_q1", imageUrl: "/skills/sk05_p017_01.jpg", text: "نادي رياضي به ٥٠ لاعب ، ٣٠ منهم مشترك في نشاط السباحة ، و ٢٠ منهم مشترك في نشاط الرماية ، يمكن رسم شكل فن الذي يُعبر عن ذلك", choices: CH, correctIndex: null },
     { id: "sk5_q2", imageUrl: "/skills/sk05_p018_01.jpg", text: "ما عدد الطلاب الذين يدرسون اللغة الإيطالية فقط؟", choices: ["٣", "٨", "١١", "٢٢"], correctIndex: null },
     { id: "sk5_q3", imageUrl: "/skills/sk05_p018_02.jpg", text: "في شكل فن المقابل\nالدائرة (أ) تمثل الموهوبين في الرسم،\nالدائرة (ب) تُمثل الموهوبين في الخط،\nوالدائرة (ج) تُمثل الموهوبين في النحت،\nما عدد الموهوبين في الرسم والخط معا؟", choices: ["$0$", "$7$", "$8$", "$12$"], correctIndex: null },
     { id: "sk5_q4", imageUrl: "/skills/sk05_p018_03.jpg", text: "شكل فن المقابل يوضح عدد المشتركين في مسابقة الرياضيات والكيمياء والفيزياء. أوجد عدد الطلاب المشتركين في الثلاث مواد معا ؟", choices: ["$0$", "$7$", "$8$", "$12$"], correctIndex: null },
@@ -110,9 +107,6 @@ export const SKILLS: Skill[] = [
     { id: "sk7_q12", imageUrl: "/skills/sk07_p028_06.jpg", text: "شخصين قاما بالقفز على خط الأعداد من الصفر، الأول يقفز كل مرة ٥ والثاني يقفز كل مرة ٣ ، كم عدد الأعداد المشتركة بينهما قبل العدد ١٠٠؟", choices: ["٠", "٢", "٤", "٧"], correctIndex: null },
   ] },
   { id: 8, title: "أنواع الزوايا", questions: [
-    { id: "sk8_q1", imageUrl: "/skills/sk08_p030_01.jpg", text: "• الزاويتان المتتامتان: مجموع قياسيهما $90^\\circ$\n• الزاويتان المتكاملتان: مجموع قياسيهما $180^\\circ$\n• الزوايا المتقابلة بالرأس: كل زاويتين متقابلتين بالرأس متطابقتان\n• الزوايا المتجمعة حول نقطة", choices: CH, correctIndex: null },
-    { id: "sk8_q2", imageUrl: "/skills/sk08_p031_01.jpg", text: "المحيط والزوايا الداخلية للمضلعات:\nمحيط أي مضلع = مجموع أطوال أضلاعه\nمجموع الزوايا الداخلية لأي مضلع = $(\\text{ن} - 2) \\times 180$ حيث ن عدد الأضلاع", choices: CH, correctIndex: null },
-    { id: "sk8_q3", imageUrl: "/skills/sk08_p031_02.jpg", text: "الزوايا الخارجية للمضلعات\n- مجموع الزوايا الخارجية لأي مضلع تساوي $360^\\circ$\n- تنبيه: نأخذ زاوية خارجية واحدة عند كل رأس.\n- فائدة: الزاوية الخارجية والزاوية الداخلية المجاورة لها متكاملتان (مجموعهما $180^\\circ$)\n- قياس أي زاوية خارجية لأي مضلع منتظم: قياس الزاوية خارجية للمضلع المنتظم = $\\dfrac{360}{\\text{ن}}$ حيث ن عدد الأضلاع", choices: CH, correctIndex: null },
     { id: "sk8_q4", imageUrl: "/skills/sk08_p033_01.jpg", text: "أوجد قيمة س؟", choices: ["$80^\\circ$", "$20^\\circ$", "$100^\\circ$", "$120^\\circ$"], correctIndex: null },
     { id: "sk8_q5", imageUrl: "/skills/sk08_p033_02.jpg", text: "الشكل المقابل خماسي منتظم أوجد قيمة س", choices: ["$72^\\circ$", "$60^\\circ$", "$80^\\circ$", "$40^\\circ$"], correctIndex: null },
     { id: "sk8_q6", imageUrl: "/skills/sk08_p033_03.jpg", text: "في الشكل المقابل أوجد قيمة س", choices: ["$30^\\circ$", "$60^\\circ$", "$90^\\circ$", "$120^\\circ$"], correctIndex: null },
@@ -141,10 +135,6 @@ export const SKILLS: Skill[] = [
     { id: "sk9_q12", imageUrl: "/skills/sk09_p037_07.jpg", text: "$9$ ، $7$ ، $5$ ، $3$ ، $1$ ، $9$ ، $7$ ، $5$ ، $\\dots$ ما الحد رقم $27$؟", choices: ["$9$", "$7$", "$5$", "$3$"], correctIndex: null },
   ] },
   { id: 10, title: "المثلثات", questions: [
-    { id: "sk10_q1", imageUrl: "/skills/sk10_p040_01.jpg", text: "مثلثات فيثاغورس المشهورة (مهمة جداً):\n- $(3 \\text{،} 4 \\text{،} 5)$ ومضاعفاتها $(6 \\text{،} 8 \\text{،} 10)$، $(9 \\text{،} 12 \\text{،} 15)$ وهكذا\n- المثلث الذي أضلاعه $(5 \\text{،} 12 \\text{،} 13)$ ومضاعفاته", choices: CH, correctIndex: null },
-    { id: "sk10_q2", imageUrl: "/skills/sk10_p040_02.jpg", text: "الوتر هو أطول ضلع في المثلث القائم الزاوية.", choices: CH, correctIndex: null },
-    { id: "sk10_q4", imageUrl: "/skills/sk10_p041_01.jpg", text: "متباينة الأضلاع :\nمجموع أي ضلعين أكبر من طول الضلع الثالث.\nأ + ب > ج ، أ + ج > ب\nب + ج > أ", choices: CH, correctIndex: null },
-    { id: "sk10_q5", imageUrl: "/skills/sk10_p041_02.jpg", text: "في الشكل المجاور؛ المحيط = ............", choices: CH, correctIndex: null },
     { id: "sk10_q6", imageUrl: "/skills/sk10_p042_01.jpg", text: "أوجد س =", choices: ["$160^\\circ$", "$80^\\circ$", "$120^\\circ$", "$20^\\circ$"], correctIndex: null },
     { id: "sk10_q7", imageUrl: "/skills/sk10_p042_02.jpg", text: "محيط المثلث =", choices: ["$41$", "$44$", "$43$", "$34$"], correctIndex: null },
     { id: "sk10_q8", imageUrl: "/skills/sk10_p042_03.jpg", text: "مثلث مختلف الأضلاع مجموع أطوال أضلاعه = $21$ سم وطول الضلع الأكبر = $8$ سم ، ما طول أصغر الأضلاع ؟", choices: ["$4$ سم", "$6$ سم", "$7$ سم", "$8$ سم"], correctIndex: null },
@@ -159,7 +149,6 @@ export const SKILLS: Skill[] = [
     { id: "sk10_q17", imageUrl: "/skills/sk10_p044_04.jpg", text: "مثلث يزيد ارتفاعه عن قاعدته بمقدار $1$ سم و مساحته $21$ سم$^2$ فما طول ارتفاعه؟", choices: ["$4$ سم", "$5$ سم", "$6$ سم", "$7$ سم"], correctIndex: null },
   ] },
   { id: 11, title: "عدد المستطيلات والمربعات والمثلثات", questions: [
-    { id: "sk11_q2", imageUrl: "/skills/sk11_p045_02.jpg", text: "مهارة عدد المشابك اللازمة لتعليق الملابس:\nالقانون: عدد المشابك اللازمة لتعليق ($\\text{ن}$) قطعة من الملابس = ($\\text{ن}$) + $1$", choices: CH, correctIndex: null },
     { id: "sk11_q3", imageUrl: "/skills/sk11_p047_01.jpg", text: "كم عدد المستطيلات في الشكل؟", choices: ["$5$", "$10$", "$15$", "$30$"], correctIndex: null },
     { id: "sk11_q4", imageUrl: "/skills/sk11_p047_02.jpg", text: "كم عدد المستطيلات في الشكل؟", choices: ["$25$", "$35$", "$45$", "$11$"], correctIndex: null },
     { id: "sk11_q5", imageUrl: "/skills/sk11_p047_03.jpg", text: "كم عدد المربعات في الشكل؟", choices: ["$5$", "$10$", "$15$", "$30$"], correctIndex: null },
@@ -264,11 +253,9 @@ export const SKILLS: Skill[] = [
     { id: "sk18_q4", imageUrl: "/skills/sk18_p072_04.jpg", text: "إذا كان الشكل مربع ، أوجد قيمة س", choices: ["$9$", "$4$", "$3$", "$1$"], correctIndex: null },
     { id: "sk18_q5", imageUrl: "/skills/sk18_p072_05.jpg", text: "مساحة مربع ضعف مساحة مستطيل إذا كان طول المستطيل هو $9$ و عرضه هو $2$ احسب طول ضلع المربع ؟", choices: ["$5$ سم", "$6$ سم", "$7$ سم", "$8$ سم"], correctIndex: null },
     { id: "sk18_q6", imageUrl: "/skills/sk18_p073_01.jpg", text: "قارن بين:\nالقيمة الأولى: مساحة المربع أ ب جـ د\nالقيمة الثانية: $15 \\text{ سم}^2$", choices: ["القيمة الأولى أكبر", "القيمة الثانية أكبر", "القيمتان متساويتان", "المعطيات غير كافية"], correctIndex: null },
-    { id: "sk18_q7", imageUrl: "/skills/sk18_p073_02.jpg", text: "مربع طول ضلعه $4$ سم\nقارن بين:", choices: CH, correctIndex: null },
     { id: "sk18_q8", imageUrl: "/skills/sk18_p073_03.jpg", text: "قارن بين:\nالقيمة الأولى: مساحة الجزء المظلل\nالقيمة الثانية: $\\dfrac{1}{4}$ مساحة المربع", choices: ["القيمة الأولى أكبر", "القيمة الثانية أكبر", "القيمتان متساويتان", "المعطيات غير كافية"], correctIndex: null },
     { id: "sk18_q9", imageUrl: "/skills/sk18_p073_04.jpg", text: "حسب الأطوال على الرسم\nاحسب مساحة المربع الصغير", choices: ["$20$", "$10$", "$16$", "$8$"], correctIndex: null },
     { id: "sk18_q10", imageUrl: "/skills/sk18_p074_01.jpg", text: "إذا كان محيط المربع $48$ سم مقسم إلى $4$ مستطيلات متطابقة\nأوجد مساحة المستطيل الصغير", choices: ["$36\\text{ سم}^2$", "$38\\text{ سم}^2$", "$40\\text{ سم}^2$", "$48\\text{ سم}^2$"], correctIndex: null },
-    { id: "sk18_q11", imageUrl: "/skills/sk18_p074_02.jpg", text: "مستطيل طوله $9$ سم وعرضه $4$ سم ومربع طول ضلعه $6$ سم\nقارن بين", choices: CH, correctIndex: null },
     { id: "sk18_q12", imageUrl: "/skills/sk18_p074_03.jpg", text: "إذا كانت مساحة المربع الكبير = $24$ فأوجد مساحة المربع الصغير", choices: ["$6$", "$8$", "$4$", "$12$"], correctIndex: null },
   ] },
   { id: 19, title: "الأعمار والأوراق النقدية", questions: [
@@ -289,7 +276,6 @@ export const SKILLS: Skill[] = [
     { id: "sk19_q15", imageUrl: "/skills/sk19_p077_06.jpg", text: "مع شخص $20$ ورقة من فئة $5$ ريال و $20$ ريال فإذا كان المبلغ الذي معه $280$ ريال، كم عدد أوراق فئة الـ $20$ ريال؟", choices: ["$10$", "$12$", "$14$", "$16$"], correctIndex: null },
   ] },
   { id: 20, title: "الجذور", questions: [
-    { id: "sk20_q1", imageUrl: "/skills/sk20_p078_01.jpg", text: "المهارة (١) تعريف الجذور: العدد المربع هو العدد الذي له جذر تربيعي صحيح، فمثلاً العدد $36$ عدد مربع لأن $\\sqrt{36} = 6$", choices: CH, correctIndex: null },
     { id: "sk20_q2", imageUrl: "/skills/sk20_p082_01.jpg", text: "$\\sqrt{50} - \\sqrt{18} =$", choices: ["$3\\sqrt{3}$", "$\\sqrt{8}$", "$-\\sqrt{8}$", "$2\\sqrt{3}$"], correctIndex: null },
     { id: "sk20_q3", imageUrl: "/skills/sk20_p082_02.jpg", text: "$\\sqrt{19+19+19+......} = 19$ كم مرة تكرر العدد $19$ ؟", choices: ["$19$", "$2$", "$361$", "$18$"], correctIndex: null },
     { id: "sk20_q4", imageUrl: "/skills/sk20_p082_03.jpg", text: "$\\sqrt{\\sqrt{64 \\times 64 \\times 64 \\times 64}} =$", choices: ["$52$", "$62$", "$42$", "$32$"], correctIndex: null },
@@ -299,9 +285,6 @@ export const SKILLS: Skill[] = [
     { id: "sk20_q8", imageUrl: "/skills/sk20_p082_07.jpg", text: "$\\sqrt[3]{0,125}$", choices: ["٠,٢٥", "٠,٥", "١,٢٥", "٢,٢٥"], correctIndex: null },
     { id: "sk20_q9", imageUrl: "/skills/sk20_p083_01.jpg", text: "القيمة التقريبية للعدد $\\sqrt{0{,}17} \\approx$", choices: ["$0{,}3$", "$9$", "$3$", "$1$"], correctIndex: null },
     { id: "sk20_q10", imageUrl: "/skills/sk20_p083_02.jpg", text: "ما أقرب قيمة للمقدار $\\sqrt{9 \\times 3.9}$", choices: ["$5$", "$6$", "$9$", "$7$"], correctIndex: null },
-    { id: "sk20_q11", imageUrl: "/skills/sk20_p083_03.jpg", text: "قارن بين", choices: CH, correctIndex: null },
-    { id: "sk20_q12", imageUrl: "/skills/sk20_p083_04.jpg", text: "قارن بين", choices: CH, correctIndex: null },
-    { id: "sk20_q13", imageUrl: "/skills/sk20_p083_05.jpg", text: "قارن بين", choices: CH, correctIndex: null },
   ] },
   { id: 21, title: "الرسوم البيانية", questions: [
     { id: "sk21_q1", imageUrl: "/skills/sk21_p084_01.jpg", text: "إذا كان عملاء البنك ٢٥٠٠، أوجد عدد العملاء الذين يستخدمون الإنترنت والهاتف المصرفي", choices: ["١٢٠٠", "١٢٥٠", "١٣٠٠", "١٣٥٠"], correctIndex: null },
@@ -336,7 +319,6 @@ export const SKILLS: Skill[] = [
   { id: 23, title: "المعين والمتوازي", questions: [
     { id: "sk23_q1", imageUrl: "/skills/sk23_p090_01.jpg", text: "معين أقطاره $6$ سم , $8$ سم أوجد مساحته", choices: ["$22$", "$48$", "$24$", "$108$"], correctIndex: null },
     { id: "sk23_q2", imageUrl: "/skills/sk23_p090_02.jpg", text: "معين طولا قطريه $8$ سم ، $6$ سم احسب محيطه", choices: ["$24$", "$20$", "$12$", "$15$"], correctIndex: null },
-    { id: "sk23_q3", imageUrl: "/skills/sk23_p090_03.jpg", text: "قارن بين", choices: CH, correctIndex: null },
     { id: "sk23_q4", imageUrl: "/skills/sk23_p090_04.jpg", text: "أوجد محيط شبه المنحرف", choices: ["$11.5$", "$10$", "$11$", "$12$"], correctIndex: null },
     { id: "sk23_q5", imageUrl: "/skills/sk23_p091_01.jpg", text: "الشكل مربع ، طول ضلعه = $6$ ، بداخله مثلث ومعين.\nقارن بين:\nالقيمة الأولى: مساحة المثلث\nالقيمة الثانية: مساحة المعين", choices: ["القيمة الأولى أكبر", "القيمة الثانية أكبر", "القيمتان متساويتان", "المعطيات غير كافية"], correctIndex: null },
     { id: "sk23_q6", imageUrl: "/skills/sk23_p091_02.jpg", text: "أحسب مساحة المعين", choices: ["$3$", "$4$", "$5$", "$6$"], correctIndex: null },
@@ -350,7 +332,6 @@ export const SKILLS: Skill[] = [
   { id: 24, title: "استبدال المتغيرات", questions: [
     { id: "sk24_q1", imageUrl: "/skills/sk24_p093_01.jpg", text: "قارن بين:\nالقيمة الأولى: $\\text{أ}^2 + \\text{ب}^2$\nالقيمة الثانية: $(\\text{أ} + \\text{ب})^2$", choices: ["القيمة الأولى أكبر", "القيمة الثانية أكبر", "القيمتان متساويتان", "المعطيات غير كافية"], correctIndex: null },
     { id: "sk24_q2", imageUrl: "/skills/sk24_p093_02.jpg", text: "إذا كان : $3 < \\text{أ} < 7$ ، $2 < \\text{ب} < 6$ فأي الآتي خاطئ؟", choices: ["$\\text{أ} \\times \\text{ب} < 42$", "$\\text{أ} + \\text{ب} > 5$", "$\\text{أ} \\times \\text{ب} = 32$", "$\\text{أ} + \\text{ب} < 13$"], correctIndex: null },
-    { id: "sk24_q3", imageUrl: "/skills/sk24_p094_01.jpg", text: "إذا كان $10 \\times 10 \\times \\text{س} = 5 \\times 5 \\times 5 \\times 5 \\times \\text{ص}$، قارن بين", choices: CH, correctIndex: null },
     { id: "sk24_q4", imageUrl: "/skills/sk24_p094_02.jpg", text: "إذا كان ل، م، ع أعداد طبيعية مختلفة مرتبة تصاعديا، ل $\\times$ م $\\times$ ع = $77$\nأوجد $\\text{ع}^2 \\times \\text{ل}^2 - \\text{م}^2$", choices: ["$80$", "$77$", "$75$", "$72$"], correctIndex: null },
     { id: "sk24_q5", imageUrl: "/skills/sk24_p094_03.jpg", text: "إذا كان س عدد فردي ، ص عدد زوجي ، ع عدد أولي ، فإن ناتج ٦ ع (٣س+٤ص)", choices: ["عدد زوجي", "عدد فردي", "عدد أولي", "غير ذلك"], correctIndex: null },
     { id: "sk24_q6", imageUrl: "/skills/sk24_p094_04.jpg", text: "إذا كانت م ، ن ، ل أعداد فردية ، فأي من التالي ليس زوجي؟", choices: ["ن - م", "ن + م + 1", "ن + 1", "ن + م + ل - 11"], correctIndex: null },
@@ -386,10 +367,8 @@ export const SKILLS: Skill[] = [
     { id: "sk26_q7", imageUrl: "/skills/sk26_p104_03.jpg", text: "احسب مساحة الجزء المظلل", choices: ["$25$", "$36$", "$24$", "$49$"], correctIndex: null },
     { id: "sk26_q8", imageUrl: "/skills/sk26_p105_01.jpg", text: "مساحة الشكل المظلل", choices: ["$3$", "$6$", "$7$", "$9$"], correctIndex: null },
     { id: "sk26_q9", imageUrl: "/skills/sk26_p105_02.jpg", text: "أوجد محيط الشكل", choices: ["$18$", "$20$", "$30$", "$36$"], correctIndex: null },
-    { id: "sk26_q10", imageUrl: "/skills/sk26_p105_03.jpg", text: "قارن بين", choices: CH, correctIndex: null },
   ] },
   { id: 27, title: "النسبة والتناسب", questions: [
-    { id: "sk27_q1", imageUrl: "/skills/sk27_p108_01.jpg", text: "المهارة السابعة: نسبة الزيادة ونسبة النقصان\nالنسبة المئوية للزيادة = $\\dfrac{\\text{الفرق}}{\\text{الصغير}} \\times 100\\%$\nالنسبة المئوية للنقصان = $\\dfrac{\\text{الفرق}}{\\text{الكبير}} \\times 100\\%$\n\nالمهارة الثامنة: التناسب\nأولاً: التناسب الطردي: هو علاقة بين كميتين بحيث إذا زادت احدهما تزداد الأخرى والعكس صحيح (مثل المسافة والزمن - المسافة والسرعة)\nثانياً: التناسب العكسي: هو علاقة بين كميتين إذا زادت احدهما تنقص الأخرى والعكس", choices: CH, correctIndex: null },
     { id: "sk27_q2", imageUrl: "/skills/sk27_p109_01.jpg", text: "مدرسة بها $210$ طالب منهم $70$ طالب في الصف الأول، أوجد نسبة طلاب الصف الأول إلى باقي طلاب المدرسة", choices: ["$1 : 3$", "$1 : 2$", "$2 : 3$", "$1 : 4$"], correctIndex: null },
     { id: "sk27_q3", imageUrl: "/skills/sk27_p109_02.jpg", text: "ما نسبة المظلل إلى الشكل كاملاً", choices: ["$3 : 2$", "$2 : 1$", "$2 : 3$", "$3 : 1$"], correctIndex: null },
     { id: "sk27_q4", imageUrl: "/skills/sk27_p109_03.jpg", text: "مدرسة بها ۱۲۰ طالب غاب منهم ٤٠ طالب ،ما النسبة المئوية للحضور تقريباً ؟", choices: ["٤٠٪", "٥٠٪", "٦٧٪", "٧٥٪"], correctIndex: null },
@@ -406,7 +385,6 @@ export const SKILLS: Skill[] = [
   { id: 28, title: "المجسمات", questions: [
     { id: "sk28_q1", imageUrl: "/skills/sk28_p113_01.jpg", text: "خزان على شكل متوازي مستطيلات ابعاده $2$ م , $6$ م , $\\dfrac{1}{2}$ م فما حجمه؟", choices: ["$2$ م$^3$", "$4$ م$^3$", "$6$ م$^3$", "$8$ م$^3$"], correctIndex: null },
     { id: "sk28_q2", imageUrl: "/skills/sk28_p113_02.jpg", text: "خزان ماء مكعب الشكل طول حرفه $6$ م ، كم يبلغ حجمه ؟", choices: ["$216$ م$^2$", "$36$ م$^2$", "$72$ م$^2$", "$96$ م$^2$"], correctIndex: null },
-    { id: "sk28_q3", imageUrl: "/skills/sk28_p113_03.jpg", text: "قارن عدديًا بين", choices: CH, correctIndex: null },
     { id: "sk28_q4", imageUrl: "/skills/sk28_p113_04.jpg", text: "مكعب مساحة أوجهه $864$ م$^2$ ، كم طول حرفه ؟", choices: ["$11$", "$10$", "$12$", "$14$"], correctIndex: null },
     { id: "sk28_q5", imageUrl: "/skills/sk28_p113_05.jpg", text: "كم يبلغ حجم أسطوانة نصف قطر قاعدتها $10$ سم وارتفاعها $10$ سم", choices: ["$1000$ ط $\\text{سم}^3$", "$100$ ط $\\text{سم}^3$", "$20$ ط $\\text{سم}^3$", "$1$ ط $\\text{سم}^3$"], correctIndex: null },
     { id: "sk28_q6", imageUrl: "/skills/sk28_p113_06.jpg", text: "مسبح مربع الشكل كم متر مكعب سعة المسبح تقريبا؟", choices: ["$9\\text{ م}^3$", "$10\\text{ م}^3$", "$16\\text{ م}^3$", "$25\\text{ م}^3$"], correctIndex: null },
@@ -434,7 +412,6 @@ export const SKILLS: Skill[] = [
     { id: "sk29_q11", imageUrl: "/skills/sk29_p118_04.jpg", text: "أوجد قيمة س ؟", choices: ["$18$", "$16$", "$20$", "$22$"], correctIndex: null },
   ] },
   { id: 30, title: "إتقان الكمي", questions: [
-    { id: "sk30_q1", imageUrl: "/skills/sk30_p119_01.jpg", text: "إذا كان هناك دوري للشطرنج يشترك فيه ١٦ لاعبا ، ولعب كل لاعب مع الآخر ٣ مباريات .\nفكم هو إجمالي عدد المباريات في هذا الدوري ؟", choices: CH, correctIndex: null },
     { id: "sk30_q2", imageUrl: "/skills/sk30_p119_02.jpg", text: "قارن بين:\nالقيمة الأولى: $5959 \\times 5959$\nالقيمة الثانية: $6060 \\div 60$", choices: ["القيمة الأولى أكبر", "القيمة الثانية أكبر", "القيمتان متساويتان", "المعطيات غير كافية"], correctIndex: null },
     { id: "sk30_q3", imageUrl: "/skills/sk30_p119_03.jpg", text: "تتابع مريم متوسط درجاتها، فإذا اختبرت $3$ اختبارات وإذا حصلت مريم على $11$ درجة في الاختبار التالي سيزيد متوسط درجاتها $1$، وإذا حصلت على $11$ في كل اختبار من الاختبارات الثلاثة التالية فسيزيد متوسط درجاتها $2$، ما هو متوسط درجات اختباراتها حاليًا؟", choices: ["$4$", "$5$", "$6$", "$7$"], correctIndex: null },
     { id: "sk30_q4", imageUrl: "/skills/sk30_p119_04.jpg", text: "أوجد قيمة س", choices: ["٤", "٦", "٨", "١٠"], correctIndex: null },
