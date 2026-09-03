@@ -2,6 +2,20 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSkill, SKILL_SECONDS_PER_QUESTION, SKILL_RESULTS_KEY, type Skill } from "@/lib/skills-config";
 import { useI18n } from "@/lib/i18n";
+import { BlockMath, InlineMath } from "react-katex";
+
+function MathText({ text }: { text?: string | null }) {
+  const parts = String(text ?? "").split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
+  return (
+    <>
+      {parts.map((part, i) => {
+        if (part.startsWith("$$") && part.endsWith("$$")) return <BlockMath key={i} math={part.slice(2, -2)} />;
+        if (part.startsWith("$") && part.endsWith("$") && part.length > 1) return <InlineMath key={i} math={part.slice(1, -1)} />;
+        return <span key={i} className="whitespace-pre-line">{part}</span>;
+      })}
+    </>
+  );
+}
 
 export const Route = createFileRoute("/_authenticated/skills/$skillId")({
   ssr: false,
@@ -128,14 +142,14 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
               <div key={x.id} className="luxury-card p-4">
                 <div className="text-xs text-muted-foreground mb-2">سؤال {num(i + 1)}</div>
                 {x.text ? (
-                  <p className="text-base font-semibold leading-loose text-foreground">{x.text}</p>
+                  <p className="text-base font-semibold leading-loose text-foreground"><MathText text={x.text} /></p>
                 ) : (
                   <img src={x.imageUrl} alt={`سؤال ${i + 1} من مهارة ${skill.title}`} loading="lazy" className="w-full max-w-full rounded-xl border border-border bg-white" />
                 )}
                 <div className="mt-3 text-sm">
-                  <span className="text-red-600 font-bold">إجابتك: {answers[i] === null ? "—" : x.choices[answers[i] as number]}</span>
+                  <span className="text-red-600 font-bold">إجابتك: {answers[i] === null ? "—" : <MathText text={x.choices[answers[i] as number]} />}</span>
                   <span className="mx-3 text-muted-foreground">|</span>
-                  <span className="text-teal-deep font-bold">الصحيحة: {x.choices[x.correctIndex as number]}</span>
+                  <span className="text-teal-deep font-bold">الصحيحة: <MathText text={x.choices[x.correctIndex as number]} /></span>
                 </div>
               </div>
             ))}
@@ -164,7 +178,7 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
 
       <div className="luxury-card p-4 md:p-6">
         {q.text ? (
-          <p className="text-lg md:text-xl font-semibold leading-loose text-foreground">{q.text}</p>
+          <p className="text-lg md:text-xl font-semibold leading-loose text-foreground"><MathText text={q.text} /></p>
         ) : (
           <img src={q.imageUrl} alt={`سؤال ${idx + 1} من مهارة ${skill.title}`} className="w-full max-w-full rounded-xl border border-border bg-white" />
         )}
@@ -179,7 +193,7 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
                 className={"rounded-xl border-2 py-3 font-bold transition-all " +
                   (active ? "border-teal bg-teal-soft text-teal-deep" : "border-border bg-white text-foreground hover:border-teal/50")}
               >
-                {c}
+                <MathText text={c} />
               </button>
             );
           })}
