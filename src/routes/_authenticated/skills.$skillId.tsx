@@ -10,7 +10,7 @@ const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 function arabizeMath(math: string) {
   return math.replace(/\d+(?:[.,]\d+)?/g, (m) => {
     const ar = m.replace(/\d/g, (d) => AR_DIGITS[Number(d)]).replace(/[.,]/g, "٫");
-    return `\\text{${ar}}`;
+    return "\u005Ctext{" + ar + "}";
   });
 }
 
