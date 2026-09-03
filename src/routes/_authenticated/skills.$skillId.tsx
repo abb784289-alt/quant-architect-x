@@ -4,13 +4,25 @@ import { getSkill, SKILL_SECONDS_PER_QUESTION, SKILL_RESULTS_KEY, type Skill } f
 import { useI18n } from "@/lib/i18n";
 import { BlockMath, InlineMath } from "react-katex";
 
+const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+
+/** Show digits inside math as Arabic-Indic numerals (KaTeX needs them in \text{}). */
+function arabizeMath(math: string) {
+  return math.replace(/\d+(?:[.,]\d+)?/g, (m) => {
+    const ar = m.replace(/\d/g, (d) => AR_DIGITS[Number(d)]).replace(/[.,]/g, "٫");
+    return "\u005Ctext{" + ar + "}";
+  });
+}
+
 function MathText({ text }: { text?: string | null }) {
+  const { lang } = useI18n();
   const parts = String(text ?? "").split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
+  const fix = (m: string) => (lang === "ar" ? arabizeMath(m) : m);
   return (
     <>
       {parts.map((part, i) => {
-        if (part.startsWith("$$") && part.endsWith("$$")) return <BlockMath key={i} math={part.slice(2, -2)} />;
-        if (part.startsWith("$") && part.endsWith("$") && part.length > 1) return <InlineMath key={i} math={part.slice(1, -1)} />;
+        if (part.startsWith("$$") && part.endsWith("$$")) return <BlockMath key={i} math={fix(part.slice(2, -2))} />;
+        if (part.startsWith("$") && part.endsWith("$") && part.length > 1) return <InlineMath key={i} math={fix(part.slice(1, -1))} />;
         return <span key={i} className="whitespace-pre-line">{part}</span>;
       })}
     </>
