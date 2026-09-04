@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BlockMath, InlineMath } from "react-katex";
+import { MathText } from "@/components/MathText";
+import { getSkillFigure } from "@/lib/skill-figures";
 import { getSkill, SKILL_SECONDS_PER_QUESTION, SKILL_RESULTS_KEY, type Skill } from "@/lib/skills-config";
 import { useI18n } from "@/lib/i18n";
 
@@ -17,23 +18,6 @@ export const Route = createFileRoute("/_authenticated/skills/$skillId")({
 });
 
 type Mode = "exam" | "practice";
-
-function MathText({ text }: { text: string }) {
-  const parts = text.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
-  return (
-    <span className="whitespace-pre-line">
-      {parts.map((part, index) => {
-        if (part.startsWith("$$") && part.endsWith("$$")) {
-          return <span key={index} dir="ltr" className="block [unicode-bidi:isolate]"><BlockMath math={part.slice(2, -2)} /></span>;
-        }
-        if (part.startsWith("$") && part.endsWith("$") && part.length > 1) {
-          return <span key={index} dir="ltr" className="inline-block [unicode-bidi:isolate]"><InlineMath math={part.slice(1, -1)} /></span>;
-        }
-        return <span key={index}>{part}</span>;
-      })}
-    </span>
-  );
-}
 
 function SkillExamPage() {
   const { skillId } = Route.useParams();
@@ -146,6 +130,7 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
               <div key={x.id} className="luxury-card p-4">
                 <div className="text-xs text-muted-foreground mb-2">سؤال {num(i + 1)}</div>
                 <div className="text-base font-semibold leading-loose text-foreground"><MathText text={x.text} /></div>
+                {getSkillFigure(x.id) && <div className="mt-3 rounded-xl border border-border p-2">{getSkillFigure(x.id)}</div>}
                 <div className="mt-3 text-sm">
                   <span className="text-red-600 font-bold">إجابتك: {answers[i] === null ? "—" : <MathText text={x.choices[answers[i] as number]} />}</span>
                   <span className="mx-3 text-muted-foreground">|</span>
@@ -178,6 +163,9 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
 
       <div className="luxury-card p-4 md:p-6">
         <div className="text-lg md:text-xl font-semibold leading-loose text-foreground"><MathText text={q.text} /></div>
+        {getSkillFigure(q.id) && (
+          <div className="mt-4 rounded-xl border border-border bg-white/60 dark:bg-white/5 p-3">{getSkillFigure(q.id)}</div>
+        )}
         <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
           {q.choices.map((c, ci) => {
             const active = answers[idx] === ci;
