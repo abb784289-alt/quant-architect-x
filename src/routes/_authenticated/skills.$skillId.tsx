@@ -1,33 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BlockMath, InlineMath } from "react-katex";
 import { getSkill, SKILL_SECONDS_PER_QUESTION, SKILL_RESULTS_KEY, type Skill } from "@/lib/skills-config";
 import { useI18n } from "@/lib/i18n";
-import { BlockMath, InlineMath } from "react-katex";
-
-const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
-
-/** Show digits inside math as Arabic-Indic numerals (KaTeX needs them in \text{}). */
-function arabizeMath(math: string) {
-  return math.replace(/\d+(?:[.,]\d+)?/g, (m) => {
-    const ar = m.replace(/\d/g, (d) => AR_DIGITS[Number(d)]).replace(/[.,]/g, "٫");
-    return "\u005Ctext{" + ar + "}";
-  });
-}
-
-function MathText({ text }: { text?: string | null }) {
-  const { lang } = useI18n();
-  const parts = String(text ?? "").split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
-  const fix = (m: string) => (lang === "ar" ? arabizeMath(m) : m);
-  return (
-    <>
-      {parts.map((part, i) => {
-        if (part.startsWith("$$") && part.endsWith("$$")) return <BlockMath key={i} math={fix(part.slice(2, -2))} />;
-        if (part.startsWith("$") && part.endsWith("$") && part.length > 1) return <InlineMath key={i} math={fix(part.slice(1, -1))} />;
-        return <span key={i} className="whitespace-pre-line">{part}</span>;
-      })}
-    </>
-  );
-}
 
 export const Route = createFileRoute("/_authenticated/skills/$skillId")({
   ssr: false,
@@ -42,6 +17,23 @@ export const Route = createFileRoute("/_authenticated/skills/$skillId")({
 });
 
 type Mode = "exam" | "practice";
+
+function MathText({ text }: { text: string }) {
+  const parts = text.split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
+  return (
+    <span className="whitespace-pre-line">
+      {parts.map((part, index) => {
+        if (part.startsWith("$$") && part.endsWith("$$")) {
+          return <span key={index} dir="ltr" className="block [unicode-bidi:isolate]"><BlockMath math={part.slice(2, -2)} /></span>;
+        }
+        if (part.startsWith("$") && part.endsWith("$") && part.length > 1) {
+          return <span key={index} dir="ltr" className="inline-block [unicode-bidi:isolate]"><InlineMath math={part.slice(1, -1)} /></span>;
+        }
+        return <span key={index}>{part}</span>;
+      })}
+    </span>
+  );
+}
 
 function SkillExamPage() {
   const { skillId } = Route.useParams();
@@ -153,11 +145,7 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
             {wrong.map(({ x, i }) => (
               <div key={x.id} className="luxury-card p-4">
                 <div className="text-xs text-muted-foreground mb-2">سؤال {num(i + 1)}</div>
-                {x.text ? (
-                  <p className="text-base font-semibold leading-loose text-foreground"><MathText text={x.text} /></p>
-                ) : (
-                  <img src={x.imageUrl} alt={`سؤال ${i + 1} من مهارة ${skill.title}`} loading="lazy" className="w-full max-w-full rounded-xl border border-border bg-white" />
-                )}
+                <div className="text-base font-semibold leading-loose text-foreground"><MathText text={x.text} /></div>
                 <div className="mt-3 text-sm">
                   <span className="text-red-600 font-bold">إجابتك: {answers[i] === null ? "—" : <MathText text={x.choices[answers[i] as number]} />}</span>
                   <span className="mx-3 text-muted-foreground">|</span>
@@ -189,11 +177,7 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
       </div>
 
       <div className="luxury-card p-4 md:p-6">
-        {q.text ? (
-          <p className="text-lg md:text-xl font-semibold leading-loose text-foreground"><MathText text={q.text} /></p>
-        ) : (
-          <img src={q.imageUrl} alt={`سؤال ${idx + 1} من مهارة ${skill.title}`} className="w-full max-w-full rounded-xl border border-border bg-white" />
-        )}
+        <div className="text-lg md:text-xl font-semibold leading-loose text-foreground"><MathText text={q.text} /></div>
         <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
           {q.choices.map((c, ci) => {
             const active = answers[idx] === ci;
