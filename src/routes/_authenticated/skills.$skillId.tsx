@@ -123,21 +123,57 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
           </div>
         </div>
 
-        {graded && wrong.length > 0 && (
+        {graded && (
           <section className="space-y-5">
-            <h2 className="font-display font-bold text-lg text-foreground">مراجعة الأخطاء ({num(wrong.length)})</h2>
-            {wrong.map(({ x, i }) => (
-              <div key={x.id} className="luxury-card p-4">
-                <div className="text-xs text-muted-foreground mb-2">سؤال {num(i + 1)}</div>
-                <div className="text-base font-semibold leading-loose text-foreground"><MathText text={x.text} /></div>
-                {getSkillFigure(x.id) && <div className="mt-3 rounded-xl border border-border p-2">{getSkillFigure(x.id)}</div>}
-                <div className="mt-3 text-sm">
-                  <span className="text-red-600 font-bold">إجابتك: {answers[i] === null ? "—" : <MathText text={x.choices[answers[i] as number]} />}</span>
-                  <span className="mx-3 text-muted-foreground">|</span>
-                  <span className="text-teal-deep font-bold">الصحيحة: <MathText text={x.choices[x.correctIndex as number]} /></span>
+            <h2 className="font-display font-bold text-lg text-foreground">
+              تصحيح الاختبار كاملًا — الأخطاء: {num(wrong.length)}
+            </h2>
+            {skill.questions.map((x, i) => {
+              const mine = answers[i];
+              const isRight = x.correctIndex !== null && mine === x.correctIndex;
+              return (
+                <div
+                  key={x.id}
+                  className={"luxury-card p-4 border-2 " + (x.correctIndex === null ? "border-border" : isRight ? "border-teal/40" : "border-red-400/60")}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-xs text-muted-foreground">سؤال {num(i + 1)}</div>
+                    {x.correctIndex !== null && (
+                      <span className={"text-xs font-bold rounded-full px-2.5 py-1 " + (isRight ? "bg-teal-soft text-teal-deep" : "bg-red-100 text-red-700")}>
+                        {isRight ? "صحيحة ✓" : "خاطئة ✕"}
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-base font-semibold leading-loose text-foreground"><MathText text={x.text} /></div>
+                  {getSkillFigure(x.id) && <div className="mt-3 rounded-xl border border-border p-2">{getSkillFigure(x.id)}</div>}
+                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {x.choices.map((c, ci) => (
+                      <div
+                        key={c}
+                        className={"rounded-xl border-2 py-2 px-2 text-center text-sm font-bold " +
+                          (ci === x.correctIndex
+                            ? "border-teal bg-teal-soft text-teal-deep"
+                            : ci === mine
+                              ? "border-red-400 bg-red-50 text-red-700"
+                              : "border-border bg-white text-muted-foreground")}
+                      >
+                        <MathText text={c} />
+                      </div>
+                    ))}
+                  </div>
+                  {x.correctIndex !== null && (
+                    <div className="mt-3 text-sm">
+                      <span className="text-muted-foreground">إجابتك: </span>
+                      <span className={isRight ? "text-teal-deep font-bold" : "text-red-600 font-bold"}>
+                        {mine === null ? "—" : <MathText text={x.choices[mine]} />}
+                      </span>
+                      <span className="mx-3 text-muted-foreground">|</span>
+                      <span className="text-teal-deep font-bold">الصحيحة: <MathText text={x.choices[x.correctIndex]} /></span>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </section>
         )}
       </main>
