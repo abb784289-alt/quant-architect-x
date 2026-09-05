@@ -43,7 +43,7 @@ export function MathText({ text }: { text: string }) {
             />
           );
         }
-        return <span key={index}>{part}</span>;
+        return <span key={index}>{toArabicDigits(part)}</span>;
       })}
     </span>
   );
