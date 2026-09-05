@@ -1,10 +1,19 @@
 import katex from "katex";
 
+const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+const toArabicDigits = (s: string) => s.replace(/[0-9]/g, (d) => AR_DIGITS[Number(d)]);
+
+/** يحوّل الأرقام إلى العربية داخل النصوص فقط دون المساس بسمات HTML. */
+const arabizeHtml = (html: string) =>
+  html.replace(/>([^<]+)</g, (_m, text: string) => ">" + toArabicDigits(text) + "<");
+
 function render(tex: string, displayMode: boolean) {
   try {
-    return katex.renderToString(tex, { displayMode, throwOnError: false, strict: false, output: "html" });
+    return arabizeHtml(
+      katex.renderToString(tex, { displayMode, throwOnError: false, strict: false, output: "html" }),
+    );
   } catch {
-    return tex;
+    return toArabicDigits(tex);
   }
 }
 
@@ -34,7 +43,7 @@ export function MathText({ text }: { text: string }) {
             />
           );
         }
-        return <span key={index}>{part}</span>;
+        return <span key={index}>{toArabicDigits(part)}</span>;
       })}
     </span>
   );
