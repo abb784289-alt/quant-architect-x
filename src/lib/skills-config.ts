@@ -447,3 +447,7 @@ export const SKILLS: Skill[] = [
 
 export const SKILL_SECONDS_PER_QUESTION = 60;
 export const SKILL_RESULTS_KEY = "nemr:results:skills";
+
+export function getSkill(id: number): Skill | undefined {
+  return SKILLS.find((s) => s.id === id);
+}
