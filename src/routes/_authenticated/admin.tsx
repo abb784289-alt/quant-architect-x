@@ -11,6 +11,7 @@ import {
 } from "@/lib/questions.functions";
 import { supabase } from "@/integrations/supabase/client";
 import ProMaxAdminPanel from "@/components/ProMaxAdminPanel";
+import SkillsAdminPanel from "@/components/SkillsAdminPanel";
 import { upsertMediaAsset } from "@/lib/media-assets.functions";
 import {
   listAccessCodes,
@@ -26,6 +27,8 @@ function sanitizeSvg(html: string): string {
 import {
   FOUNDATION_CATEGORIES,
   TOTAL_SECTIONS,
+  totalSections,
+  type TrackId,
   DEFAULT_TIMER_SECONDS,
   SECONDS_PER_QUESTION,
   loadSections,
@@ -69,7 +72,7 @@ function AdminGate() {
   return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ التحقق...</div>;
 }
 
-type Tab = "questions" | "student-questions" | "uploader" | "organizer" | "timers" | "codes" | "pro-max";
+type Tab = "questions" | "verbal" | "skills" | "student-questions" | "uploader" | "organizer" | "timers" | "codes" | "pro-max";
 
 function AdminControlCenter() {
   const [tab, setTab] = useState<Tab>("questions");
@@ -86,6 +89,8 @@ function AdminControlCenter() {
 
       <div className="flex flex-wrap gap-1 rounded-2xl bg-surface-2 border border-border p-1 mb-6 max-w-3xl">
         <TabBtn active={tab === "questions"} onClick={() => setTab("questions")}>بنك الأسئلة</TabBtn>
+        <TabBtn active={tab === "verbal"} onClick={() => setTab("verbal")}>بنك اللفظي</TabBtn>
+        <TabBtn active={tab === "skills"} onClick={() => setTab("skills")}>التأسيس الأسرع</TabBtn>
         <TabBtn active={tab === "student-questions"} onClick={() => setTab("student-questions")}>أسئلة الطلاب</TabBtn>
         <TabBtn active={tab === "uploader"} onClick={() => setTab("uploader")}>رفع الفيديوهات</TabBtn>
         <TabBtn active={tab === "organizer"} onClick={() => setTab("organizer")}>منظّم الأقسام (CSV)</TabBtn>
@@ -94,7 +99,9 @@ function AdminControlCenter() {
         <TabBtn active={tab === "pro-max"} onClick={() => setTab("pro-max")}>التأسيس برو ماكس</TabBtn>
       </div>
 
-      {tab === "questions" && <QuestionsBank />}
+      {tab === "questions" && <QuestionsBank track="quantitative" />}
+      {tab === "verbal" && <QuestionsBank track="verbal" />}
+      {tab === "skills" && <SkillsAdminPanel />}
       {tab === "student-questions" && <StudentQuestionsInbox />}
       {tab === "uploader" && <VideoUploader />}
       {tab === "organizer" && <SectionOrganizer />}
@@ -596,18 +603,23 @@ function makeEmpty(): Question {
   };
 }
 
-function QuestionsBank() {
+function QuestionsBank({ track = "quantitative" }: { track?: TrackId }) {
+  const total = totalSections(track);
   const [sectionNumber, setSectionNumber] = useState(1);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [counts, setCounts] = useState<Record<number, number>>({});
 
   useEffect(() => {
-    setQuestions(getQuestions(sectionNumber));
-  }, [sectionNumber]);
+    setSectionNumber(1);
+  }, [track]);
 
   useEffect(() => {
-    const all = loadAllQuestions();
+    setQuestions(getQuestions(sectionNumber, track));
+  }, [sectionNumber, track]);
+
+  useEffect(() => {
+    const all = loadAllQuestions(track);
     const c: Record<number, number> = {};
     Object.entries(all).forEach(([k, v]) => { c[Number(k)] = v.length; });
     setCounts(c);
@@ -615,7 +627,7 @@ function QuestionsBank() {
 
   function commit(next: Question[]) {
     setQuestions(next);
-    saveQuestions(sectionNumber, next);
+    saveQuestions(sectionNumber, next, track);
     setMessage(`تم حفظ ${next.length} سؤالاً في القسم ${sectionNumber}. المؤقت التلقائي: ${next.length} دقيقة.`);
     setTimeout(() => setMessage(null), 2500);
   }
@@ -653,9 +665,11 @@ function QuestionsBank() {
     <section className="grid lg:grid-cols-4 gap-5">
       {/* Section picker */}
       <aside className="luxury-card p-4 lg:col-span-1 h-fit sticky top-6">
-        <h3 className="font-display font-bold text-foreground mb-2 text-sm">اختر القسم</h3>
-        <input type="number" min={1} max={TOTAL_SECTIONS} value={sectionNumber}
-          onChange={(e) => setSectionNumber(Math.max(1, Math.min(TOTAL_SECTIONS, Number(e.target.value) || 1)))}
+        <h3 className="font-display font-bold text-foreground mb-2 text-sm">
+          اختر القسم ({track === "verbal" ? "لفظي" : "كمي"} — 1 إلى {total})
+        </h3>
+        <input type="number" min={1} max={total} value={sectionNumber}
+          onChange={(e) => setSectionNumber(Math.max(1, Math.min(total, Number(e.target.value) || 1)))}
           className="w-full rounded-xl border border-border bg-white px-3 py-2 text-center font-bold text-lg focus:border-teal outline-none" />
         <div className="mt-4 rounded-xl bg-teal-soft border border-teal/30 p-3 text-center">
           <div className="text-[10px] text-muted-foreground">عدد الأسئلة</div>
