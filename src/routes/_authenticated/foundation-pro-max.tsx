@@ -129,12 +129,13 @@ function PageHeader({ title, subtitle }: { title: string; subtitle: string }) {
   );
 }
 
-function ChapterPicker() {
+function ChapterPicker({ settings }: { settings: SettingsState | null }) {
+  const chapters = useResolvedChapters(settings);
   return (
     <main dir="rtl" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 md:py-10">
       <PageHeader title="التأسيس برو ماكس" subtitle="اختر الباب، ثم ابدأ اختبارًا بوقت أو تدريبًا بدون وقت." />
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {FOUNDATION_PRO_MAX_CHAPTERS.map((chapter, index) => (
+        {chapters.map((chapter, index) => (
           <Link
             key={chapter.slug}
             to="/foundation-pro-max"
@@ -151,15 +152,15 @@ function ChapterPicker() {
   );
 }
 
-function PartPicker({ chapterSlug }: { chapterSlug: string }) {
-  const chapter = getFoundationProMaxChapter(chapterSlug);
+function PartPicker({ chapterSlug, settings }: { chapterSlug: string; settings: SettingsState | null }) {
+  const chapter = resolveChapter(chapterSlug, settings);
   if (!chapter) return null;
   return (
     <main dir="rtl" className="mx-auto max-w-4xl px-4 py-6 sm:px-6 md:py-12">
       <PageHeader title={chapter.title} subtitle="اختر الجزء الذي تريد حله." />
       <section className="grid gap-4 md:grid-cols-2">
-        {getParts(chapter.slug).map((part) => {
-          const count = getPartQuestions(chapter.slug, part).length;
+        {getParts(chapter.parts).map((part) => {
+          const count = splitPart(chapter.questions, chapter.parts, part).length;
           return (
             <Link key={part} to="/foundation-pro-max" search={{ chapter: chapter.slug, part }} className="group rounded-md border-2 border-teal bg-card p-6 transition-colors hover:bg-teal-soft/40">
               <BookOpen className="mb-5 size-9 text-teal-deep" />
@@ -174,11 +175,11 @@ function PartPicker({ chapterSlug }: { chapterSlug: string }) {
   );
 }
 
-function ModePicker({ chapterSlug, part }: { chapterSlug: string; part: Part }) {
-  const chapter = getFoundationProMaxChapter(chapterSlug);
+function ModePicker({ chapterSlug, part, settings }: { chapterSlug: string; part: Part; settings: SettingsState | null }) {
+  const chapter = resolveChapter(chapterSlug, settings);
   if (!chapter) return null;
   const title = `${chapter.title} (${partLabel(part)})`;
-  const count = getPartQuestions(chapterSlug, part).length;
+  const count = splitPart(chapter.questions, chapter.parts, part).length;
   return (
     <main dir="rtl" className="mx-auto max-w-4xl px-4 py-6 sm:px-6 md:py-12">
       <PageHeader title={title} subtitle={`${arabicNumber(count)} سؤالًا اختياريًا`} />
@@ -199,10 +200,10 @@ function ModePicker({ chapterSlug, part }: { chapterSlug: string; part: Part }) 
   );
 }
 
-function ChapterExam({ chapterSlug, part, mode }: { chapterSlug: string; part: Part; mode: Mode }) {
+function ChapterExam({ chapterSlug, part, mode, settings }: { chapterSlug: string; part: Part; mode: Mode; settings: SettingsState | null }) {
   const navigate = useNavigate();
-  const chapter = getFoundationProMaxChapter(chapterSlug);
-  const questions = useMemo(() => getPartQuestions(chapterSlug, part), [chapterSlug, part]);
+  const chapter = resolveChapter(chapterSlug, settings);
+  const questions = useMemo(() => (chapter ? splitPart(chapter.questions, chapter.parts, part) : []), [chapter, part]);
   const examTitle = chapter ? `${chapter.title} (${partLabel(part)})` : "";
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
