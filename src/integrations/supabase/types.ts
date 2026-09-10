@@ -390,7 +390,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_admin: { Args: { _user_id: string }; Returns: boolean }
       redeem_access_code: {
         Args: { _code: string; _uid: string }
         Returns: Json
