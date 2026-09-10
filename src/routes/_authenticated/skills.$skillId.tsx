@@ -21,7 +21,7 @@ type Mode = "exam" | "practice";
 
 function SkillExamPage() {
   const { skillId } = Route.useParams();
-  const { dir } = useI18n();
+
   const skill = getSkill(Number(skillId));
   const [mode, setMode] = useState<Mode | null>(null);
 
@@ -33,7 +33,7 @@ function SkillExamPage() {
 }
 
 function ModePicker({ skill, onPick }: { skill: Skill; onPick: (m: Mode) => void }) {
-  const { dir, n: num } = useI18n();
+  const { n: num } = useI18n();
   const navigate = useNavigate();
   return (
     <main dir="rtl" className="mx-auto max-w-3xl px-4 sm:px-6 py-10 md:py-16">
@@ -67,7 +67,7 @@ function ModePicker({ skill, onPick }: { skill: Skill; onPick: (m: Mode) => void
 }
 
 function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit: () => void }) {
-  const { dir, n: num } = useI18n();
+  const { n: num } = useI18n();
   const total = skill.questions.length;
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(() => Array(total).fill(null));

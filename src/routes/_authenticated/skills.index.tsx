@@ -15,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/skills/")({
 });
 
 function SkillsList() {
-  const { dir, n: num } = useI18n();
+  const { n: num } = useI18n();
   const navigate = useNavigate();
 
   return (
