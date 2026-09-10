@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, BookOpen, Check, ChevronLeft, ChevronRight, Clock3, Dumbbell, Flag, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FOUNDATION_PRO_MAX_CHAPTERS, getFoundationProMaxChapter } from "@/lib/foundation-pro-max-config";
+import { getProMaxSettings, type ProMaxChapterSetting, type ProMaxQuestionSetting } from "@/lib/pro-max.functions";
 
 type Mode = "exam" | "practice";
 type Part = 1 | 2 | 3 | 4;
