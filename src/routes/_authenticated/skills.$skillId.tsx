@@ -1,7 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { MathText } from "@/components/MathText";
-import { getSkillFigure } from "@/lib/skill-figures";
 import { getSkill, SKILL_SECONDS_PER_QUESTION, SKILL_RESULTS_KEY, type Skill } from "@/lib/skills-config";
 import { useI18n } from "@/lib/i18n";
 
@@ -144,10 +142,9 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
                       </span>
                     )}
                   </div>
-                  <div className="text-base font-semibold leading-loose text-foreground"><MathText text={x.text} /></div>
-                  {getSkillFigure(x.id) && <div className="mt-3 rounded-xl border border-border p-2">{getSkillFigure(x.id)}</div>}
-                  <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {x.choices.map((c, ci) => (
+                  <img src={x.image} alt={`سؤال ${num(i + 1)}`} className="w-full rounded-xl border border-border bg-white p-2" loading="lazy" />
+                  <div className="mt-3 grid grid-cols-4 gap-2">
+                    {["أ", "ب", "ج", "د"].map((c, ci) => (
                       <div
                         key={c}
                         className={"rounded-xl border-2 py-2 px-2 text-center text-sm font-bold " +
@@ -157,20 +154,10 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
                               ? "border-red-400 bg-red-50 text-red-700"
                               : "border-border bg-white text-muted-foreground")}
                       >
-                        <MathText text={c} />
+                        {c}
                       </div>
                     ))}
                   </div>
-                  {x.correctIndex !== null && (
-                    <div className="mt-3 text-sm">
-                      <span className="text-muted-foreground">إجابتك: </span>
-                      <span className={isRight ? "text-teal-deep font-bold" : "text-red-600 font-bold"}>
-                        {mine === null ? "—" : <MathText text={x.choices[mine]} />}
-                      </span>
-                      <span className="mx-3 text-muted-foreground">|</span>
-                      <span className="text-teal-deep font-bold">الصحيحة: <MathText text={x.choices[x.correctIndex]} /></span>
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -198,22 +185,19 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
       </div>
 
       <div className="luxury-card p-4 md:p-6">
-        <div className="text-lg md:text-xl font-semibold leading-loose text-foreground"><MathText text={q.text} /></div>
-        {getSkillFigure(q.id) && (
-          <div className="mt-4 rounded-xl border border-border bg-white/60 dark:bg-white/5 p-3">{getSkillFigure(q.id)}</div>
-        )}
-        <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {q.choices.map((c, ci) => {
+        <img src={q.image} alt={`سؤال ${num(idx + 1)}`} className="w-full rounded-xl border border-border bg-white p-2" />
+        <div className="mt-5 grid grid-cols-4 gap-3">
+          {["أ", "ب", "ج", "د"].map((c, ci) => {
             const active = answers[idx] === ci;
             return (
               <button
                 key={c}
                 type="button"
                 onClick={() => setAnswers((a) => a.map((v, i) => (i === idx ? ci : v)))}
-                className={"rounded-xl border-2 py-3 font-bold transition-all " +
+                className={"rounded-xl border-2 py-3 text-lg font-bold transition-all " +
                   (active ? "border-teal bg-teal-soft text-teal-deep" : "border-border bg-white text-foreground hover:border-teal/50")}
               >
-                <MathText text={c} />
+                {c}
               </button>
             );
           })}
