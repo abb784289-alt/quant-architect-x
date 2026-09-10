@@ -1,0 +1,3 @@
+ALTER POLICY "pro_max_chapters_admin" ON public.pro_max_chapter_settings USING (private.has_role(auth.uid(), 'admin'::app_role)) WITH CHECK (private.has_role(auth.uid(), 'admin'::app_role));
+ALTER POLICY "pro_max_questions_admin" ON public.pro_max_question_settings USING (private.has_role(auth.uid(), 'admin'::app_role)) WITH CHECK (private.has_role(auth.uid(), 'admin'::app_role));
+DROP FUNCTION IF EXISTS public.is_admin(uuid);
