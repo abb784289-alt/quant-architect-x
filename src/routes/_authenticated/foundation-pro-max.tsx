@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { FOUNDATION_PRO_MAX_CHAPTERS, getFoundationProMaxChapter } from "@/lib/foundation-pro-max-config";
 
 type Mode = "exam" | "practice";
-type Part = 1 | 2;
+type Part = 1 | 2 | 3 | 4;
 type Search = { chapter?: string; part?: Part; mode?: Mode };
 
 export const Route = createFileRoute("/_authenticated/foundation-pro-max")({
