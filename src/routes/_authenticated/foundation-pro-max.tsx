@@ -108,7 +108,7 @@ function PartPicker({ chapterSlug }: { chapterSlug: string }) {
     <main dir="rtl" className="mx-auto max-w-4xl px-4 py-6 sm:px-6 md:py-12">
       <PageHeader title={chapter.title} subtitle="اختر الجزء الذي تريد حله." />
       <section className="grid gap-4 md:grid-cols-2">
-        {([1, 2] as const).map((part) => {
+        {getParts(chapter.slug).map((part) => {
           const count = getPartQuestions(chapter.slug, part).length;
           return (
             <Link key={part} to="/foundation-pro-max" search={{ chapter: chapter.slug, part }} className="group rounded-md border-2 border-teal bg-card p-6 transition-colors hover:bg-teal-soft/40">
