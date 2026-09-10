@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedTracksRouteImport } from './routes/_authenticated/tracks'
 import { Route as AuthenticatedSkillsRouteImport } from './routes/_authenticated/skills'
 import { Route as AuthenticatedMistakesRouteImport } from './routes/_authenticated/mistakes'
+import { Route as AuthenticatedFoundationProMaxRouteImport } from './routes/_authenticated/foundation-pro-max'
 import { Route as AuthenticatedFoundationRouteImport } from './routes/_authenticated/foundation'
 import { Route as AuthenticatedExamRouteImport } from './routes/_authenticated/exam'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -61,6 +62,12 @@ const AuthenticatedMistakesRoute = AuthenticatedMistakesRouteImport.update({
   path: '/mistakes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFoundationProMaxRoute =
+  AuthenticatedFoundationProMaxRouteImport.update({
+    id: '/foundation-pro-max',
+    path: '/foundation-pro-max',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedFoundationRoute = AuthenticatedFoundationRouteImport.update({
   id: '/foundation',
   path: '/foundation',
@@ -125,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/exam': typeof AuthenticatedExamRoute
   '/foundation': typeof AuthenticatedFoundationRouteWithChildren
+  '/foundation-pro-max': typeof AuthenticatedFoundationProMaxRoute
   '/mistakes': typeof AuthenticatedMistakesRoute
   '/skills': typeof AuthenticatedSkillsRouteWithChildren
   '/tracks': typeof AuthenticatedTracksRoute
@@ -143,6 +151,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/exam': typeof AuthenticatedExamRoute
   '/foundation': typeof AuthenticatedFoundationRouteWithChildren
+  '/foundation-pro-max': typeof AuthenticatedFoundationProMaxRoute
   '/mistakes': typeof AuthenticatedMistakesRoute
   '/tracks': typeof AuthenticatedTracksRoute
   '/foundation/$categoryId': typeof AuthenticatedFoundationCategoryIdRoute
@@ -162,6 +171,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/exam': typeof AuthenticatedExamRoute
   '/_authenticated/foundation': typeof AuthenticatedFoundationRouteWithChildren
+  '/_authenticated/foundation-pro-max': typeof AuthenticatedFoundationProMaxRoute
   '/_authenticated/mistakes': typeof AuthenticatedMistakesRoute
   '/_authenticated/skills': typeof AuthenticatedSkillsRouteWithChildren
   '/_authenticated/tracks': typeof AuthenticatedTracksRoute
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/exam'
     | '/foundation'
+    | '/foundation-pro-max'
     | '/mistakes'
     | '/skills'
     | '/tracks'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/exam'
     | '/foundation'
+    | '/foundation-pro-max'
     | '/mistakes'
     | '/tracks'
     | '/foundation/$categoryId'
@@ -218,6 +230,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/exam'
     | '/_authenticated/foundation'
+    | '/_authenticated/foundation-pro-max'
     | '/_authenticated/mistakes'
     | '/_authenticated/skills'
     | '/_authenticated/tracks'
@@ -285,6 +298,13 @@ declare module '@tanstack/react-router' {
       path: '/mistakes'
       fullPath: '/mistakes'
       preLoaderRoute: typeof AuthenticatedMistakesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/foundation-pro-max': {
+      id: '/_authenticated/foundation-pro-max'
+      path: '/foundation-pro-max'
+      fullPath: '/foundation-pro-max'
+      preLoaderRoute: typeof AuthenticatedFoundationProMaxRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/foundation': {
@@ -394,6 +414,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedExamRoute: typeof AuthenticatedExamRoute
   AuthenticatedFoundationRoute: typeof AuthenticatedFoundationRouteWithChildren
+  AuthenticatedFoundationProMaxRoute: typeof AuthenticatedFoundationProMaxRoute
   AuthenticatedMistakesRoute: typeof AuthenticatedMistakesRoute
   AuthenticatedSkillsRoute: typeof AuthenticatedSkillsRouteWithChildren
   AuthenticatedTracksRoute: typeof AuthenticatedTracksRoute
@@ -406,6 +427,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedExamRoute: AuthenticatedExamRoute,
   AuthenticatedFoundationRoute: AuthenticatedFoundationRouteWithChildren,
+  AuthenticatedFoundationProMaxRoute: AuthenticatedFoundationProMaxRoute,
   AuthenticatedMistakesRoute: AuthenticatedMistakesRoute,
   AuthenticatedSkillsRoute: AuthenticatedSkillsRouteWithChildren,
   AuthenticatedTracksRoute: AuthenticatedTracksRoute,

@@ -140,22 +140,39 @@ function SectionsDashboard({ track }: { track: TrackId }) {
         )}
       </div>
 
-      {/* تأسيس المهارات — داخل القسم الكمي فقط */}
+      {/* مسارات التأسيس — داخل القسم الكمي فقط */}
       {track === "quantitative" && (
-        <button
-          type="button"
-          onClick={() => navigate({ to: "/skills" })}
-          className="w-full mb-6 md:mb-8 luxury-card p-5 md:p-6 text-start flex items-center justify-between gap-4 border-2 border-teal/30 hover:border-teal hover:-translate-y-0.5 hover:shadow-lg transition-all"
-        >
-          <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-2xl bg-teal text-white grid place-items-center text-2xl shadow-md">🧩</div>
-            <div>
-              <div className="font-display font-bold text-foreground text-lg">مهارات التأسيس الكمي</div>
-              <div className="text-xs text-muted-foreground">٣٠ مهارة منفصلة عن الأقسام — اختبار بوقت أو تدريب حر.</div>
+        <section className="mb-6 grid grid-cols-1 gap-4 md:mb-8 md:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/skills" })}
+            className="luxury-card p-5 md:p-6 text-start flex items-center justify-between gap-4 border-2 border-teal/30 hover:border-teal hover:-translate-y-0.5 hover:shadow-lg transition-all"
+          >
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 shrink-0 rounded-2xl bg-teal text-white grid place-items-center text-2xl shadow-md">⚡</div>
+              <div>
+                <div className="font-display font-bold text-foreground text-lg">التأسيس الأسرع</div>
+                <div className="text-xs text-muted-foreground">٣٠ مهارة — اختبار بوقت أو تدريب حر.</div>
+              </div>
             </div>
-          </div>
-          <span className="text-teal-deep font-bold">←</span>
-        </button>
+            <span className="text-teal-deep font-bold">←</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/foundation-pro-max" })}
+            className="luxury-card p-5 md:p-6 text-start flex items-center justify-between gap-4 border-2 border-gold/40 hover:border-gold hover:-translate-y-0.5 hover:shadow-lg transition-all"
+          >
+            <div className="flex items-center gap-4">
+              <div className="h-12 w-12 shrink-0 rounded-2xl bg-gold text-foreground grid place-items-center text-2xl shadow-md">🏆</div>
+              <div>
+                <div className="font-display font-bold text-foreground text-lg">التأسيس برو ماكس</div>
+                <div className="text-xs text-muted-foreground">المنهج الكامل للشرح والتدريب.</div>
+              </div>
+            </div>
+            <span className="font-bold text-foreground">←</span>
+          </button>
+        </section>
       )}
 
       {/* الأقسام — أكبر وأوسع */}
