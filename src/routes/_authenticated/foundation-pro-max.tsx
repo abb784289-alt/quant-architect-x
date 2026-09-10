@@ -34,32 +34,82 @@ const answerLabels = ["أ", "ب", "ج", "د"];
 const PART_LABELS: Record<Part, string> = { 1: "الجزء الأول", 2: "الجزء الثاني", 3: "الجزء الثالث", 4: "الجزء الرابع" };
 const partLabel = (part: Part) => PART_LABELS[part];
 
-// عدد الأجزاء لكل باب (الأسس مقسّم على أربعة أجزاء)
+// عدد الأجزاء الافتراضي لكل باب (الأسس مقسّم على أربعة أجزاء)
 const CHAPTER_PARTS: Record<string, number> = { powers: 4 };
-const getPartCount = (chapterSlug: string) => CHAPTER_PARTS[chapterSlug] ?? 2;
-const getParts = (chapterSlug: string) => Array.from({ length: getPartCount(chapterSlug) }, (_, i) => (i + 1) as Part);
 
-function getPartQuestions(chapterSlug: string, part: Part) {
-  const chapter = getFoundationProMaxChapter(chapterSlug);
-  if (!chapter) return [];
-  const total = chapter.questions.length;
-  const parts = getPartCount(chapterSlug);
+type SettingsState = {
+  chapters: Record<string, ProMaxChapterSetting>;
+  questions: Record<string, ProMaxQuestionSetting>;
+};
+let settingsCache: SettingsState | null = null;
+
+function useProMaxSettings(): SettingsState | null {
+  const [state, setState] = useState<SettingsState | null>(settingsCache);
+  useEffect(() => {
+    if (settingsCache) return;
+    getProMaxSettings()
+      .then((res) => {
+        settingsCache = {
+          chapters: Object.fromEntries(res.chapters.map((c) => [c.slug, c])),
+          questions: Object.fromEntries(res.questions.map((q) => [q.question_id, q])),
+        };
+        setState(settingsCache);
+      })
+      .catch(() => {
+        settingsCache = { chapters: {}, questions: {} };
+        setState(settingsCache);
+      });
+  }, []);
+  return state;
+}
+
+function resolveChapter(chapterSlug: string, settings: SettingsState | null) {
+  const base = getFoundationProMaxChapter(chapterSlug);
+  if (!base) return undefined;
+  const override = settings?.chapters[chapterSlug];
+  const questions = base.questions
+    .filter((q) => !settings?.questions[q.id]?.hidden)
+    .map((q) => {
+      const s = settings?.questions[q.id];
+      return s && s.correct_index !== null && s.correct_index !== undefined ? { ...q, correctIndex: s.correct_index } : q;
+    });
+  return {
+    slug: base.slug,
+    title: override?.title ?? base.title,
+    hidden: override?.hidden ?? false,
+    parts: override?.parts ?? CHAPTER_PARTS[chapterSlug] ?? 2,
+    questions,
+  };
+}
+
+function useResolvedChapters(settings: SettingsState | null) {
+  return useMemo(
+    () =>
+      FOUNDATION_PRO_MAX_CHAPTERS.map((c) => resolveChapter(c.slug, settings)!).filter((c) => !c.hidden && c.questions.length > 0),
+    [settings],
+  );
+}
+
+const getParts = (partCount: number) => Array.from({ length: Math.min(partCount, 4) }, (_, i) => (i + 1) as Part);
+
+function splitPart<T>(items: T[], parts: number, part: Part): T[] {
   if (part > parts) return [];
-  const base = Math.floor(total / parts);
-  const extra = total % parts;
+  const base = Math.floor(items.length / parts);
+  const extra = items.length % parts;
   const start = (part - 1) * base + Math.min(part - 1, extra);
   const size = base + (part <= extra ? 1 : 0);
-  return chapter.questions.slice(start, start + size);
+  return items.slice(start, start + size);
 }
 
 function FoundationProMax() {
   const search = Route.useSearch();
-  const chapter = search.chapter ? getFoundationProMaxChapter(search.chapter) : undefined;
+  const settings = useProMaxSettings();
+  const chapter = search.chapter ? resolveChapter(search.chapter, settings) : undefined;
 
-  if (chapter && search.part && search.mode) return <ChapterExam chapterSlug={chapter.slug} part={search.part} mode={search.mode} />;
-  if (chapter && search.part) return <ModePicker chapterSlug={chapter.slug} part={search.part} />;
-  if (chapter) return <PartPicker chapterSlug={chapter.slug} />;
-  return <ChapterPicker />;
+  if (chapter && search.part && search.mode) return <ChapterExam chapterSlug={chapter.slug} part={search.part} mode={search.mode} settings={settings} />;
+  if (chapter && search.part) return <ModePicker chapterSlug={chapter.slug} part={search.part} settings={settings} />;
+  if (chapter) return <PartPicker chapterSlug={chapter.slug} settings={settings} />;
+  return <ChapterPicker settings={settings} />;
 }
 
 function PageHeader({ title, subtitle }: { title: string; subtitle: string }) {
