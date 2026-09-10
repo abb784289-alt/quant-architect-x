@@ -31,13 +31,25 @@ export const Route = createFileRoute("/_authenticated/foundation-pro-max")({
 
 const arabicNumber = (value: number) => value.toLocaleString("ar-EG");
 const answerLabels = ["أ", "ب", "ج", "د"];
-const partLabel = (part: Part) => part === 1 ? "الجزء الأول" : "الجزء الثاني";
+const PART_LABELS: Record<Part, string> = { 1: "الجزء الأول", 2: "الجزء الثاني", 3: "الجزء الثالث", 4: "الجزء الرابع" };
+const partLabel = (part: Part) => PART_LABELS[part];
+
+// عدد الأجزاء لكل باب (الأسس مقسّم على أربعة أجزاء)
+const CHAPTER_PARTS: Record<string, number> = { powers: 4 };
+const getPartCount = (chapterSlug: string) => CHAPTER_PARTS[chapterSlug] ?? 2;
+const getParts = (chapterSlug: string) => Array.from({ length: getPartCount(chapterSlug) }, (_, i) => (i + 1) as Part);
 
 function getPartQuestions(chapterSlug: string, part: Part) {
   const chapter = getFoundationProMaxChapter(chapterSlug);
   if (!chapter) return [];
-  const splitAt = Math.ceil(chapter.questions.length / 2);
-  return part === 1 ? chapter.questions.slice(0, splitAt) : chapter.questions.slice(splitAt);
+  const total = chapter.questions.length;
+  const parts = getPartCount(chapterSlug);
+  if (part > parts) return [];
+  const base = Math.floor(total / parts);
+  const extra = total % parts;
+  const start = (part - 1) * base + Math.min(part - 1, extra);
+  const size = base + (part <= extra ? 1 : 0);
+  return chapter.questions.slice(start, start + size);
 }
 
 function FoundationProMax() {
