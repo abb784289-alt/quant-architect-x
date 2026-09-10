@@ -21,22 +21,22 @@ type Mode = "exam" | "practice";
 
 function SkillExamPage() {
   const { skillId } = Route.useParams();
-  const { dir } = useI18n();
+
   const skill = getSkill(Number(skillId));
   const [mode, setMode] = useState<Mode | null>(null);
 
   if (!skill) {
-    return <main dir={dir} className="mx-auto max-w-3xl px-6 py-20 text-center text-muted-foreground">المهارة غير موجودة.</main>;
+    return <main dir="rtl" className="mx-auto max-w-3xl px-6 py-20 text-center text-muted-foreground">المهارة غير موجودة.</main>;
   }
   if (!mode) return <ModePicker skill={skill} onPick={setMode} />;
   return <SkillRunner skill={skill} mode={mode} onExit={() => setMode(null)} />;
 }
 
 function ModePicker({ skill, onPick }: { skill: Skill; onPick: (m: Mode) => void }) {
-  const { dir, n: num } = useI18n();
+  const { n: num } = useI18n();
   const navigate = useNavigate();
   return (
-    <main dir={dir} className="mx-auto max-w-3xl px-4 sm:px-6 py-10 md:py-16">
+    <main dir="rtl" className="mx-auto max-w-3xl px-4 sm:px-6 py-10 md:py-16">
       <button
         type="button"
         onClick={() => navigate({ to: "/skills" })}
@@ -67,7 +67,7 @@ function ModePicker({ skill, onPick }: { skill: Skill; onPick: (m: Mode) => void
 }
 
 function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit: () => void }) {
-  const { dir, n: num } = useI18n();
+  const { n: num } = useI18n();
   const total = skill.questions.length;
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<(number | null)[]>(() => Array(total).fill(null));
@@ -107,7 +107,7 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
       } catch { /* ignore */ }
     }
     return (
-      <main dir={dir} className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
+      <main dir="rtl" className="mx-auto max-w-3xl px-4 sm:px-6 py-10">
         <div className="luxury-card p-8 text-center mb-6">
           <div className="text-4xl mb-3">🎯</div>
           <h1 className="font-display font-bold text-2xl text-foreground mb-2">{skill.title}</h1>
@@ -181,7 +181,7 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
   }
 
   return (
-    <main dir={dir} className="mx-auto max-w-4xl px-4 sm:px-6 py-6">
+    <main dir="rtl" className="mx-auto max-w-4xl px-4 sm:px-6 py-6">
       <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 mb-5 bg-surface/85 backdrop-blur-md flex items-center justify-between gap-3 flex-wrap">
         <div className="text-sm font-bold text-foreground">{num(skill.id)}. {skill.title}</div>
         <div className="flex items-center gap-3 text-xs">

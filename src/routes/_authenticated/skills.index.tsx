@@ -15,11 +15,11 @@ export const Route = createFileRoute("/_authenticated/skills/")({
 });
 
 function SkillsList() {
-  const { dir, n: num } = useI18n();
+  const { n: num } = useI18n();
   const navigate = useNavigate();
 
   return (
-    <main dir={dir} className="mx-auto max-w-6xl px-4 sm:px-6 py-8 md:py-12">
+    <main dir="rtl" className="mx-auto max-w-6xl px-4 sm:px-6 py-8 md:py-12">
       <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full bg-teal-soft text-teal-deep px-3 py-1 text-[11px] font-semibold border border-teal/30 mb-2">

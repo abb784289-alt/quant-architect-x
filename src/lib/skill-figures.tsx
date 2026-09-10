@@ -194,12 +194,14 @@ export const SKILL_FIGURES: Record<string, ReactNode> = {
 
 /** أشكال مقصوصة من الكتاب الأصلي (صور) — تُعرض قبل الرسم اليدوي */
 const FIGURE_IMAGES = new Set([
-  "sk5_q3","sk5_q4","sk8_q5","sk8_q6","sk8_q7","sk8_q8","sk8_q13","sk9_q5","sk10_q7","sk10_q11",
-  "sk10_q12","sk10_q14","sk10_q15","sk11_q3","sk11_q4","sk11_q5","sk11_q6","sk11_q7","sk11_q8",
-  "sk11_q9","sk11_q11","sk12_q9","sk14_q2","sk14_q4","sk14_q9","sk14_q10","sk14_q11","sk16_q2",
-  "sk16_q9","sk16_q10","sk16_q11","sk18_q4","sk18_q9","sk21_q4","sk21_q6","sk21_q9","sk21_q10",
-  "sk23_q5","sk23_q9","sk23_q10","sk23_q11","sk26_q1","sk26_q3","sk26_q6","sk26_q8","sk26_q9",
-  "sk27_q3","sk28_q2","sk28_q6","sk29_q1","sk29_q2","sk29_q6","sk29_q7","sk30_q4",
+  "sk5_q3","sk5_q4","sk8_q5","sk8_q6","sk8_q7","sk8_q8","sk8_q13","sk9_q5","sk10_q11","sk10_q12",
+  "sk10_q14","sk10_q15","sk11_q3","sk11_q4","sk11_q5","sk11_q6","sk11_q7","sk11_q8","sk11_q9","sk11_q10",
+  "sk11_q11","sk12_q9","sk14_q2","sk14_q4","sk14_q9","sk14_q10","sk14_q11","sk16_q1","sk16_q2","sk16_q9",
+  "sk16_q10","sk16_q11","sk18_q4","sk18_q8","sk18_q9","sk18_q10","sk21_q4","sk21_q6","sk21_q9","sk21_q10",
+  "sk23_q5","sk23_q9","sk23_q10","sk23_q11","sk23_q12","sk25_q6","sk25_q7","sk25_q8","sk25_q9","sk25_q10",
+  "sk25_q11","sk25_q13","sk25_q14","sk26_q1","sk26_q2","sk26_q3","sk26_q4","sk26_q5","sk26_q6","sk26_q7",
+  "sk26_q8","sk26_q9","sk26_q10","sk27_q3","sk28_q2","sk28_q6","sk29_q1","sk29_q2","sk29_q6","sk29_q7",
+  "sk30_q9","sk30_q11",
 ]);
 
 export function getSkillFigure(id: string): ReactNode | null {
