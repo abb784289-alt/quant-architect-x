@@ -147,6 +147,54 @@ export type Database = {
         }
         Relationships: []
       }
+      pro_max_chapter_settings: {
+        Row: {
+          hidden: boolean
+          parts: number
+          slug: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          hidden?: boolean
+          parts?: number
+          slug: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          hidden?: boolean
+          parts?: number
+          slug?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pro_max_question_settings: {
+        Row: {
+          chapter_slug: string
+          correct_index: number | null
+          hidden: boolean
+          question_id: string
+          updated_at: string
+        }
+        Insert: {
+          chapter_slug: string
+          correct_index?: number | null
+          hidden?: boolean
+          question_id: string
+          updated_at?: string
+        }
+        Update: {
+          chapter_slug?: string
+          correct_index?: number | null
+          hidden?: boolean
+          question_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       question_bank: {
         Row: {
           questions: Json
@@ -342,6 +390,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_admin: { Args: { _user_id: string }; Returns: boolean }
       redeem_access_code: {
         Args: { _code: string; _uid: string }
         Returns: Json
