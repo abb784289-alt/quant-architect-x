@@ -5,12 +5,14 @@ import { Button } from "@/components/ui/button";
 import { FOUNDATION_PRO_MAX_CHAPTERS, getFoundationProMaxChapter } from "@/lib/foundation-pro-max-config";
 
 type Mode = "exam" | "practice";
-type Search = { chapter?: string; mode?: Mode };
+type Part = 1 | 2;
+type Search = { chapter?: string; part?: Part; mode?: Mode };
 
 export const Route = createFileRoute("/_authenticated/foundation-pro-max")({
   ssr: false,
   validateSearch: (search: Record<string, unknown>): Search => ({
     chapter: typeof search.chapter === "string" ? search.chapter : undefined,
+    part: search.part === 1 || search.part === "1" ? 1 : search.part === 2 || search.part === "2" ? 2 : undefined,
     mode: search.mode === "exam" || search.mode === "practice" ? search.mode : undefined,
   }),
   head: () => ({
@@ -29,13 +31,22 @@ export const Route = createFileRoute("/_authenticated/foundation-pro-max")({
 
 const arabicNumber = (value: number) => value.toLocaleString("ar-EG");
 const answerLabels = ["أ", "ب", "ج", "د"];
+const partLabel = (part: Part) => part === 1 ? "الجزء الأول" : "الجزء الثاني";
+
+function getPartQuestions(chapterSlug: string, part: Part) {
+  const chapter = getFoundationProMaxChapter(chapterSlug);
+  if (!chapter) return [];
+  const splitAt = Math.ceil(chapter.questions.length / 2);
+  return part === 1 ? chapter.questions.slice(0, splitAt) : chapter.questions.slice(splitAt);
+}
 
 function FoundationProMax() {
   const search = Route.useSearch();
   const chapter = search.chapter ? getFoundationProMaxChapter(search.chapter) : undefined;
 
-  if (chapter && search.mode) return <ChapterExam chapterSlug={chapter.slug} mode={search.mode} />;
-  if (chapter) return <ModePicker chapterSlug={chapter.slug} />;
+  if (chapter && search.part && search.mode) return <ChapterExam chapterSlug={chapter.slug} part={search.part} mode={search.mode} />;
+  if (chapter && search.part) return <ModePicker chapterSlug={chapter.slug} part={search.part} />;
+  if (chapter) return <PartPicker chapterSlug={chapter.slug} />;
   return <ChapterPicker />;
 }
 
@@ -78,36 +89,63 @@ function ChapterPicker() {
   );
 }
 
-function ModePicker({ chapterSlug }: { chapterSlug: string }) {
+function PartPicker({ chapterSlug }: { chapterSlug: string }) {
   const chapter = getFoundationProMaxChapter(chapterSlug);
   if (!chapter) return null;
   return (
     <main dir="rtl" className="mx-auto max-w-4xl px-4 py-6 sm:px-6 md:py-12">
-      <PageHeader title={chapter.title} subtitle={`${arabicNumber(chapter.questions.length)} سؤالًا اختياريًا`} />
+      <PageHeader title={chapter.title} subtitle="اختر الجزء الذي تريد حله." />
       <section className="grid gap-4 md:grid-cols-2">
-        <Link to="/foundation-pro-max" search={{ chapter: chapter.slug, mode: "exam" }} className="group rounded-md border-2 border-teal bg-card p-6 transition-colors hover:bg-teal-soft/40">
-          <Clock3 className="mb-5 size-9 text-teal-deep" />
-          <h2 className="text-xl font-bold">اختبار بوقت</h2>
-          <p className="mt-2 text-sm text-muted-foreground">عداد زمني، تنقل بين الأسئلة، ثم نتيجة عند الإنهاء.</p>
-        </Link>
-        <Link to="/foundation-pro-max" search={{ chapter: chapter.slug, mode: "practice" }} className="group rounded-md border-2 border-gold bg-card p-6 transition-colors hover:bg-gold-soft/40">
-          <Dumbbell className="mb-5 size-9 text-foreground" />
-          <h2 className="text-xl font-bold">تدريب بدون وقت</h2>
-          <p className="mt-2 text-sm text-muted-foreground">حل الأسئلة براحتك بدون عداد زمني.</p>
-        </Link>
+        {([1, 2] as const).map((part) => {
+          const count = getPartQuestions(chapter.slug, part).length;
+          return (
+            <Link key={part} to="/foundation-pro-max" search={{ chapter: chapter.slug, part }} className="group rounded-md border-2 border-teal bg-card p-6 transition-colors hover:bg-teal-soft/40">
+              <BookOpen className="mb-5 size-9 text-teal-deep" />
+              <h2 className="text-xl font-bold">{chapter.title} ({partLabel(part)})</h2>
+              <p className="mt-2 text-sm text-muted-foreground">{arabicNumber(count)} سؤالًا</p>
+            </Link>
+          );
+        })}
       </section>
       <Button className="mt-5" variant="ghost" asChild><Link to="/foundation-pro-max"><ChevronRight /> كل الأبواب</Link></Button>
     </main>
   );
 }
 
-function ChapterExam({ chapterSlug, mode }: { chapterSlug: string; mode: Mode }) {
+function ModePicker({ chapterSlug, part }: { chapterSlug: string; part: Part }) {
+  const chapter = getFoundationProMaxChapter(chapterSlug);
+  if (!chapter) return null;
+  const title = `${chapter.title} (${partLabel(part)})`;
+  const count = getPartQuestions(chapterSlug, part).length;
+  return (
+    <main dir="rtl" className="mx-auto max-w-4xl px-4 py-6 sm:px-6 md:py-12">
+      <PageHeader title={title} subtitle={`${arabicNumber(count)} سؤالًا اختياريًا`} />
+      <section className="grid gap-4 md:grid-cols-2">
+        <Link to="/foundation-pro-max" search={{ chapter: chapter.slug, part, mode: "exam" }} className="group rounded-md border-2 border-teal bg-card p-6 transition-colors hover:bg-teal-soft/40">
+          <Clock3 className="mb-5 size-9 text-teal-deep" />
+          <h2 className="text-xl font-bold">اختبار بوقت</h2>
+          <p className="mt-2 text-sm text-muted-foreground">عداد زمني، تنقل بين الأسئلة، ثم نتيجة عند الإنهاء.</p>
+        </Link>
+        <Link to="/foundation-pro-max" search={{ chapter: chapter.slug, part, mode: "practice" }} className="group rounded-md border-2 border-gold bg-card p-6 transition-colors hover:bg-gold-soft/40">
+          <Dumbbell className="mb-5 size-9 text-foreground" />
+          <h2 className="text-xl font-bold">تدريب بدون وقت</h2>
+          <p className="mt-2 text-sm text-muted-foreground">حل الأسئلة براحتك بدون عداد زمني.</p>
+        </Link>
+      </section>
+      <Button className="mt-5" variant="ghost" asChild><Link to="/foundation-pro-max" search={{ chapter: chapter.slug }}><ChevronRight /> أجزاء الباب</Link></Button>
+    </main>
+  );
+}
+
+function ChapterExam({ chapterSlug, part, mode }: { chapterSlug: string; part: Part; mode: Mode }) {
   const navigate = useNavigate();
   const chapter = getFoundationProMaxChapter(chapterSlug);
+  const questions = useMemo(() => getPartQuestions(chapterSlug, part), [chapterSlug, part]);
+  const examTitle = chapter ? `${chapter.title} (${partLabel(part)})` : "";
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [finished, setFinished] = useState(false);
-  const initialSeconds = Math.max(300, (chapter?.questions.length ?? 0) * 75);
+  const initialSeconds = Math.max(300, questions.length * 75);
   const [seconds, setSeconds] = useState(initialSeconds);
 
   useEffect(() => {
@@ -127,11 +165,11 @@ function ChapterExam({ chapterSlug, mode }: { chapterSlug: string; mode: Mode })
         <section className="rounded-md border border-border bg-card p-6 text-center md:p-10">
           <div className="mx-auto mb-4 grid size-16 place-items-center rounded-full bg-teal-soft text-teal-deep"><Check className="size-8" /></div>
           <h1 className="text-2xl font-bold">اكتمل {mode === "exam" ? "الاختبار" : "التدريب"}</h1>
-          <p className="mt-2 text-muted-foreground">أجبت عن {arabicNumber(answered)} من {arabicNumber(chapter.questions.length)} سؤالًا.</p>
+          <p className="mt-2 text-muted-foreground">أجبت عن {arabicNumber(answered)} من {arabicNumber(questions.length)} سؤالًا.</p>
           <div className="mx-auto mt-6 max-w-sm border-y border-border py-4 text-sm text-muted-foreground">ستظهر درجة الصح والخطأ بعد إضافة ملف الإجابات المعتمد.</div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Button onClick={() => { setIndex(0); setAnswers({}); setSeconds(initialSeconds); setFinished(false); }}><RotateCcw /> إعادة المحاولة</Button>
-            <Button variant="outline" onClick={() => navigate({ to: "/foundation-pro-max", search: { chapter: chapter.slug } })}><BookOpen /> اختيار الطريقة</Button>
+            <Button variant="outline" onClick={() => navigate({ to: "/foundation-pro-max", search: { chapter: chapter.slug, part } })}><BookOpen /> اختيار الطريقة</Button>
             <Button variant="ghost" onClick={() => navigate({ to: "/foundation-pro-max" })}>كل الأبواب</Button>
           </div>
         </section>
@@ -139,12 +177,12 @@ function ChapterExam({ chapterSlug, mode }: { chapterSlug: string; mode: Mode })
     );
   }
 
-  const question = chapter.questions[index];
+  const question = questions[index];
   if (!question) return null;
   return (
     <main dir="rtl" className="mx-auto max-w-6xl px-3 py-4 sm:px-6 md:py-7">
       <header className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-        <div><p className="text-xs font-bold text-teal-deep">التأسيس برو ماكس</p><h1 className="font-display text-lg font-bold">{chapter.title}</h1></div>
+        <div><p className="text-xs font-bold text-teal-deep">التأسيس برو ماكس</p><h1 className="font-display text-lg font-bold">{examTitle}</h1></div>
         <div className="flex items-center gap-2">
           {mode === "exam" && <span dir="ltr" className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-3 font-mono text-sm"><Clock3 />{time}</span>}
           <Button variant="outline" size="sm" onClick={() => setFinished(true)}><Flag /> إنهاء</Button>
@@ -153,9 +191,9 @@ function ChapterExam({ chapterSlug, mode }: { chapterSlug: string; mode: Mode })
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
         <section className="rounded-md border border-border bg-card p-3 sm:p-5">
-          <div className="mb-4 flex items-center justify-between text-sm text-muted-foreground"><span>السؤال {arabicNumber(index + 1)} من {arabicNumber(chapter.questions.length)}</span><span>{arabicNumber(answered)} مجاب</span></div>
+          <div className="mb-4 flex items-center justify-between text-sm text-muted-foreground"><span>السؤال {arabicNumber(index + 1)} من {arabicNumber(questions.length)}</span><span>{arabicNumber(answered)} مجاب</span></div>
           <div className="grid min-h-[280px] place-items-center overflow-auto rounded-md bg-background p-2 sm:min-h-[380px] sm:p-5">
-            <img src={question.image} alt={`سؤال ${arabicNumber(index + 1)} من باب ${chapter.title}`} className="max-h-[470px] w-auto max-w-full object-contain" draggable={false} />
+             <img src={question.image} alt={`سؤال ${arabicNumber(index + 1)} من ${examTitle}`} className="max-h-[470px] w-auto max-w-full object-contain" draggable={false} />
           </div>
           <div className="mt-4 grid grid-cols-4 gap-2" aria-label="اختر الإجابة">
             {answerLabels.map((label, answerIndex) => (
@@ -164,14 +202,14 @@ function ChapterExam({ chapterSlug, mode }: { chapterSlug: string; mode: Mode })
           </div>
           <div className="mt-4 flex justify-between gap-3">
             <Button variant="outline" disabled={index === 0} onClick={() => setIndex((value) => value - 1)}><ChevronRight /> السابق</Button>
-            {index === chapter.questions.length - 1 ? <Button onClick={() => setFinished(true)}><Flag /> إنهاء</Button> : <Button onClick={() => setIndex((value) => value + 1)}>التالي <ChevronLeft /></Button>}
+             {index === questions.length - 1 ? <Button onClick={() => setFinished(true)}><Flag /> إنهاء</Button> : <Button onClick={() => setIndex((value) => value + 1)}>التالي <ChevronLeft /></Button>}
           </div>
         </section>
 
         <aside className="rounded-md border border-border bg-card p-4 lg:sticky lg:top-4 lg:self-start">
           <h2 className="mb-3 text-sm font-bold">الأسئلة</h2>
           <div className="grid max-h-72 grid-cols-8 gap-1.5 overflow-y-auto lg:grid-cols-5">
-            {chapter.questions.map((item, questionIndex) => (
+             {questions.map((item, questionIndex) => (
               <Button key={item.id} variant={questionIndex === index ? "default" : answers[questionIndex] !== undefined ? "secondary" : "outline"} size="icon" className="size-9 text-xs" onClick={() => setIndex(questionIndex)}>{arabicNumber(questionIndex + 1)}</Button>
             ))}
           </div>

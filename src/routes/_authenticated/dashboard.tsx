@@ -45,11 +45,15 @@ function SectionsDashboard({ track }: { track: TrackId }) {
   const [qCounts, setQCounts] = useState<Record<number, number>>({});
   const [query, setQuery] = useState("");
   const [showInfo, setShowInfo] = useState(false);
+  const [sectionsVisible, setSectionsVisible] = useState(track !== "quantitative");
   const inputRef = useRef<HTMLInputElement>(null);
 
   function showSections() {
-    document.getElementById("quantitative-sections")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    window.setTimeout(() => inputRef.current?.focus(), 450);
+    setSectionsVisible(true);
+    window.setTimeout(() => {
+      document.getElementById("quantitative-sections")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      inputRef.current?.focus();
+    }, 50);
   }
 
   useEffect(() => {
@@ -64,7 +68,9 @@ function SectionsDashboard({ track }: { track: TrackId }) {
       setQCounts(c);
     });
   }, [track]);
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => {
+    if (sectionsVisible) inputRef.current?.focus();
+  }, [sectionsVisible]);
 
   const filtered = useMemo(() => {
     const q = query.trim();
@@ -137,7 +143,9 @@ function SectionsDashboard({ track }: { track: TrackId }) {
         </section>
       )}
 
-      {/* Sticky compact search — الأقسام أول حاجة */}
+      {sectionsVisible && (
+        <>
+      {/* Sticky compact search — يظهر بعد اختيار الأقسام */}
       <div id="quantitative-sections" className="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2 pb-4 mb-6 sm:mb-8 bg-surface/85 backdrop-blur-md scroll-mt-2">
         <form onSubmit={onSubmit} className="flex items-center gap-3">
           <div className="relative flex-1">
@@ -214,6 +222,8 @@ function SectionsDashboard({ track }: { track: TrackId }) {
           </div>
         )}
       </section>
+        </>
+      )}
     </main>
   );
 }
