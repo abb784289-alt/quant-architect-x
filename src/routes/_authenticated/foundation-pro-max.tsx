@@ -12,7 +12,7 @@ export const Route = createFileRoute("/_authenticated/foundation-pro-max")({
   ssr: false,
   validateSearch: (search: Record<string, unknown>): Search => ({
     chapter: typeof search.chapter === "string" ? search.chapter : undefined,
-    part: search.part === 1 || search.part === "1" ? 1 : search.part === 2 || search.part === "2" ? 2 : undefined,
+    part: [1, 2, 3, 4].includes(Number(search.part)) ? (Number(search.part) as Part) : undefined,
     mode: search.mode === "exam" || search.mode === "practice" ? search.mode : undefined,
   }),
   head: () => ({
