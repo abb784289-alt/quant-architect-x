@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, BookOpen, Check, ChevronLeft, ChevronRight, Clock3, Dumbbell, Flag, RotateCcw, Trophy } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, ChevronLeft, ChevronRight, Clock3, Dumbbell, Flag, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { FOUNDATION_PRO_MAX_CHAPTERS, getFoundationProMaxChapter } from "@/lib/foundation-pro-max-config";
 
@@ -60,10 +60,6 @@ function ChapterPicker() {
   return (
     <main dir="rtl" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 md:py-10">
       <PageHeader title="التأسيس برو ماكس" subtitle="اختر الباب، ثم ابدأ اختبارًا بوقت أو تدريبًا بدون وقت." />
-      <div className="mb-5 flex items-center gap-3 border-y border-border py-4">
-        <div className="grid size-10 place-items-center rounded-md bg-gold-soft text-foreground"><Trophy /></div>
-        <div><strong className="block text-sm">{arabicNumber(560)} سؤالًا اختياريًا</strong><span className="text-xs text-muted-foreground">مستخرجة من أبواب الملف فقط، بدون شرح أو إكمال.</span></div>
-      </div>
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {FOUNDATION_PRO_MAX_CHAPTERS.map((chapter, index) => (
           <Link

@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
 import { readSession } from "@/lib/session";
-import { loadSections, loadAllQuestions, computeTimerSeconds, formatTimer, toArabic, TRACKS, isTrackId, type SectionConfig, type TrackId } from "@/lib/platform-config";
+import { loadSections, loadAllQuestions, computeTimerSeconds, formatTimer, TRACKS, isTrackId, type SectionConfig, type TrackId } from "@/lib/platform-config";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -46,6 +46,11 @@ function SectionsDashboard({ track }: { track: TrackId }) {
   const [query, setQuery] = useState("");
   const [showInfo, setShowInfo] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  function showSections() {
+    document.getElementById("quantitative-sections")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    window.setTimeout(() => inputRef.current?.focus(), 450);
+  }
 
   useEffect(() => {
     setSections(loadSections(track));
@@ -100,8 +105,40 @@ function SectionsDashboard({ track }: { track: TrackId }) {
         </button>
       </div>
 
+      {/* الخيارات الرئيسية للقسم الكمي */}
+      {track === "quantitative" && (
+        <section className="mb-6 grid grid-cols-3 gap-2 md:mb-8 md:gap-4" aria-label="خيارات القسم الكمي">
+          <button
+            type="button"
+            onClick={showSections}
+            className="luxury-card flex min-h-32 flex-col items-center justify-center gap-3 border-2 border-border p-3 text-center transition-all hover:-translate-y-0.5 hover:border-teal hover:shadow-lg md:min-h-40 md:p-6"
+          >
+            <span className="grid size-11 place-items-center rounded-xl bg-surface-2 text-2xl md:size-12">▦</span>
+            <span className="font-display text-sm font-bold text-foreground md:text-lg">الأقسام</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/skills" })}
+            className="luxury-card flex min-h-32 flex-col items-center justify-center gap-3 border-2 border-teal/30 p-3 text-center transition-all hover:-translate-y-0.5 hover:border-teal hover:shadow-lg md:min-h-40 md:p-6"
+          >
+            <span className="grid size-11 place-items-center rounded-xl bg-teal text-2xl text-primary-foreground md:size-12">⚡</span>
+            <span className="font-display text-sm font-bold text-foreground md:text-lg">التأسيس الأسرع</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate({ to: "/foundation-pro-max" })}
+            className="luxury-card flex min-h-32 flex-col items-center justify-center gap-3 border-2 border-gold/40 p-3 text-center transition-all hover:-translate-y-0.5 hover:border-gold hover:shadow-lg md:min-h-40 md:p-6"
+          >
+            <span className="grid size-11 place-items-center rounded-xl bg-gold text-2xl text-foreground md:size-12">🏆</span>
+            <span className="font-display text-sm font-bold text-foreground md:text-lg">التأسيس برو ماكس</span>
+          </button>
+        </section>
+      )}
+
       {/* Sticky compact search — الأقسام أول حاجة */}
-      <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2 pb-4 mb-6 sm:mb-8 bg-surface/85 backdrop-blur-md">
+      <div id="quantitative-sections" className="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pt-2 pb-4 mb-6 sm:mb-8 bg-surface/85 backdrop-blur-md scroll-mt-2">
         <form onSubmit={onSubmit} className="flex items-center gap-3">
           <div className="relative flex-1">
             <input
@@ -139,41 +176,6 @@ function SectionsDashboard({ track }: { track: TrackId }) {
           </div>
         )}
       </div>
-
-      {/* مسارات التأسيس — داخل القسم الكمي فقط */}
-      {track === "quantitative" && (
-        <section className="mb-6 grid grid-cols-1 gap-4 md:mb-8 md:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/skills" })}
-            className="luxury-card p-5 md:p-6 text-start flex items-center justify-between gap-4 border-2 border-teal/30 hover:border-teal hover:-translate-y-0.5 hover:shadow-lg transition-all"
-          >
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 shrink-0 rounded-2xl bg-teal text-white grid place-items-center text-2xl shadow-md">⚡</div>
-              <div>
-                <div className="font-display font-bold text-foreground text-lg">التأسيس الأسرع</div>
-                <div className="text-xs text-muted-foreground">٣٠ مهارة — اختبار بوقت أو تدريب حر.</div>
-              </div>
-            </div>
-            <span className="text-teal-deep font-bold">←</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate({ to: "/foundation-pro-max" })}
-            className="luxury-card p-5 md:p-6 text-start flex items-center justify-between gap-4 border-2 border-gold/40 hover:border-gold hover:-translate-y-0.5 hover:shadow-lg transition-all"
-          >
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 shrink-0 rounded-2xl bg-gold text-foreground grid place-items-center text-2xl shadow-md">🏆</div>
-              <div>
-                <div className="font-display font-bold text-foreground text-lg">التأسيس برو ماكس</div>
-                <div className="text-xs text-muted-foreground">١٥ بابًا — اختبار بوقت أو تدريب بدون وقت.</div>
-              </div>
-            </div>
-            <span className="font-bold text-foreground">←</span>
-          </button>
-        </section>
-      )}
 
       {/* الأقسام — أكبر وأوسع */}
       <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-5">
