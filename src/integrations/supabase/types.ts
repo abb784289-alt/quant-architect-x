@@ -328,6 +328,51 @@ export type Database = {
         }
         Relationships: []
       }
+      skill_question_settings: {
+        Row: {
+          correct_index: number | null
+          hidden: boolean
+          question_id: string
+          skill_id: number
+          updated_at: string
+        }
+        Insert: {
+          correct_index?: number | null
+          hidden?: boolean
+          question_id: string
+          skill_id: number
+          updated_at?: string
+        }
+        Update: {
+          correct_index?: number | null
+          hidden?: boolean
+          question_id?: string
+          skill_id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      skill_settings: {
+        Row: {
+          hidden: boolean
+          skill_id: number
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          hidden?: boolean
+          skill_id: number
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          hidden?: boolean
+          skill_id?: number
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       student_questions: {
         Row: {
           created_at: string
