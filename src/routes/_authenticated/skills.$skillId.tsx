@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getSkill, SKILL_SECONDS_PER_QUESTION, SKILL_RESULTS_KEY, type Skill } from "@/lib/skills-config";
 import { useI18n } from "@/lib/i18n";
+import { useResolvedSkills, applySkillOverrides } from "@/lib/skills-overrides";
 
 export const Route = createFileRoute("/_authenticated/skills/$skillId")({
   ssr: false,
@@ -20,10 +21,15 @@ type Mode = "exam" | "practice";
 function SkillExamPage() {
   const { skillId } = Route.useParams();
 
-  const skill = getSkill(Number(skillId));
+  const base = getSkill(Number(skillId));
+  const { overrides, loading } = useResolvedSkills();
   const [mode, setMode] = useState<Mode | null>(null);
+  const skill = base ? applySkillOverrides(base, overrides) : undefined;
 
-  if (!skill) {
+  if (loading) {
+    return <main dir="rtl" className="mx-auto max-w-3xl px-6 py-20 text-center text-muted-foreground">جارٍ التحميل…</main>;
+  }
+  if (!skill || overrides.skills[skill.id]?.hidden) {
     return <main dir="rtl" className="mx-auto max-w-3xl px-6 py-20 text-center text-muted-foreground">المهارة غير موجودة.</main>;
   }
   if (!mode) return <ModePicker skill={skill} onPick={setMode} />;
