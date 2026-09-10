@@ -5,14 +5,14 @@ import { Button } from "@/components/ui/button";
 import { FOUNDATION_PRO_MAX_CHAPTERS, getFoundationProMaxChapter } from "@/lib/foundation-pro-max-config";
 
 type Mode = "exam" | "practice";
-type Part = 1 | 2;
+type Part = 1 | 2 | 3 | 4;
 type Search = { chapter?: string; part?: Part; mode?: Mode };
 
 export const Route = createFileRoute("/_authenticated/foundation-pro-max")({
   ssr: false,
   validateSearch: (search: Record<string, unknown>): Search => ({
     chapter: typeof search.chapter === "string" ? search.chapter : undefined,
-    part: search.part === 1 || search.part === "1" ? 1 : search.part === 2 || search.part === "2" ? 2 : undefined,
+    part: [1, 2, 3, 4].includes(Number(search.part)) ? (Number(search.part) as Part) : undefined,
     mode: search.mode === "exam" || search.mode === "practice" ? search.mode : undefined,
   }),
   head: () => ({
@@ -31,13 +31,25 @@ export const Route = createFileRoute("/_authenticated/foundation-pro-max")({
 
 const arabicNumber = (value: number) => value.toLocaleString("ar-EG");
 const answerLabels = ["أ", "ب", "ج", "د"];
-const partLabel = (part: Part) => part === 1 ? "الجزء الأول" : "الجزء الثاني";
+const PART_LABELS: Record<Part, string> = { 1: "الجزء الأول", 2: "الجزء الثاني", 3: "الجزء الثالث", 4: "الجزء الرابع" };
+const partLabel = (part: Part) => PART_LABELS[part];
+
+// عدد الأجزاء لكل باب (الأسس مقسّم على أربعة أجزاء)
+const CHAPTER_PARTS: Record<string, number> = { powers: 4 };
+const getPartCount = (chapterSlug: string) => CHAPTER_PARTS[chapterSlug] ?? 2;
+const getParts = (chapterSlug: string) => Array.from({ length: getPartCount(chapterSlug) }, (_, i) => (i + 1) as Part);
 
 function getPartQuestions(chapterSlug: string, part: Part) {
   const chapter = getFoundationProMaxChapter(chapterSlug);
   if (!chapter) return [];
-  const splitAt = Math.ceil(chapter.questions.length / 2);
-  return part === 1 ? chapter.questions.slice(0, splitAt) : chapter.questions.slice(splitAt);
+  const total = chapter.questions.length;
+  const parts = getPartCount(chapterSlug);
+  if (part > parts) return [];
+  const base = Math.floor(total / parts);
+  const extra = total % parts;
+  const start = (part - 1) * base + Math.min(part - 1, extra);
+  const size = base + (part <= extra ? 1 : 0);
+  return chapter.questions.slice(start, start + size);
 }
 
 function FoundationProMax() {
@@ -96,7 +108,7 @@ function PartPicker({ chapterSlug }: { chapterSlug: string }) {
     <main dir="rtl" className="mx-auto max-w-4xl px-4 py-6 sm:px-6 md:py-12">
       <PageHeader title={chapter.title} subtitle="اختر الجزء الذي تريد حله." />
       <section className="grid gap-4 md:grid-cols-2">
-        {([1, 2] as const).map((part) => {
+        {getParts(chapter.slug).map((part) => {
           const count = getPartQuestions(chapter.slug, part).length;
           return (
             <Link key={part} to="/foundation-pro-max" search={{ chapter: chapter.slug, part }} className="group rounded-md border-2 border-teal bg-card p-6 transition-colors hover:bg-teal-soft/40">
