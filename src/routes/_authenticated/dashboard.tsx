@@ -167,7 +167,7 @@ function SectionsDashboard({ track }: { track: TrackId }) {
               <div className="h-12 w-12 shrink-0 rounded-2xl bg-gold text-foreground grid place-items-center text-2xl shadow-md">🏆</div>
               <div>
                 <div className="font-display font-bold text-foreground text-lg">التأسيس برو ماكس</div>
-                <div className="text-xs text-muted-foreground">المنهج الكامل للشرح والتدريب.</div>
+                <div className="text-xs text-muted-foreground">١٥ بابًا — اختبار بوقت أو تدريب بدون وقت.</div>
               </div>
             </div>
             <span className="font-bold text-foreground">←</span>
