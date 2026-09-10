@@ -10,6 +10,7 @@ import {
   getMediaSignedUrl,
 } from "@/lib/questions.functions";
 import { supabase } from "@/integrations/supabase/client";
+import ProMaxAdminPanel from "@/components/ProMaxAdminPanel";
 import { upsertMediaAsset } from "@/lib/media-assets.functions";
 import {
   listAccessCodes,
@@ -68,7 +69,7 @@ function AdminGate() {
   return <div dir="rtl" className="min-h-[60vh] grid place-items-center text-muted-foreground">جارٍ التحقق...</div>;
 }
 
-type Tab = "questions" | "student-questions" | "uploader" | "organizer" | "timers" | "codes";
+type Tab = "questions" | "student-questions" | "uploader" | "organizer" | "timers" | "codes" | "pro-max";
 
 function AdminControlCenter() {
   const [tab, setTab] = useState<Tab>("questions");
@@ -90,6 +91,7 @@ function AdminControlCenter() {
         <TabBtn active={tab === "organizer"} onClick={() => setTab("organizer")}>منظّم الأقسام (CSV)</TabBtn>
         <TabBtn active={tab === "timers"} onClick={() => setTab("timers")}>ضابط المؤقتات</TabBtn>
         <TabBtn active={tab === "codes"} onClick={() => setTab("codes")}>أكواد التفعيل</TabBtn>
+        <TabBtn active={tab === "pro-max"} onClick={() => setTab("pro-max")}>التأسيس برو ماكس</TabBtn>
       </div>
 
       {tab === "questions" && <QuestionsBank />}
@@ -98,6 +100,7 @@ function AdminControlCenter() {
       {tab === "organizer" && <SectionOrganizer />}
       {tab === "timers" && <TimerController />}
       {tab === "codes" && <AccessCodesPanel />}
+      {tab === "pro-max" && <ProMaxAdminPanel />}
 
       <p className="text-[11px] text-muted-foreground mt-8">
         الفيديوهات تُرفع الآن إلى التخزين السحابي (Supabase Storage – bucket: <code className="font-mono">section-videos</code>) بمسار دائم يعمل من أي جهاز.
