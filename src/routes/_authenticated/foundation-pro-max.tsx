@@ -156,23 +156,51 @@ function ChapterExam({ chapterSlug, part, mode }: { chapterSlug: string; part: P
   }, [mode, finished, seconds]);
 
   const answered = Object.keys(answers).length;
+  const correctCount = useMemo(
+    () => questions.reduce((sum, q, i) => (q.correctIndex !== null && answers[i] === q.correctIndex ? sum + 1 : sum), 0),
+    [questions, answers],
+  );
+  const wrongItems = useMemo(
+    () => questions.map((q, i) => ({ q, i })).filter(({ q, i }) => q.correctIndex !== null && answers[i] !== q.correctIndex),
+    [questions, answers],
+  );
   const time = useMemo(() => `${String(Math.floor(seconds / 60)).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`, [seconds]);
   if (!chapter) return null;
 
   if (finished) {
+    const percent = questions.length ? Math.round((correctCount / questions.length) * 100) : 0;
     return (
       <main dir="rtl" className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
         <section className="rounded-md border border-border bg-card p-6 text-center md:p-10">
           <div className="mx-auto mb-4 grid size-16 place-items-center rounded-full bg-teal-soft text-teal-deep"><Check className="size-8" /></div>
           <h1 className="text-2xl font-bold">اكتمل {mode === "exam" ? "الاختبار" : "التدريب"}</h1>
           <p className="mt-2 text-muted-foreground">أجبت عن {arabicNumber(answered)} من {arabicNumber(questions.length)} سؤالًا.</p>
-          <div className="mx-auto mt-6 max-w-sm border-y border-border py-4 text-sm text-muted-foreground">ستظهر درجة الصح والخطأ بعد إضافة ملف الإجابات المعتمد.</div>
+          <div className="mx-auto mt-6 max-w-sm border-y border-border py-4">
+            <p className="font-display text-3xl font-bold text-teal-deep">{arabicNumber(correctCount)} / {arabicNumber(questions.length)}</p>
+            <p className="mt-1 text-sm text-muted-foreground">نسبة الإجابات الصحيحة {arabicNumber(percent)}٪</p>
+          </div>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Button onClick={() => { setIndex(0); setAnswers({}); setSeconds(initialSeconds); setFinished(false); }}><RotateCcw /> إعادة المحاولة</Button>
             <Button variant="outline" onClick={() => navigate({ to: "/foundation-pro-max", search: { chapter: chapter.slug, part } })}><BookOpen /> اختيار الطريقة</Button>
             <Button variant="ghost" onClick={() => navigate({ to: "/foundation-pro-max" })}>كل الأبواب</Button>
           </div>
         </section>
+
+        {wrongItems.length > 0 && (
+          <section className="mt-6 space-y-4">
+            <h2 className="text-lg font-bold">مراجعة الأخطاء ({arabicNumber(wrongItems.length)})</h2>
+            {wrongItems.map(({ q, i }) => (
+              <article key={q.id} className="rounded-md border border-border bg-card p-4">
+                <div className="mb-3 flex flex-wrap items-center gap-3 text-sm">
+                  <span className="font-bold">السؤال {arabicNumber(i + 1)}</span>
+                  <span className="text-muted-foreground">إجابتك: {answers[i] !== undefined ? answerLabels[answers[i]] : "بدون إجابة"}</span>
+                  <span className="font-bold text-teal-deep">الصحيحة: {answerLabels[q.correctIndex as number]}</span>
+                </div>
+                <img src={q.image} alt={`سؤال ${arabicNumber(i + 1)}`} className="max-h-[420px] w-auto max-w-full object-contain" />
+              </article>
+            ))}
+          </section>
+        )}
       </main>
     );
   }
