@@ -21,7 +21,7 @@ function render(tex: string, displayMode: boolean) {
 export function MathText({ text }: { text: string }) {
   const parts = String(text ?? "").split(/(\$\$[^$]+\$\$|\$[^$]+\$)/g);
   return (
-    <span className="whitespace-pre-line">
+    <span dir="rtl" className="whitespace-pre-line text-right [unicode-bidi:plaintext]">
       {parts.map((part, index) => {
         if (part.startsWith("$$") && part.endsWith("$$") && part.length > 4) {
           return (
@@ -43,7 +43,11 @@ export function MathText({ text }: { text: string }) {
             />
           );
         }
-        return <span key={index}>{toArabicDigits(part)}</span>;
+        return (
+          <span key={index} dir="rtl" className="[unicode-bidi:isolate]">
+            {toArabicDigits(part)}
+          </span>
+        );
       })}
     </span>
   );
