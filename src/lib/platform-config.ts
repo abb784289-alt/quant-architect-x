@@ -16,8 +16,8 @@ export const TRACKS: Record<TrackId, {
     id: "quantitative",
     label: "القسم الكمي",
     shortLabel: "كمي",
-    subtitle: "الرياضيات — 90 قسمًا",
-    total: 90,
+    subtitle: "الرياضيات — 120 قسمًا",
+    total: 120,
     accent: "teal",
     icon: "∑",
   },
@@ -82,7 +82,7 @@ function foundationKey(track: TrackId) { return track === "verbal" ? `${FOUNDATI
 function questionsKey(track: TrackId) { return track === "verbal" ? `${QUESTIONS_KEY}_verbal` : QUESTIONS_KEY; }
 export function resultsKey(track: TrackId) { return track === "verbal" ? "nemr:results:verbal" : "nemr:results"; }
 
-export const TOTAL_SECTIONS = 90;
+export const TOTAL_SECTIONS = 120;
 export const DEFAULT_TIMER_SECONDS = 0; // 0 = auto (1 minute per question)
 export const SECONDS_PER_QUESTION = 60;
 
