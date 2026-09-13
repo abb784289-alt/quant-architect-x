@@ -148,7 +148,7 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
                       </span>
                     )}
                   </div>
-                  <img src={x.image} alt={`سؤال ${num(i + 1)}`} className="w-full rounded-xl border border-border bg-white p-2" loading="lazy" />
+                  <img src={x.image} alt={`سؤال ${num(i + 1)}`} className="question-image-monochrome w-full rounded-xl border border-border bg-white p-2" loading="lazy" />
                   <div className="mt-3 grid grid-cols-4 gap-2">
                     {["أ", "ب", "ج", "د"].map((c, ci) => (
                       <div
@@ -191,7 +191,7 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
       </div>
 
       <div className="luxury-card p-4 md:p-6">
-        <img src={q.image} alt={`سؤال ${num(idx + 1)}`} className="w-full rounded-xl border border-border bg-white p-2" />
+        <img src={q.image} alt={`سؤال ${num(idx + 1)}`} className="question-image-monochrome w-full rounded-xl border border-border bg-white p-2" />
         <div className="mt-5 grid grid-cols-4 gap-3">
           {["أ", "ب", "ج", "د"].map((c, ci) => {
             const active = answers[idx] === ci;

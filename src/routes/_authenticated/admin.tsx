@@ -763,7 +763,7 @@ function QuestionsBank({ track = "quantitative" }: { track?: TrackId }) {
                 </div>
                 {q.imageUrl && (
                   <div className="mt-2 rounded-xl border border-border bg-surface-1 p-2 inline-block">
-                    <img src={q.imageUrl} alt="معاينة" className="max-h-32 rounded-lg" />
+                    <img src={q.imageUrl} alt="معاينة" className="question-image-monochrome max-h-32 rounded-lg" />
                   </div>
                 )}
               </div>
@@ -993,7 +993,7 @@ function AdminQuestionCard({ row, onChanged }: { row: StudentQuestion; onChanged
       )}
       {imgUrl && (
         <a href={imgUrl} target="_blank" rel="noopener noreferrer">
-          <img src={imgUrl} alt="سؤال" className="mt-3 max-h-80 rounded-xl border border-border object-contain bg-black/5" />
+          <img src={imgUrl} alt="سؤال" className="question-image-monochrome mt-3 max-h-80 rounded-xl border border-border object-contain bg-black/5" />
         </a>
       )}
 
