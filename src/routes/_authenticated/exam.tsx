@@ -461,7 +461,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
               )}
               {active.imageUrl && (
                 <div className="rounded-xl bg-white border border-border p-2 sm:p-3 mb-4 text-center">
-                  <img src={active.imageUrl} alt={t("exam.figureAlt")} loading="lazy" className="w-full max-w-full h-auto max-h-[45vh] sm:max-h-72 object-contain mx-auto rounded-lg" />
+                  <img src={active.imageUrl} alt={t("exam.figureAlt")} loading="lazy" className="question-image-monochrome w-full max-w-full h-auto max-h-[45vh] sm:max-h-72 object-contain mx-auto rounded-lg" />
                 </div>
               )}
 
@@ -665,7 +665,7 @@ function ResultsView({
 
                     {q.imageUrl && (
                       <div className="rounded-lg bg-white border border-border p-2 sm:p-3 mb-3 text-center">
-                        <img src={q.imageUrl} alt={`${t("common.question")} ${num(qNumber)}`} loading="lazy" className="w-full h-auto max-h-[45vh] sm:max-h-72 object-contain mx-auto rounded-lg" />
+                        <img src={q.imageUrl} alt={`${t("common.question")} ${num(qNumber)}`} loading="lazy" className="question-image-monochrome w-full h-auto max-h-[45vh] sm:max-h-72 object-contain mx-auto rounded-lg" />
                       </div>
                     )}
 

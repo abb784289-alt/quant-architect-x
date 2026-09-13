@@ -260,7 +260,7 @@ function ChapterExam({ chapterSlug, part, mode, settings }: { chapterSlug: strin
                   <span className="text-muted-foreground">إجابتك: {answers[i] !== undefined ? answerLabels[answers[i]] : "بدون إجابة"}</span>
                   <span className="font-bold text-teal-deep">الصحيحة: {answerLabels[q.correctIndex as number]}</span>
                 </div>
-                <img src={q.image} alt={`سؤال ${arabicNumber(i + 1)}`} className="max-h-[420px] w-auto max-w-full object-contain" />
+                <img src={q.image} alt={`سؤال ${arabicNumber(i + 1)}`} className="question-image-monochrome max-h-[420px] w-auto max-w-full object-contain" />
               </article>
             ))}
           </section>
@@ -285,7 +285,7 @@ function ChapterExam({ chapterSlug, part, mode, settings }: { chapterSlug: strin
         <section className="rounded-md border border-border bg-card p-3 sm:p-5">
           <div className="mb-4 flex items-center justify-between text-sm text-muted-foreground"><span>السؤال {arabicNumber(index + 1)} من {arabicNumber(questions.length)}</span><span>{arabicNumber(answered)} مجاب</span></div>
           <div className="grid min-h-[280px] place-items-center overflow-auto rounded-md bg-background p-2 sm:min-h-[380px] sm:p-5">
-             <img src={question.image} alt={`سؤال ${arabicNumber(index + 1)} من ${examTitle}`} className="max-h-[470px] w-auto max-w-full object-contain" draggable={false} />
+             <img src={question.image} alt={`سؤال ${arabicNumber(index + 1)} من ${examTitle}`} className="question-image-monochrome max-h-[470px] w-auto max-w-full object-contain" draggable={false} />
           </div>
           <div className="mt-4 grid grid-cols-4 gap-2" aria-label="اختر الإجابة">
             {answerLabels.map((label, answerIndex) => (

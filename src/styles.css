@@ -204,6 +204,10 @@
 }
 @utility animate-pulse-gold { animation: pulse-gold 2.4s ease-in-out infinite; }
 
+@utility question-image-monochrome {
+  filter: grayscale(1) contrast(1.08);
+}
+
 .q-table {
   width: 100%;
   max-width: 32rem;

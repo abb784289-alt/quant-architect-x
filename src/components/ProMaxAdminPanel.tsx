@@ -180,7 +180,7 @@ export default function ProMaxAdminPanel() {
                   </button>
                 </div>
                 <div className="grid min-h-32 place-items-center overflow-hidden rounded-xl bg-background p-2">
-                  <img src={q.image} alt={`سؤال ${ar(i + 1)}`} loading="lazy" className="max-h-56 w-auto max-w-full object-contain" />
+                  <img src={q.image} alt={`سؤال ${ar(i + 1)}`} loading="lazy" className="question-image-monochrome max-h-56 w-auto max-w-full object-contain" />
                 </div>
                 <div className="mt-2 grid grid-cols-4 gap-1.5">
                   {answerLabels.map((label, idx) => (

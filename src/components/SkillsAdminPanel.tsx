@@ -162,7 +162,7 @@ export default function SkillsAdminPanel() {
                     {qHidden ? "إظهار" : "إخفاء"}
                   </button>
                 </div>
-                <img src={q.image} alt={`سؤال ${i + 1}`} loading="lazy" className="w-full rounded-xl border border-border bg-white" />
+                <img src={q.image} alt={`سؤال ${i + 1}`} loading="lazy" className="question-image-monochrome w-full rounded-xl border border-border bg-white" />
                 <div className="mt-2 grid grid-cols-4 gap-1">
                   {answerLabels.map((label, idx) => (
                     <button
