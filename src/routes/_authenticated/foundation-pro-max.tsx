@@ -35,8 +35,10 @@ const answerLabels = ["أ", "ب", "ج", "د"];
 const PART_LABELS: Record<Part, string> = { 1: "الجزء الأول", 2: "الجزء الثاني", 3: "الجزء الثالث", 4: "الجزء الرابع" };
 const partLabel = (part: Part) => PART_LABELS[part];
 
-// عدد الأجزاء الافتراضي لكل باب (الأسس مقسّم على أربعة أجزاء)
+// عدد الأجزاء لكل باب: افتراضيًا كل جزء ~٢٠ سؤالًا (بحد أقصى ٤ أجزاء)
 const CHAPTER_PARTS: Record<string, number> = { powers: 4 };
+const autoParts = (count: number) => Math.min(4, Math.max(2, Math.ceil(count / 21)));
+
 
 type SettingsState = {
   chapters: Record<string, ProMaxChapterSetting>;
@@ -78,7 +80,8 @@ function resolveChapter(chapterSlug: string, settings: SettingsState | null) {
     slug: base.slug,
     title: override?.title ?? base.title,
     hidden: override?.hidden ?? false,
-    parts: override?.parts ?? CHAPTER_PARTS[chapterSlug] ?? 2,
+    parts: override?.parts ?? CHAPTER_PARTS[chapterSlug] ?? autoParts(questions.length),
+
     questions,
   };
 }
