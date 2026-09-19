@@ -80,7 +80,8 @@ function resolveChapter(chapterSlug: string, settings: SettingsState | null) {
     slug: base.slug,
     title: override?.title ?? base.title,
     hidden: override?.hidden ?? false,
-    parts: override?.parts ?? CHAPTER_PARTS[chapterSlug] ?? 2,
+    parts: override?.parts ?? CHAPTER_PARTS[chapterSlug] ?? autoParts(questions.length),
+
     questions,
   };
 }
