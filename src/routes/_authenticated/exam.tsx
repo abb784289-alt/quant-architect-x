@@ -44,7 +44,7 @@ export const Route = createFileRoute("/_authenticated/exam")({
     z.object({
       section: z.coerce.number().int().min(1).max(500).optional(),
       mode: z.enum(["exam", "practice"]).optional(),
-      track: z.enum(["quantitative", "verbal"]).optional(),
+      track: z.enum(["quantitative", "verbal", "quant_en"]).optional(),
     }).parse(s),
   head: () => ({
     meta: [

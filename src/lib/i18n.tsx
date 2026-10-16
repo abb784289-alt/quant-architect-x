@@ -294,6 +294,9 @@ const ar: Dict = {
   "track.verbal.label": "القسم اللفظي",
   "track.verbal.short": "لفظي",
   "track.verbal.subtitle": "اللغة — ٢٦٠ قسمًا",
+  "track.quant_en.label": "كمي بالإنجليزي",
+  "track.quant_en.short": "كمي EN",
+  "track.quant_en.subtitle": "Quantitative in English — ٣٣ قسمًا",
 };
 
 const en: Dict = {
@@ -582,6 +585,9 @@ const en: Dict = {
   "track.quantitative.label": "Quantitative section",
   "track.quantitative.short": "Quantitative",
   "track.quantitative.subtitle": "Mathematics — 90 sections",
+  "track.quant_en.label": "Quantitative (English)",
+  "track.quant_en.short": "Quant EN",
+  "track.quant_en.subtitle": "Quantitative in English — 33 sections",
   "track.verbal.label": "Verbal section",
   "track.verbal.short": "Verbal",
   "track.verbal.subtitle": "Language — 260 sections",

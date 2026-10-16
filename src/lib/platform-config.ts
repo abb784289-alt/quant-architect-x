@@ -1,7 +1,7 @@
 export type FoundationCategoryId = "ratios" | "geometry" | "statistics" | "averages";
 
 // ─────────────────── Tracks (كمي / لفظي) ───────────────────
-export type TrackId = "quantitative" | "verbal";
+export type TrackId = "quantitative" | "verbal" | "quant_en";
 
 export const TRACKS: Record<TrackId, {
   id: TrackId;
@@ -30,19 +30,32 @@ export const TRACKS: Record<TrackId, {
     accent: "gold",
     icon: "ﻥ",
   },
+  quant_en: {
+    id: "quant_en",
+    label: "كمي بالإنجليزي",
+    shortLabel: "كمي EN",
+    subtitle: "Quantitative in English — 33 sections",
+    total: 33,
+    accent: "teal",
+    icon: "EN",
+  },
 };
 
 export function isTrackId(v: unknown): v is TrackId {
-  return v === "quantitative" || v === "verbal";
+  return v === "quantitative" || v === "verbal" || v === "quant_en";
 }
 
-// Server-side section_number is offset for verbal so both tracks
+// Server-side section_number is offset for verbal and quant_en so all tracks
 // share the same question_bank table without collisions.
 const VERBAL_SERVER_OFFSET = 2000;
+const QUANT_EN_SERVER_OFFSET = 4000;
 export function serverSectionNumber(track: TrackId, n: number): number {
-  return track === "verbal" ? VERBAL_SERVER_OFFSET + n : n;
+  if (track === "verbal") return VERBAL_SERVER_OFFSET + n;
+  if (track === "quant_en") return QUANT_EN_SERVER_OFFSET + n;
+  return n;
 }
 export function localFromServerSectionNumber(serverN: number): { track: TrackId; n: number } {
+  if (serverN > QUANT_EN_SERVER_OFFSET) return { track: "quant_en", n: serverN - QUANT_EN_SERVER_OFFSET };
   if (serverN > VERBAL_SERVER_OFFSET) return { track: "verbal", n: serverN - VERBAL_SERVER_OFFSET };
   return { track: "quantitative", n: serverN };
 }
@@ -77,10 +90,11 @@ const SECTIONS_KEY = "sections_config_v1";
 const FOUNDATION_KEY = "foundation_assets_v1";
 const QUESTIONS_KEY = "questions_bank_v2";
 
-function sectionsKey(track: TrackId) { return track === "verbal" ? `${SECTIONS_KEY}_verbal` : SECTIONS_KEY; }
-function foundationKey(track: TrackId) { return track === "verbal" ? `${FOUNDATION_KEY}_verbal` : FOUNDATION_KEY; }
-function questionsKey(track: TrackId) { return track === "verbal" ? `${QUESTIONS_KEY}_verbal` : QUESTIONS_KEY; }
-export function resultsKey(track: TrackId) { return track === "verbal" ? "nemr:results:verbal" : "nemr:results"; }
+function trackSuffix(track: TrackId) { return track === "quantitative" ? "" : `_${track}`; }
+function sectionsKey(track: TrackId) { return `${SECTIONS_KEY}${trackSuffix(track)}`; }
+function foundationKey(track: TrackId) { return `${FOUNDATION_KEY}${trackSuffix(track)}`; }
+function questionsKey(track: TrackId) { return `${QUESTIONS_KEY}${trackSuffix(track)}`; }
+export function resultsKey(track: TrackId) { return track === "quantitative" ? "nemr:results" : `nemr:results:${track}`; }
 
 export const TOTAL_SECTIONS = 120;
 export const DEFAULT_TIMER_SECONDS = 0; // 0 = auto (1 minute per question)
@@ -1381,8 +1395,8 @@ export function getQuestions(sectionNumber: number, track: TrackId = "quantitati
   const all = loadAllQuestions(track);
   const custom = all[sectionNumber];
   if (custom && custom.length > 0) return applyQuestionSvgFixes(custom);
-  // Verbal has no seeded question bank yet — starts empty until admin uploads.
-  if (track === "verbal") return [];
+  // Verbal and quant_en have no seeded question bank — starts empty until admin uploads.
+  if (track !== "quantitative") return [];
   return applyQuestionSvgFixes(SEED_QUESTIONS[sectionNumber] ?? []);
 }
 
@@ -1409,16 +1423,19 @@ export function hydrateQuestionBankFromServer(): Promise<void> {
         questions: Question[];
       }>;
       if (!rows || rows.length === 0) return;
-      const mergedQuant = loadAllQuestions("quantitative");
-      const mergedVerbal = loadAllQuestions("verbal");
+      const merged: Record<TrackId, Record<number, Question[]>> = {
+        quantitative: loadAllQuestions("quantitative"),
+        verbal: loadAllQuestions("verbal"),
+        quant_en: loadAllQuestions("quant_en"),
+      };
       for (const row of rows) {
         if (!Array.isArray(row.questions) || row.questions.length === 0) continue;
         const { track, n } = localFromServerSectionNumber(row.section_number);
-        if (track === "verbal") mergedVerbal[n] = row.questions;
-        else mergedQuant[n] = row.questions;
+        merged[track][n] = row.questions;
       }
-      window.localStorage.setItem(questionsKey("quantitative"), JSON.stringify(mergedQuant));
-      window.localStorage.setItem(questionsKey("verbal"), JSON.stringify(mergedVerbal));
+      (Object.keys(merged) as TrackId[]).forEach((tr) => {
+        window.localStorage.setItem(questionsKey(tr), JSON.stringify(merged[tr]));
+      });
       window.dispatchEvent(new CustomEvent("question-bank:hydrated"));
     } catch (e) {
       console.warn("[question-bank] hydrate failed", e);
