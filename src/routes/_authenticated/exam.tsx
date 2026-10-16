@@ -196,6 +196,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
   const [finished, setFinished] = useState(false);
   const [correctByQid, setCorrectByQid] = useState<Record<string, number>>({});
   const [grading, setGrading] = useState(false);
+  const autoDoneRef = useRef(false);
 
   useEffect(() => {
     const n = sectionNumber ?? 1;
@@ -214,6 +215,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
       setRemaining(computeTimerSeconds(c, qs.length));
       setWarned4(false);
       setFinished(false);
+      autoDoneRef.current = false;
     });
     return () => { cancelled = true; };
   }, [sectionNumber, track]);
@@ -234,6 +236,14 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
     }
   }, [remaining, warned4, config, isPractice]);
 
+  // إنهاء تلقائي عند انتهاء الوقت
+  useEffect(() => {
+    if (!config || isPractice || finished || grading) return;
+    if (remaining > 0 || autoDoneRef.current) return;
+    autoDoneRef.current = true;
+    void finish(true);
+  }, [remaining, config, isPractice, finished, grading, finish]);
+
   if (questions.length === 0) {
     return (
       <div dir={dir} className="min-h-[60vh] grid place-items-center px-6">
@@ -253,8 +263,8 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
   const unsolved = questions.length - solved;
   const active = questions[current];
 
-  async function finish() {
-    if (!isPractice && unsolved > 0) {
+  async function finish(auto = false) {
+    if (!auto && !isPractice && unsolved > 0) {
       setToast(t("exam.mustSolveAll", { n: num(unsolved) }));
       setTimeout(() => setToast(null), 5000);
       return;
@@ -262,7 +272,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
     const msg = isPractice
       ? (unsolved > 0 ? t("exam.confirmPracticeLeft", { n: num(unsolved) }) : t("exam.confirmPractice"))
       : t("exam.confirmExam");
-    if (!confirm(msg)) return;
+    if (!auto && !confirm(msg)) return;
     // Grade server-side — answer keys never live in the browser bundle.
     setGrading(true);
     try {
