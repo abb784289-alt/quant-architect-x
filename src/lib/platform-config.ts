@@ -1,7 +1,7 @@
 export type FoundationCategoryId = "ratios" | "geometry" | "statistics" | "averages";
 
 // ─────────────────── Tracks (كمي / لفظي) ───────────────────
-export type TrackId = "quantitative" | "verbal";
+export type TrackId = "quantitative" | "verbal" | "quant_en";
 
 export const TRACKS: Record<TrackId, {
   id: TrackId;
@@ -30,19 +30,32 @@ export const TRACKS: Record<TrackId, {
     accent: "gold",
     icon: "ﻥ",
   },
+  quant_en: {
+    id: "quant_en",
+    label: "كمي بالإنجليزي",
+    shortLabel: "كمي EN",
+    subtitle: "Quantitative in English — 33 sections",
+    total: 33,
+    accent: "teal",
+    icon: "EN",
+  },
 };
 
 export function isTrackId(v: unknown): v is TrackId {
-  return v === "quantitative" || v === "verbal";
+  return v === "quantitative" || v === "verbal" || v === "quant_en";
 }
 
-// Server-side section_number is offset for verbal so both tracks
+// Server-side section_number is offset for verbal and quant_en so all tracks
 // share the same question_bank table without collisions.
 const VERBAL_SERVER_OFFSET = 2000;
+const QUANT_EN_SERVER_OFFSET = 4000;
 export function serverSectionNumber(track: TrackId, n: number): number {
-  return track === "verbal" ? VERBAL_SERVER_OFFSET + n : n;
+  if (track === "verbal") return VERBAL_SERVER_OFFSET + n;
+  if (track === "quant_en") return QUANT_EN_SERVER_OFFSET + n;
+  return n;
 }
 export function localFromServerSectionNumber(serverN: number): { track: TrackId; n: number } {
+  if (serverN > QUANT_EN_SERVER_OFFSET) return { track: "quant_en", n: serverN - QUANT_EN_SERVER_OFFSET };
   if (serverN > VERBAL_SERVER_OFFSET) return { track: "verbal", n: serverN - VERBAL_SERVER_OFFSET };
   return { track: "quantitative", n: serverN };
 }
@@ -77,10 +90,11 @@ const SECTIONS_KEY = "sections_config_v1";
 const FOUNDATION_KEY = "foundation_assets_v1";
 const QUESTIONS_KEY = "questions_bank_v2";
 
-function sectionsKey(track: TrackId) { return track === "verbal" ? `${SECTIONS_KEY}_verbal` : SECTIONS_KEY; }
-function foundationKey(track: TrackId) { return track === "verbal" ? `${FOUNDATION_KEY}_verbal` : FOUNDATION_KEY; }
-function questionsKey(track: TrackId) { return track === "verbal" ? `${QUESTIONS_KEY}_verbal` : QUESTIONS_KEY; }
-export function resultsKey(track: TrackId) { return track === "verbal" ? "nemr:results:verbal" : "nemr:results"; }
+function trackSuffix(track: TrackId) { return track === "quantitative" ? "" : `_${track}`; }
+function sectionsKey(track: TrackId) { return `${SECTIONS_KEY}${trackSuffix(track)}`; }
+function foundationKey(track: TrackId) { return `${FOUNDATION_KEY}${trackSuffix(track)}`; }
+function questionsKey(track: TrackId) { return `${QUESTIONS_KEY}${trackSuffix(track)}`; }
+export function resultsKey(track: TrackId) { return track === "quantitative" ? "nemr:results" : `nemr:results:${track}`; }
 
 export const TOTAL_SECTIONS = 120;
 export const DEFAULT_TIMER_SECONDS = 0; // 0 = auto (1 minute per question)
