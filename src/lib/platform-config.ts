@@ -1395,8 +1395,8 @@ export function getQuestions(sectionNumber: number, track: TrackId = "quantitati
   const all = loadAllQuestions(track);
   const custom = all[sectionNumber];
   if (custom && custom.length > 0) return applyQuestionSvgFixes(custom);
-  // Verbal has no seeded question bank yet — starts empty until admin uploads.
-  if (track === "verbal") return [];
+  // Verbal and quant_en have no seeded question bank — starts empty until admin uploads.
+  if (track !== "quantitative") return [];
   return applyQuestionSvgFixes(SEED_QUESTIONS[sectionNumber] ?? []);
 }
 
@@ -1423,16 +1423,19 @@ export function hydrateQuestionBankFromServer(): Promise<void> {
         questions: Question[];
       }>;
       if (!rows || rows.length === 0) return;
-      const mergedQuant = loadAllQuestions("quantitative");
-      const mergedVerbal = loadAllQuestions("verbal");
+      const merged: Record<TrackId, Record<number, Question[]>> = {
+        quantitative: loadAllQuestions("quantitative"),
+        verbal: loadAllQuestions("verbal"),
+        quant_en: loadAllQuestions("quant_en"),
+      };
       for (const row of rows) {
         if (!Array.isArray(row.questions) || row.questions.length === 0) continue;
         const { track, n } = localFromServerSectionNumber(row.section_number);
-        if (track === "verbal") mergedVerbal[n] = row.questions;
-        else mergedQuant[n] = row.questions;
+        merged[track][n] = row.questions;
       }
-      window.localStorage.setItem(questionsKey("quantitative"), JSON.stringify(mergedQuant));
-      window.localStorage.setItem(questionsKey("verbal"), JSON.stringify(mergedVerbal));
+      (Object.keys(merged) as TrackId[]).forEach((tr) => {
+        window.localStorage.setItem(questionsKey(tr), JSON.stringify(merged[tr]));
+      });
       window.dispatchEvent(new CustomEvent("question-bank:hydrated"));
     } catch (e) {
       console.warn("[question-bank] hydrate failed", e);

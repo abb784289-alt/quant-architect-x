@@ -31,7 +31,7 @@ type Attempt = {
 
 export const Route = createFileRoute("/_authenticated/mistakes")({
   ssr: false,
-  validateSearch: (s) => z.object({ track: z.enum(["quantitative", "verbal"]).optional() }).parse(s),
+  validateSearch: (s) => z.object({ track: z.enum(["quantitative", "verbal", "quant_en"]).optional() }).parse(s),
   head: () => ({ meta: [{ title: "أخطائي — منصة المِقْيَاس" }, { name: "description", content: "مراجعة كل الأسئلة التي أخطأت فيها عبر جميع الأقسام." }] }),
   component: MistakesPage,
 });

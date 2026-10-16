@@ -3,7 +3,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 const ScopeEnum = z.enum(["section", "foundation"]);
-const TrackEnum = z.enum(["quantitative", "verbal"]);
+const TrackEnum = z.enum(["quantitative", "verbal", "quant_en"]);
 
 async function assertAdmin(supabase: any, userId: string) {
   const { data, error } = await supabase

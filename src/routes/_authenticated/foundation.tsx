@@ -7,7 +7,7 @@ import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/foundation")({
   ssr: false,
-  validateSearch: (s) => z.object({ track: z.enum(["quantitative", "verbal"]).optional() }).parse(s),
+  validateSearch: (s) => z.object({ track: z.enum(["quantitative", "verbal", "quant_en"]).optional() }).parse(s),
   head: () => ({
     meta: [
       { title: "قسم التأسيس الشامل — منصة المِقْيَاس" },
