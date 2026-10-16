@@ -330,6 +330,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
           setAnswers({});
           setCurrent(0);
           setFinished(false);
+          autoDoneRef.current = false;
           setCorrectByQid({});
           setRemaining(computeTimerSeconds(config!, questions.length));
           setWarned4(false);
