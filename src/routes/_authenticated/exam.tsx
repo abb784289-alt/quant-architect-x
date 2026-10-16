@@ -422,7 +422,7 @@ function NemrExamEngine({ session, mode, track }: { session: Session; mode: "exa
             <UtilBtn onClick={() => setModal("exam-inst")}>{t("exam.examInst")}</UtilBtn>
             <UtilBtn onClick={() => setModal("rules")}>{t("exam.rules")}</UtilBtn>
             <button
-              onClick={finish}
+              onClick={() => finish()}
               disabled={!isPractice && unsolved > 0}
               title={!isPractice && unsolved > 0 ? t("exam.mustSolveFirst", { n: num(unsolved) }) : (isPractice ? t("exam.finishPracticeTitle") : t("exam.finishExamTitle"))}
               className={
