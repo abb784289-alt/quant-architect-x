@@ -6,10 +6,10 @@ export const Route = createFileRoute("/_authenticated/skills/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "تسريبات مظلة — ٣٠ مهارة — منصة المِقْيَاس" },
-      { name: "description", content: "تسريبات مظلة في ٣٠ مهارة كمية، كل مهارة باختبار مستقل بوقت أو تدريب حر." },
+      { title: "تسريبات مظلة — اختبارات كمية — منصة المِقْيَاس" },
+      { name: "description", content: "تجميع تسريبات مظلة للقسم الكمي مقسّم إلى اختبارات من ١٥ سؤالًا، كل اختبار بوقت أو تدريب حر." },
       { property: "og:title", content: "تسريبات مظلة — منصة المِقْيَاس" },
-      { property: "og:description", content: "تسريبات مظلة في ٣٠ مهارة كمية مع اختبارات وتدريبات مستقلة." },
+      { property: "og:description", content: "اختبارات تسريبات مظلة الكمية، كل اختبار ١٥ سؤالًا بوقت أو تدريب حر." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex, nofollow" },
@@ -31,7 +31,7 @@ function SkillsList() {
             القسم الكمي · تسريبات مظلة
           </div>
           <h1 className="font-display font-bold text-2xl md:text-3xl text-foreground">تسريبات مظلة</h1>
-          <p className="text-sm text-muted-foreground mt-1">{num(skills.length)} مهارة — اختر مهارة وابدأ اختبارها.</p>
+          <p className="text-sm text-muted-foreground mt-1">{num(skills.length)} اختبارًا — كل اختبار {num(15)} سؤالًا، اختر وابدأ.</p>
         </div>
         <button
           type="button"
