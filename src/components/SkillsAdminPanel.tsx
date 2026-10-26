@@ -89,7 +89,7 @@ export default function SkillsAdminPanel() {
   return (
     <section dir="rtl" className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
       <aside className="rounded-2xl border border-border bg-card p-3">
-        <h3 className="mb-2 px-2 text-sm font-bold">مهارات تسريبات مظلة</h3>
+        <h3 className="mb-2 px-2 text-sm font-bold">اختبارات تسريبات مظلة</h3>
         <div className="max-h-[560px] space-y-1 overflow-y-auto">
           {SKILLS.map((s) => {
             const st = skillMap[s.id];
@@ -118,7 +118,7 @@ export default function SkillsAdminPanel() {
           <div className="rounded-2xl border border-border bg-card p-4">
             <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
               <label className="block text-sm">
-                <span className="mb-1 block font-semibold">اسم المهارة</span>
+                <span className="mb-1 block font-semibold">اسم الاختبار</span>
                 <input
                   value={titleDraft}
                   onChange={(e) => setTitleDraft(e.target.value)}
