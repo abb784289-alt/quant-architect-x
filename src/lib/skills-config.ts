@@ -1725,3 +1725,10 @@ export const SKILLS: Skill[] = [
     { id: "q1518", image: "/mezla-crops/q1518.jpg", correctIndex: 3 },
   ] },
 ];
+
+export const SKILL_SECONDS_PER_QUESTION = 60;
+export const SKILL_RESULTS_KEY = "mezla_results_v1";
+
+export function getSkill(id: number): Skill | undefined {
+  return SKILLS.find((s) => s.id === id);
+}
