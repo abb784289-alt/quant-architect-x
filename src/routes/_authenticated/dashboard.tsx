@@ -129,7 +129,7 @@ function SectionsDashboard({ track }: { track: TrackId }) {
             className="luxury-card flex min-h-32 flex-col items-center justify-center gap-3 border-2 border-teal/30 p-3 text-center transition-all hover:-translate-y-0.5 hover:border-teal hover:shadow-lg md:min-h-40 md:p-6"
           >
             <span className="grid size-11 place-items-center rounded-xl bg-teal text-2xl text-primary-foreground md:size-12">⚡</span>
-            <span className="font-display text-sm font-bold text-foreground md:text-lg">التأسيس الأسرع</span>
+            <span className="font-display text-sm font-bold text-foreground md:text-lg">تسريبات مظلة</span>
           </button>
 
           <button
