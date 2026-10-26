@@ -90,7 +90,7 @@ function AdminControlCenter() {
       <div className="flex flex-wrap gap-1 rounded-2xl bg-surface-2 border border-border p-1 mb-6 max-w-3xl">
         <TabBtn active={tab === "questions"} onClick={() => setTab("questions")}>بنك الأسئلة</TabBtn>
         <TabBtn active={tab === "verbal"} onClick={() => setTab("verbal")}>بنك اللفظي</TabBtn>
-        <TabBtn active={tab === "skills"} onClick={() => setTab("skills")}>التأسيس الأسرع</TabBtn>
+        <TabBtn active={tab === "skills"} onClick={() => setTab("skills")}>تسريبات مظلة</TabBtn>
         <TabBtn active={tab === "student-questions"} onClick={() => setTab("student-questions")}>أسئلة الطلاب</TabBtn>
         <TabBtn active={tab === "uploader"} onClick={() => setTab("uploader")}>رفع الفيديوهات</TabBtn>
         <TabBtn active={tab === "organizer"} onClick={() => setTab("organizer")}>منظّم الأقسام (CSV)</TabBtn>

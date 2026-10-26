@@ -6,10 +6,10 @@ export const Route = createFileRoute("/_authenticated/skills/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "التأسيس الأسرع — ٣٠ مهارة — منصة المِقْيَاس" },
-      { name: "description", content: "التأسيس الأسرع في ٣٠ مهارة كمية، كل مهارة باختبار مستقل بوقت أو تدريب حر." },
-      { property: "og:title", content: "التأسيس الأسرع — منصة المِقْيَاس" },
-      { property: "og:description", content: "التأسيس الأسرع في ٣٠ مهارة كمية مع اختبارات وتدريبات مستقلة." },
+      { title: "تسريبات مظلة — اختبارات كمية — منصة المِقْيَاس" },
+      { name: "description", content: "تجميع تسريبات مظلة للقسم الكمي مقسّم إلى اختبارات من ١٥ سؤالًا، كل اختبار بوقت أو تدريب حر." },
+      { property: "og:title", content: "تسريبات مظلة — منصة المِقْيَاس" },
+      { property: "og:description", content: "اختبارات تسريبات مظلة الكمية، كل اختبار ١٥ سؤالًا بوقت أو تدريب حر." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex, nofollow" },
@@ -28,10 +28,10 @@ function SkillsList() {
       <div className="flex items-center justify-between mb-6 gap-3 flex-wrap">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full bg-teal-soft text-teal-deep px-3 py-1 text-[11px] font-semibold border border-teal/30 mb-2">
-            القسم الكمي · التأسيس الأسرع
+            القسم الكمي · تسريبات مظلة
           </div>
-          <h1 className="font-display font-bold text-2xl md:text-3xl text-foreground">التأسيس الأسرع</h1>
-          <p className="text-sm text-muted-foreground mt-1">{num(skills.length)} مهارة — اختر مهارة وابدأ اختبارها.</p>
+          <h1 className="font-display font-bold text-2xl md:text-3xl text-foreground">تسريبات مظلة</h1>
+          <p className="text-sm text-muted-foreground mt-1">{num(skills.length)} اختبارًا — كل اختبار {num(15)} سؤالًا، اختر وابدأ.</p>
         </div>
         <button
           type="button"

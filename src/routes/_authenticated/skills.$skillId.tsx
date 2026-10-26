@@ -8,8 +8,8 @@ export const Route = createFileRoute("/_authenticated/skills/$skillId")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "اختبار مهارة تأسيسية — منصة المِقْيَاس" },
-      { name: "description", content: "اختبار مهارة من مهارات التأسيس الكمي بوقت أو تدريب حر مع عرض النتيجة والأخطاء." },
+      { title: "اختبار تسريبات مظلة — منصة المِقْيَاس" },
+      { name: "description", content: "اختبار من تجميع تسريبات مظلة الكمي بوقت أو تدريب حر مع عرض النتيجة والأخطاء." },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -30,7 +30,7 @@ function SkillExamPage() {
     return <main dir="rtl" className="mx-auto max-w-3xl px-6 py-20 text-center text-muted-foreground">جارٍ التحميل…</main>;
   }
   if (!skill || overrides.skills[skill.id]?.hidden) {
-    return <main dir="rtl" className="mx-auto max-w-3xl px-6 py-20 text-center text-muted-foreground">المهارة غير موجودة.</main>;
+    return <main dir="rtl" className="mx-auto max-w-3xl px-6 py-20 text-center text-muted-foreground">الاختبار غير موجود.</main>;
   }
   if (!mode) return <ModePicker skill={skill} onPick={setMode} />;
   return <SkillRunner skill={skill} mode={mode} onExit={() => setMode(null)} />;
@@ -46,7 +46,7 @@ function ModePicker({ skill, onPick }: { skill: Skill; onPick: (m: Mode) => void
         onClick={() => navigate({ to: "/skills" })}
         className="text-xs rounded-full border border-border bg-white px-3 py-1.5 text-muted-foreground hover:border-teal hover:text-teal-deep transition-colors mb-6"
       >
-        ← كل المهارات
+        ← كل الاختبارات
       </button>
       <h1 className="font-display font-bold text-2xl md:text-3xl text-foreground mb-1">
         {num(skill.id)}. {skill.title}
@@ -118,12 +118,12 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
           {graded ? (
             <p className="text-lg font-bold text-teal-deep">النتيجة: {num(correct)} من {num(total)}</p>
           ) : (
-            <p className="text-sm text-muted-foreground">تم حفظ إجاباتك — نموذج الإجابات لهذه المهارة لم يُرفع بعد.</p>
+            <p className="text-sm text-muted-foreground">تم حفظ إجاباتك — نموذج الإجابات لهذا الاختبار لم يُرفع بعد.</p>
           )}
           <p className="text-xs text-muted-foreground mt-2">أجبت على {num(answered)} من {num(total)} سؤال.</p>
           <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
             <button type="button" onClick={onExit} className="rounded-xl border border-border px-4 py-2 text-sm hover:border-teal hover:text-teal-deep transition-colors">إعادة</button>
-            <a href="/skills" className="rounded-xl bg-teal text-white px-4 py-2 text-sm font-bold hover:bg-teal-deep transition-colors">كل المهارات</a>
+            <a href="/skills" className="rounded-xl bg-teal text-white px-4 py-2 text-sm font-bold hover:bg-teal-deep transition-colors">كل الاختبارات</a>
           </div>
         </div>
 
