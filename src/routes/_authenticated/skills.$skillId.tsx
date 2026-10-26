@@ -8,8 +8,8 @@ export const Route = createFileRoute("/_authenticated/skills/$skillId")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "اختبار تسريبات مظلة — منصة المِقْيَاس" },
-      { name: "description", content: "اختبار من تجميع تسريبات مظلة الكمي بوقت أو تدريب حر مع عرض النتيجة والأخطاء." },
+      { title: "اختبار الأسئلة الأكثر تكرارًا — منصة المِقْيَاس" },
+      { name: "description", content: "اختبار من تجميع الأسئلة الأكثر تكرارًا الكمي بوقت أو تدريب حر مع عرض النتيجة والأخطاء." },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -49,7 +49,7 @@ function ModePicker({ skill, onPick }: { skill: Skill; onPick: (m: Mode) => void
         ← كل الاختبارات
       </button>
       <h1 className="font-display font-bold text-2xl md:text-3xl text-foreground mb-1">
-        {num(skill.id)}. {skill.title}
+        {skill.title}
       </h1>
       <p className="text-sm text-muted-foreground mb-8">{num(skill.questions.length)} سؤال — اختر طريقة الدخول.</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -176,7 +176,7 @@ function SkillRunner({ skill, mode, onExit }: { skill: Skill; mode: Mode; onExit
   return (
     <main dir="rtl" className="mx-auto max-w-4xl px-4 sm:px-6 py-6">
       <div className="sticky top-0 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 mb-5 bg-surface/85 backdrop-blur-md flex items-center justify-between gap-3 flex-wrap">
-        <div className="text-sm font-bold text-foreground">{num(skill.id)}. {skill.title}</div>
+        <div className="text-sm font-bold text-foreground">{skill.title}</div>
         <div className="flex items-center gap-3 text-xs">
           <span className="rounded-full bg-teal-soft text-teal-deep px-3 py-1 font-bold border border-teal/30">
             {num(idx + 1)} / {num(total)}
