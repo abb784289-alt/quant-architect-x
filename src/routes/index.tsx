@@ -203,7 +203,7 @@ function Index() {
             <div aria-hidden className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-gold/15" />
             {/* subtle vignette */}
             <div aria-hidden className="pointer-events-none absolute inset-0" style={{ boxShadow: "inset 0 0 120px 20px oklch(0.14 0.04 175 / 0.7)" }} />
-            <div className="absolute bottom-5 right-5 left-5 glass-card px-5 py-4">
+            <div className="absolute bottom-5 right-5 left-5 rounded-2xl border border-gold/30 bg-background/85 px-5 py-4 text-foreground backdrop-blur-md">
               <div className="font-display text-lg font-bold">{t("home.profTitle")}</div>
               <div className="text-xs text-muted-foreground">{t("home.profSub")}</div>
             </div>
