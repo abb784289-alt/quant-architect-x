@@ -4,6 +4,7 @@ import { z } from "zod";
 import { readSession } from "@/lib/session";
 import { loadSections, loadAllQuestions, computeTimerSeconds, formatTimer, TRACKS, isTrackId, type SectionConfig, type TrackId } from "@/lib/platform-config";
 import { useI18n } from "@/lib/i18n";
+import { LayoutGrid, Repeat2, Crown, ChevronLeft } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -117,28 +118,31 @@ function SectionsDashboard({ track }: { track: TrackId }) {
           <button
             type="button"
             onClick={showSections}
-            className="luxury-card flex min-h-32 flex-col items-center justify-center gap-3 border-2 border-border p-3 text-center transition-all hover:-translate-y-0.5 hover:border-teal hover:shadow-lg md:min-h-40 md:p-6"
+            className="group luxury-card flex min-h-32 flex-col items-center justify-center gap-3 border-2 border-border p-3 text-center transition-all hover:-translate-y-0.5 hover:border-teal hover:shadow-lg md:min-h-40 md:p-6"
           >
-            <span className="grid size-11 place-items-center rounded-xl bg-surface-2 text-2xl md:size-12">▦</span>
+            <span className="grid size-12 place-items-center rounded-2xl bg-teal-soft shadow-sm ring-1 ring-inset ring-border/40 transition-transform group-hover:scale-105 md:size-14"><LayoutGrid className="size-6 text-teal-deep" strokeWidth={1.75} /></span>
             <span className="font-display text-sm font-bold text-foreground md:text-lg">الأقسام</span>
+            <span className="hidden items-center gap-1 text-xs text-muted-foreground md:inline-flex">تدرّب قسمًا قسمًا <ChevronLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" /></span>
           </button>
 
           <button
             type="button"
             onClick={() => navigate({ to: "/skills" })}
-            className="luxury-card flex min-h-32 flex-col items-center justify-center gap-3 border-2 border-teal/30 p-3 text-center transition-all hover:-translate-y-0.5 hover:border-teal hover:shadow-lg md:min-h-40 md:p-6"
+            className="group luxury-card flex min-h-32 flex-col items-center justify-center gap-3 border-2 border-teal/30 p-3 text-center transition-all hover:-translate-y-0.5 hover:border-teal hover:shadow-lg md:min-h-40 md:p-6"
           >
-            <span className="grid size-11 place-items-center rounded-xl bg-teal text-2xl text-primary-foreground md:size-12">⚡</span>
+            <span className="grid size-12 place-items-center rounded-2xl bg-teal text-primary-foreground shadow-sm ring-1 ring-inset ring-border/40 transition-transform group-hover:scale-105 md:size-14"><Repeat2 className="size-6" strokeWidth={1.75} /></span>
             <span className="font-display text-sm font-bold text-foreground md:text-lg">الأسئلة الأكثر تكرارًا</span>
+            <span className="hidden items-center gap-1 text-xs text-muted-foreground md:inline-flex">اختبارات مرقّمة <ChevronLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" /></span>
           </button>
 
           <button
             type="button"
             onClick={() => navigate({ to: "/foundation-pro-max" })}
-            className="luxury-card flex min-h-32 flex-col items-center justify-center gap-3 border-2 border-gold/40 p-3 text-center transition-all hover:-translate-y-0.5 hover:border-gold hover:shadow-lg md:min-h-40 md:p-6"
+            className="group luxury-card flex min-h-32 flex-col items-center justify-center gap-3 border-2 border-gold/40 p-3 text-center transition-all hover:-translate-y-0.5 hover:border-gold hover:shadow-lg md:min-h-40 md:p-6"
           >
-            <span className="grid size-11 place-items-center rounded-xl bg-gold text-2xl text-foreground md:size-12">🏆</span>
+            <span className="grid size-12 place-items-center rounded-2xl bg-gold text-foreground shadow-sm ring-1 ring-inset ring-border/40 transition-transform group-hover:scale-105 md:size-14"><Crown className="size-6" strokeWidth={1.75} /></span>
             <span className="font-display text-sm font-bold text-foreground md:text-lg">التأسيس برو ماكس</span>
+            <span className="hidden items-center gap-1 text-xs text-muted-foreground md:inline-flex">أبواب التأسيس كاملة <ChevronLeft className="size-3.5 transition-transform group-hover:-translate-x-0.5" /></span>
           </button>
         </section>
       )}
