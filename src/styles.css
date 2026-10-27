@@ -268,3 +268,21 @@
 .dark .q-table thead th { background: oklch(0.30 0.045 190); color: oklch(0.90 0.05 190); }
 .dark .q-table tbody th { background: oklch(0.26 0.015 240); }
 .dark .q-table tbody tr:nth-child(even) td { background: oklch(0.24 0.012 240); }
+
+/* Night mode: remap hard-coded light utilities so text stays readable */
+.dark .bg-white { background-color: var(--card); }
+.dark [class*="bg-white/"] { background-color: color-mix(in oklch, var(--card) 85%, transparent); }
+.dark .from-white { --tw-gradient-from: var(--card); }
+.dark .to-white { --tw-gradient-to: var(--card); }
+.dark .via-white { --tw-gradient-via: var(--card); }
+.dark .text-black { color: var(--foreground); }
+.dark .bg-red-50, .dark .bg-red-100 { background-color: oklch(0.30 0.07 25); }
+.dark .text-red-700, .dark .text-red-600 { color: oklch(0.82 0.11 25); }
+.dark .border-red-200, .dark .border-red-300 { border-color: oklch(0.45 0.10 25); }
+.dark .bg-neutral-100 { background-color: var(--surface-2); }
+.dark .text-amber-600 { color: oklch(0.82 0.13 75); }
+.dark input, .dark textarea, .dark select { color: var(--foreground); }
+.dark input::placeholder, .dark textarea::placeholder { color: var(--muted-foreground); }
+/* Question images/figures keep a white sheet so dark ink stays visible */
+.dark main img:not([class*="rounded-full"]) { background-color: #fff; }
+.dark .q-figure, .dark svg.figure { background-color: #fff; color: #111; border-radius: 0.5rem; }
