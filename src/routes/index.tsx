@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion";
 import { useEffect, useRef } from "react";
 import professorHero from "@/assets/professor-hero.jpg";
+import { MathBackdrop } from "@/components/MathBackdrop";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -184,7 +185,12 @@ function Index() {
           className="relative mx-auto w-full max-w-md"
         >
           <div aria-hidden className="absolute -inset-8 rounded-[2rem] bg-gradient-to-tr from-gold/30 via-transparent to-teal-glow/30 blur-2xl" />
-          <div className="relative overflow-hidden rounded-[1.75rem] border border-gold/30 gold-ring">
+          <MathBackdrop />
+          <motion.div
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="relative overflow-hidden rounded-[1.75rem] border border-gold/30 gold-ring motion-reduce:transform-none"
+          >
             <img
               src={professorHero}
               alt="الأستاذ أسامة فتح الدين محمد — كبير خبراء القسم الكمي"
@@ -201,8 +207,7 @@ function Index() {
               <div className="font-display text-lg font-bold">{t("home.profTitle")}</div>
               <div className="text-xs text-muted-foreground">{t("home.profSub")}</div>
             </div>
-          </div>
-          <div aria-hidden className="absolute -top-6 -left-6 h-20 w-20 rounded-2xl border border-gold/40 bg-teal-deep/70 backdrop-blur animate-float-slow" />
+          </motion.div>
         </motion.div>
       </section>
 
