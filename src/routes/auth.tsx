@@ -1,3 +1,4 @@
+import logo from "@/assets/logo.png";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -113,7 +114,7 @@ function LightAuthPage() {
       <div className="mb-4 flex items-center gap-2"><LanguageToggle /><ThemeToggle /></div>
       <div className="luxury-card w-full max-w-md p-8">
         <div className="text-center mb-6">
-          <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-teal to-teal-deep text-white font-display text-2xl font-bold shadow-lg">م</div>
+          <img src={logo} alt="شعار المِقْيَاس" width={256} height={256} className="h-14 w-14 rounded-xl object-contain" />
           <h1 className="font-display text-2xl font-bold text-teal-gradient mb-1">{t("brand.full")}</h1>
           <p className="text-xs text-muted-foreground">{t("auth.subtitle")}</p>
         </div>

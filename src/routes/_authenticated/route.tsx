@@ -1,3 +1,4 @@
+import logo from "@/assets/logo.png";
 import { createFileRoute, Link, Outlet, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { loadSession, clearSession, type Session } from "@/lib/session";
@@ -48,7 +49,7 @@ function RoleAwareShell() {
       <header className="sticky top-0 z-40 border-b border-border bg-white/85 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3.5">
           <Link to="/tracks" className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-teal to-teal-deep text-white font-display font-bold shadow-md">م</div>
+            <img src={logo} alt="شعار المِقْيَاس" width={256} height={256} className="h-9 w-9 rounded-xl object-contain" />
             <div className="leading-tight">
               <div className="font-display font-bold text-foreground">{t("brand.name")}</div>
               <div className="text-[10px] text-muted-foreground">{t("brand.sub")}</div>

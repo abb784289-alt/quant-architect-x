@@ -1,3 +1,4 @@
+import logo from "@/assets/logo.png";
 import { createFileRoute } from "@tanstack/react-router";
 import { motion, useInView, useMotionValue, useTransform, animate } from "framer-motion";
 import { useEffect, useRef } from "react";
@@ -116,7 +117,7 @@ function Index() {
       {/* NAV */}
       <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-xl border border-gold/40 bg-teal-deep/60 font-display text-lg text-gold-gradient">م</div>
+          <img src={logo} alt="شعار المِقْيَاس" width={256} height={256} className="h-11 w-11 rounded-xl object-contain" />
           <div className="leading-tight">
             <div className="font-display text-lg font-bold tracking-tight">{t("brand.name")}</div>
             <div className="text-[11px] text-muted-foreground">Al-Miqyas Academy</div>
@@ -283,7 +284,7 @@ function Index() {
         <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-6 py-14 md:grid-cols-4">
           <div>
             <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-xl border border-gold/40 bg-teal-deep/60 font-display text-gold-gradient">م</div>
+              <img src={logo} alt="شعار المِقْيَاس" width={256} height={256} className="h-10 w-10 rounded-xl object-contain" />
               <div className="font-display font-bold">{t("brand.full")}</div>
             </div>
             <p className="mt-4 text-sm text-muted-foreground">
