@@ -19,13 +19,13 @@ export function MathBackdrop() {
           backgroundSize: "28px 28px",
           maskImage: "radial-gradient(circle at center, black 30%, transparent 72%)",
           WebkitMaskImage: "radial-gradient(circle at center, black 30%, transparent 72%)",
-          opacity: 0.12,
+          opacity: 0.18,
         }}
       />
       <svg viewBox="0 0 400 400" className="absolute inset-0 h-full w-full overflow-visible">
         {/* outer dashed protractor ring */}
         <motion.g style={{ originX: "200px", originY: "200px" }} {...spin(60)}>
-          <circle cx="200" cy="200" r="190" fill="none" stroke="var(--color-gold)" strokeOpacity="0.35" strokeDasharray="2 10" />
+          <circle cx="200" cy="200" r="190" fill="none" stroke="var(--color-gold)" strokeOpacity="0.55" strokeDasharray="2 10" />
           {Array.from({ length: 36 }).map((_, i) => {
             const a = (i * 10 * Math.PI) / 180;
             const r1 = i % 3 === 0 ? 178 : 184;
@@ -37,7 +37,7 @@ export function MathBackdrop() {
         </motion.g>
         {/* inner ring with triangle */}
         <motion.g style={{ originX: "200px", originY: "200px" }} {...spin(90, -1)}>
-          <circle cx="200" cy="200" r="160" fill="none" stroke="var(--color-teal)" strokeOpacity="0.35" />
+          <circle cx="200" cy="200" r="160" fill="none" stroke="var(--color-teal)" strokeOpacity="0.5" />
           <polygon points="200,40 338.6,280 61.4,280" fill="none" stroke="var(--color-teal)" strokeOpacity="0.25" />
           <circle cx="200" cy="40" r="4" fill="var(--color-gold)" />
         </motion.g>

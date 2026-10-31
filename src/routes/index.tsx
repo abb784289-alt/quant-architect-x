@@ -184,26 +184,25 @@ function Index() {
           transition={{ duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="relative mx-auto w-full max-w-md"
         >
-          <div aria-hidden className="absolute -inset-8 rounded-[2rem] bg-gradient-to-tr from-gold/30 via-transparent to-teal-glow/30 blur-2xl" />
+          <div aria-hidden className="absolute -inset-8 rounded-full bg-gradient-to-tr from-gold/20 via-transparent to-teal-glow/20 blur-3xl" />
           <MathBackdrop />
           <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="relative overflow-hidden rounded-[1.75rem] border border-gold/30 gold-ring motion-reduce:transform-none"
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            className="relative motion-reduce:transform-none"
           >
             <img
               src={professorHero}
               alt="الأستاذ أسامة فتح الدين محمد — كبير خبراء القسم الكمي"
               width={1024}
               height={1280}
-              className="h-full w-full object-cover"
+              className="relative h-full w-full object-cover"
+              style={{
+                maskImage: "radial-gradient(ellipse 62% 68% at 50% 45%, black 55%, transparent 100%)",
+                WebkitMaskImage: "radial-gradient(ellipse 62% 68% at 50% 45%, black 55%, transparent 100%)",
+              }}
             />
-            {/* cinematic color grade */}
-            <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-teal-deep via-teal-deep/40 to-transparent mix-blend-multiply" />
-            <div aria-hidden className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-gold/15" />
-            {/* subtle vignette */}
-            <div aria-hidden className="pointer-events-none absolute inset-0" style={{ boxShadow: "inset 0 0 120px 20px oklch(0.14 0.04 175 / 0.7)" }} />
-            <div className="absolute bottom-5 right-5 left-5 rounded-2xl border border-gold/30 bg-background/90 px-5 py-4 text-foreground shadow-lg">
+            <div className="absolute bottom-3 right-6 left-6 rounded-2xl border border-gold/30 bg-background/85 px-5 py-3 text-foreground shadow-lg backdrop-blur">
               <div className="font-display text-lg font-bold">{t("home.profTitle")}</div>
               <div className="text-xs text-muted-foreground">{t("home.profSub")}</div>
             </div>
