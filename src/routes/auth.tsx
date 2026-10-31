@@ -5,6 +5,7 @@ import { lovable } from "@/integrations/lovable/index";
 import { useI18n } from "@/lib/i18n";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { postAuthPath } from "@/lib/oauth-return-path";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -40,7 +41,7 @@ function LightAuthPage() {
   async function handleGoogle() {
     setBusy(true);
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: new URL(postAuthPath(), window.location.origin).href,
     });
     if (result.error) {
       setBusy(false);
@@ -48,7 +49,7 @@ function LightAuthPage() {
       return;
     }
     if (result.redirected) return;
-    window.location.href = "/tracks";
+    window.location.href = postAuthPath();
   }
 
   // Sweep any legacy plaintext credentials/session left by the old client-side auth.
@@ -77,7 +78,7 @@ function LightAuthPage() {
     if (error) { setBanner({ kind: "error", text: t("auth.badCreds") }); return; }
     // Role (admin vs student) is resolved server-side via user_roles; go to dashboard,
     // admins can navigate to /admin from the header link.
-    window.location.href = "/tracks";
+    window.location.href = postAuthPath();
   }
 
   async function handleRegister(e: FormEvent) {
@@ -94,7 +95,7 @@ function LightAuthPage() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/tracks`,
+        emailRedirectTo: new URL(postAuthPath(), window.location.origin).href,
         data: { full_name: fullName, mobile },
       },
     });
