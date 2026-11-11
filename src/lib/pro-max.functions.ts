@@ -14,10 +14,12 @@ async function assertAdmin(supabase: any, userId: string) {
 
 export const getProMaxSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async () => {
+    // Settings are admin-only in RLS; signed-in users read them via this verified function.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [chapters, questions] = await Promise.all([
-      context.supabase.from("pro_max_chapter_settings").select("slug,title,parts,hidden"),
-      context.supabase.from("pro_max_question_settings").select("question_id,chapter_slug,correct_index,hidden"),
+      supabaseAdmin.from("pro_max_chapter_settings").select("slug,title,parts,hidden"),
+      supabaseAdmin.from("pro_max_question_settings").select("question_id,chapter_slug,correct_index,hidden"),
     ]);
     if (chapters.error) throw new Error(chapters.error.message);
     if (questions.error) throw new Error(questions.error.message);

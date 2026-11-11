@@ -19,10 +19,12 @@ async function assertAdmin(supabase: any, userId: string) {
 
 export const getSkillSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }) => {
+  .handler(async () => {
+    // Settings are admin-only in RLS; signed-in users read them via this verified function.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [skills, questions] = await Promise.all([
-      context.supabase.from("skill_settings").select("skill_id,title,hidden"),
-      context.supabase.from("skill_question_settings").select("question_id,skill_id,correct_index,hidden"),
+      supabaseAdmin.from("skill_settings").select("skill_id,title,hidden"),
+      supabaseAdmin.from("skill_question_settings").select("question_id,skill_id,correct_index,hidden"),
     ]);
     if (skills.error) throw new Error(skills.error.message);
     if (questions.error) throw new Error(questions.error.message);
